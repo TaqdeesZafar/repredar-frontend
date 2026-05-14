@@ -9,8 +9,7 @@ import Layout from "./components/Layout";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Profile from "./pages/Profile"; 
-import Subscription from "./pages/Subscription";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -32,15 +31,7 @@ function App() {
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route 
-            path="/subscriptions" 
-            element={
-              <ProtectedRoute>
-                <Subscription />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
+          <Route
             path="/profile-info" 
             element={
               <ProtectedRoute>

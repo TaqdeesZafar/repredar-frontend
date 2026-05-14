@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom"
 import Logo from "./common/Logo";
 import { isTokenExpired } from "../utils/token";
 import { FaUserCircle, FaTachometerAlt, FaSignOutAlt, FaChevronDown } from "react-icons/fa";
-import { CiBadgeDollar } from "react-icons/ci";
 
 export default function Layout({ children }) {
   const navigate = useNavigate()
@@ -94,16 +93,6 @@ export default function Layout({ children }) {
                       >
                         <FaTachometerAlt className="mr-2" />
                         Dashboard
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigate("/subscriptions");
-                          setDropdownOpen(false)
-                        }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        <CiBadgeDollar className="mr-2" />
-                        Subscriptions
                       </button>
                       <button
                         onClick={handleLogout}

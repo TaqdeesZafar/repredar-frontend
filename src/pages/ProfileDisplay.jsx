@@ -21,7 +21,6 @@ const ProfileDisplay = () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [email, setEmail] = useState("");
   const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
-  const [pendingReportType, setPendingReportType] = useState(null);
   const [loadingMessage, setLoadingMessage] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
@@ -68,11 +67,10 @@ const ProfileDisplay = () => {
     }
   }, [location.state]);
 
-  const handleDownloadReport = async (reportType) => {
+  const handleDownloadReport = async () => {
     if (isDownloading) return;
 
     if (!isLoggedIn) {
-      setPendingReportType(reportType);
       setShowEmailModal(true);
       return;
     }
@@ -95,104 +93,37 @@ const ProfileDisplay = () => {
         const businessId = location?.state?.business_id || userData.business_id || "";
         const businessName = userData.name || "";
         identifier = businessId;
-        apiUrl =
-          reportType === "paid"
-            ? `${import.meta.env.VITE_BACKEND_URL}/google/generate-paid-pdf-report?query=${encodeURIComponent(businessName)}&business_id=${encodeURIComponent(businessId)}`
-            : `${import.meta.env.VITE_BACKEND_URL}/google/generate-pdf-report?query=${encodeURIComponent(businessName)}&business_id=${encodeURIComponent(businessId)}`;
+        apiUrl = `${import.meta.env.VITE_BACKEND_URL}/google/generate-pdf-report?query=${encodeURIComponent(businessName)}&business_id=${encodeURIComponent(businessId)}`;
       } else if (platform === "linkedin") {
         identifier = userData.name || userData.full_name || "";
         const linkedinUrl = userData.url || "";
-
-        apiUrl =
-          reportType === "paid"
-            ? `${
-                import.meta.env.VITE_BACKEND_URL
-              }/linkedin/generate-paid-pdf-report?url=${encodeURIComponent(
-                linkedinUrl
-              )}&query=${encodeURIComponent(identifier)}`
-            : `${
-                import.meta.env.VITE_BACKEND_URL
-              }/linkedin/generate-pdf-report?url=${encodeURIComponent(
-                linkedinUrl
-              )}&query=${encodeURIComponent(identifier)}`;
+        apiUrl = `${import.meta.env.VITE_BACKEND_URL}/linkedin/generate-pdf-report?url=${encodeURIComponent(linkedinUrl)}&query=${encodeURIComponent(identifier)}`;
       } else if (platform === "tiktok") {
-        // For TikTok, use sec_uid and nickname
         const secUid = userData.sec_uid || "";
         identifier = userData.name || "";
-
-        apiUrl =
-          reportType === "paid"
-            ? `${
-                import.meta.env.VITE_BACKEND_URL
-              }/tiktok/generate-paid-pdf-report?secUid=${encodeURIComponent(
-                secUid
-              )}&query=${encodeURIComponent(identifier)}`
-            : `${
-                import.meta.env.VITE_BACKEND_URL
-              }/tiktok/generate-pdf-report?secUid=${encodeURIComponent(
-                secUid
-              )}&query=${encodeURIComponent(identifier)}`;
+        apiUrl = `${import.meta.env.VITE_BACKEND_URL}/tiktok/generate-pdf-report?secUid=${encodeURIComponent(secUid)}&query=${encodeURIComponent(identifier)}`;
       } else if (platform === "facebook") {
-        
-        // Determine if coming from profiles or pages subtab
         const subtab = location?.state?.subtab;
-        console.log("subtab : ", subtab);
         if (subtab === "Profiles") {
-          console.log("profiles");
-          // Use profile_id for profiles subtab
           const profileId = userData.facebook_id || "";
           identifier = userData.name || "";
-          apiUrl =
-            reportType === "paid"
-              ? `${import.meta.env.VITE_BACKEND_URL}/facebook/generate-paid-pdf-report?profile_id=${encodeURIComponent(profileId)}&query=${encodeURIComponent(identifier)}`
-              : `${import.meta.env.VITE_BACKEND_URL}/facebook/generate-pdf-report?profile_id=${encodeURIComponent(profileId)}&query=${encodeURIComponent(identifier)}`;
+          apiUrl = `${import.meta.env.VITE_BACKEND_URL}/facebook/generate-pdf-report?profile_id=${encodeURIComponent(profileId)}&query=${encodeURIComponent(identifier)}`;
         } else {
-          // Default: use page_id for pages subtab
           const pageId = userData.facebook_id || "";
           identifier = userData.name || "";
-          apiUrl =
-            reportType === "paid"
-              ? `${import.meta.env.VITE_BACKEND_URL}/facebook/generate-paid-pdf-report?page_id=${encodeURIComponent(pageId)}&query=${encodeURIComponent(identifier)}`
-              : `${import.meta.env.VITE_BACKEND_URL}/facebook/generate-pdf-report?page_id=${encodeURIComponent(pageId)}&query=${encodeURIComponent(identifier)}`;
+          apiUrl = `${import.meta.env.VITE_BACKEND_URL}/facebook/generate-pdf-report?page_id=${encodeURIComponent(pageId)}&query=${encodeURIComponent(identifier)}`;
         }
       } else if (platform === "instagram") {
-        // For Instagram, use username
         identifier = userData.screen_name || "";
-        apiUrl =
-          reportType === "paid"
-            ? `${
-                import.meta.env.VITE_BACKEND_URL
-              }/instagram/generate-paid-pdf-report?query=@${encodeURIComponent(
-                identifier
-              )}`
-            : `${
-                import.meta.env.VITE_BACKEND_URL
-              }/instagram/generate-pdf-report?query=@${encodeURIComponent(
-                identifier
-              )}`;
+        apiUrl = `${import.meta.env.VITE_BACKEND_URL}/instagram/generate-pdf-report?query=@${encodeURIComponent(identifier)}`;
       } else if (platform === "X" || platform === "x") {
-        // For Twitter, keep the existing format
         identifier = userData.screen_name || "";
-        apiUrl =
-          reportType === "paid"
-            ? `${
-                import.meta.env.VITE_BACKEND_URL
-              }/twitter/generate-paid-pdf-report?query=@${encodeURIComponent(
-                identifier
-              )}`
-            : `${
-                import.meta.env.VITE_BACKEND_URL
-              }/twitter/generate-pdf-report?query=@${encodeURIComponent(
-                identifier
-              )}`;
+        apiUrl = `${import.meta.env.VITE_BACKEND_URL}/twitter/generate-pdf-report?query=@${encodeURIComponent(identifier)}`;
       } else {
-        // Map X to twitter for backend compatibility
         const nonEmptyURLs = Object.entries(location?.state?.urls)
           .filter(([key, value]) => value.trim() !== "")
           .map(([key, value]) => {
-            let backendKey = key;
-            if (key === "X") backendKey = "twitter";
-            else backendKey = key.toLowerCase();
+            let backendKey = key === "X" ? "twitter" : key.toLowerCase();
             return `${encodeURIComponent(backendKey)}=${encodeURIComponent(value.trim())}`;
           })
           .join("&");
@@ -203,21 +134,12 @@ const ProfileDisplay = () => {
           return;
         }
 
-        // Add Facebook type parameter if Facebook is selected and facebookType is provided
         let apiUrlWithParams = nonEmptyURLs;
         if (location?.state?.urls?.Facebook && location?.state?.facebookType) {
           apiUrlWithParams += `&facebookType=${encodeURIComponent(location.state.facebookType)}`;
-          console.log('Adding facebookType to API URL:', location.state.facebookType);
         }
 
-        console.log('Final API URL params:', apiUrlWithParams);
-        console.log('Location state:', location?.state);
-
-        apiUrl =
-          reportType === "paid"
-            ? `${import.meta.env.VITE_BACKEND_URL}/crossplatform/generate-paid-pdf-report?${apiUrlWithParams}&query=${encodeURIComponent(location.state?.brandName)}`
-            : `${import.meta.env.VITE_BACKEND_URL}/crossplatform/generate-pdf-report?${apiUrlWithParams}&query=${encodeURIComponent(location.state?.brandName)}`;
-        // Optionally, you could also set an identifier if needed (e.g., a brand name or a combination of platforms)
+        apiUrl = `${import.meta.env.VITE_BACKEND_URL}/crossplatform/generate-pdf-report?${apiUrlWithParams}&query=${encodeURIComponent(location.state?.brandName)}`;
         identifier = "crossplatform";
       }
 
@@ -251,16 +173,12 @@ const ProfileDisplay = () => {
       }, 1000); // Update every second
 
       // Make a fetch request
-      let fetchOptions = {
+      const fetchOptions = {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
-      if (platform === "google-business" && reportType === "paid") {
-        fetchOptions.headers["x-report-type"] = "paid";
-        fetchOptions.headers["x-report-platform"] = "Google Business";
-      }
       const response = await fetch(apiUrl, fetchOptions);
 
       if (response.ok) {
@@ -275,7 +193,7 @@ const ProfileDisplay = () => {
         const a = document.createElement("a");
         a.style.display = "none";
         a.href = url;
-        a.download = `${platform === "google-business" ? identifier : identifier + "_"}${reportType}_report.pdf`;
+        a.download = `${identifier}_reputation_report.pdf`;
         document.body.appendChild(a);
         a.click();
 
@@ -343,7 +261,7 @@ const ProfileDisplay = () => {
         setIsLoggedIn(true);
         setShowEmailModal(false);
         // Automatically start the download after successful email capture
-        handleDownloadReport(pendingReportType);
+        handleDownloadReport();
       } else {
         setErrorMessage("Failed to process email. Please try again.");
       }
@@ -562,354 +480,6 @@ const ProfileDisplay = () => {
             engagement metrics, and more.
           </p>
 
-          <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 mb-2">
-            <div class="text-center py-3 px-4 border-b border-gray-200">
-              <h2 class="text-xl font-bold text-gray-900">
-                Feature Comparison
-              </h2>
-              <p class="text-xs text-gray-500">
-                Compare features available in our Free and Premium plans
-              </p>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-gray-200">
-                    <th class="w-[50%] py-2 px-4 text-left font-medium text-gray-700">
-                      Feature
-                    </th>
-                    <th class="text-center py-2 px-2">
-                      <div class="flex flex-col items-center">
-                        <span class="text-sm font-medium text-gray-700">
-                          Free
-                        </span>
-                        <span class="mt-0.5 text-xs py-0.5 px-1.5 rounded-full border border-gray-200 bg-gray-50 text-gray-700">
-                          $0/month
-                        </span>
-                      </div>
-                    </th>
-                    <th class="text-center py-2 px-2">
-                      <div class="flex flex-col items-center">
-                        <span class="text-sm font-medium text-gray-700">
-                          Premium
-                        </span>
-                        <span class="mt-0.5 text-xs py-0.5 px-1.5 rounded-full bg-emerald-600 text-white">
-                          Pro Plan
-                        </span>
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      List of Featured Competitors Names
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      Brands Reputation Analysis
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      Reputation Score (out of 10)
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      Graphical Representation of Reputation
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-red-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      Tips on Improving Reputation
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-red-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      Reputation Score of Competitors
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-red-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      Reputation Analysis of Competitors
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-red-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      Graphical Analysis
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-red-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                  <tr class="h-8 border-b border-gray-200">
-                    <td class="px-4 py-1.5 font-medium text-gray-700">
-                      Comparison With Competitors
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-red-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </td>
-                    <td class="text-center py-1.5">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4 mx-auto text-emerald-500"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
           <div className="flex items-center justify-between mb-4">
             <span className="text-gray-700 font-medium">Report Status</span>
             <svg
@@ -982,27 +552,16 @@ const ProfileDisplay = () => {
         >
           Paid Report
         </button> */}
-        {/* Free Report Button with note */}
+        {/* Download Report Button */}
         <div className="w-full max-w-md mt-6 text-center">
           <button
-            onClick={() => handleDownloadReport("free")}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg transition-all duration-300 w-full"
+            onClick={handleDownloadReport}
+            disabled={isDownloading}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg transition-all duration-300 w-full flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            Free Report
+            <span>{isDownloading ? "Generating..." : "Download Report"}</span>
+            <FaCheck className="w-5 h-5" />
           </button>
-          <p className="text-xs font-semibold text-gray-500 mt-1">Only 2 per account</p>
-        </div>
-
-        {/* Paid Report Button with note */}
-        <div className="w-full max-w-md mt-4 text-center">
-          <button
-            onClick={() => handleDownloadReport("paid")}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-8 rounded-lg text-xl shadow-lg transition-all duration-300 w-full group flex items-center justify-center gap-2"
-          >
-            <span>Premium Report</span>
-            <FaCheck className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </button>
-          <p className="text-xs font-semibold text-emerald-600 mt-1 uppercase tracking-wider">Unlock full competitive insights</p>
         </div>
 
         {/* Email Modal */}
