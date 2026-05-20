@@ -1,847 +1,516 @@
-import { useState, useEffect } from "react";
-import { HiOutlineArrowRight, HiOutlineUsers } from "react-icons/hi";
+import { useState, useEffect, useRef } from "react";
+import { HiOutlineArrowRight, HiOutlinePencil, HiOutlineCheck, HiOutlineX } from "react-icons/hi";
 import { useNavigate, useLocation } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
-import useDataStore from "../store/useDataStore";
-import Logo from "../components/common/Logo";
-// Remove the old SVG component import
-// import VerifiedBadge from "../assets/BlueTickIcon";
+import {
+  fetchTwitterData,
+  fetchLinkedInData,
+  fetchTikTokData,
+  fetchFacebookData,
+  fetchInstagramData,
+} from "../api/apiClient";
 
-// Import the PNG image
 import twitterVerifiedBadge from "../assets/Twitter_Verified_Badge.svg.png";
 
-function SearchResult() {
-  const [platformToggles, setPlatformToggles] = useState({
-    X: false,
-    LinkedIn: false,
-    TikTok: false,
-    Facebook: false,
-    InstaRab: false,
-    Instagram: false,
-  });
-  const [brandName, setBrandName] = useState("");
-  const [inputValues, setInputValues] = useState({
-    X: "",
-    LinkedIn: "",
-    TikTok: "",
-    Facebook: "",
-    InstaRab: "",
-    Instagram: "",
-  });
-  const [facebookSubTab, setFacebookSubTab] = useState("Pages");
-  const [facebookType, setFacebookType] = useState("page");
-  const [linkedinType, setLinkedinType] = useState("company");
-  const [googleLocation, setGoogleLocation] = useState("");
-  const [googleResults, setGoogleResults] = useState([]);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [googleError, setGoogleError] = useState("");
+const PLATFORMS = ["X", "LinkedIn", "TikTok", "Facebook", "Instagram"];
 
-  const {
-    twitterData,
-    linkedinData,
-    tiktokData,
-    facebookData,
-    facebookProfileData,
-    instagramData,
-    loading,
-    activeTab,
-    setActiveTab,
-    getTwitterData,
-    getLinkedInData,
-    getTikTokData,
-    getFacebookData,
-    getFacebookProfileData,
-    getInstagramData,
-    setLoadingFalse,
-    googleBusinessData,
-    setGoogleBusinessData,
-  } = useDataStore();
+// Normalise each platform's API response to { name, screenName, avatar, followers, url, raw }
+function normaliseResult(platform, data) {
+  if (platform === "X") {
+    const users = data?.twitterUsers?.timeline || [];
+    if (!users.length) return null;
+    const u = users[0];
+    return {
+      name: u.name,
+      screenName: `@${u.screen_name}`,
+      avatar: u.avatar,
+      followers: u.followers_count ?? null,
+      verified: u.is_blue_verified || u.blue_verified,
+      raw: u,
+    };
+  }
+  if (platform === "LinkedIn") {
+    const users = data?.linkedinUsers || [];
+    if (!users.length) return null;
+    const u = users[0];
+    const initials = (u.full_name || "?").split(" ").filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+    return {
+      name: u.full_name,
+      screenName: u.type,
+      avatar: u.profile_picture?.[0]?.url || null,
+      initials,
+      followers: u.follower_count || null,
+      url: u.url,
+      raw: u,
+    };
+  }
+  if (platform === "TikTok") {
+    const users = data?.tiktokUsers || [];
+    if (!users.length) return null;
+    const u = users[0];
+    return {
+      name: u.user_info?.nickname,
+      screenName: `@${u.user_info?.unique_id}`,
+      avatar: u.user_info?.avatar_thumb?.url_list?.[0] || null,
+      followers: u.user_info?.follower_count ?? null,
+      verified: u.user_info?.verified,
+      raw: u,
+    };
+  }
+  if (platform === "Facebook") {
+    const users = data?.facebookUsers || [];
+    if (!users.length) return null;
+    const u = users[0];
+    return {
+      name: u.name,
+      screenName: u.type,
+      avatar: u.image?.uri || null,
+      followers: null,
+      verified: u.is_verified,
+      raw: u,
+    };
+  }
+  if (platform === "Instagram") {
+    const users = data?.instagramUsers || [];
+    if (!users.length) return null;
+    const u = users[0];
+    return {
+      name: u.full_name,
+      screenName: `@${u.username}`,
+      avatar: u.profile_pic_url || null,
+      followers: null,
+      verified: u.is_verified,
+      raw: u,
+    };
+  }
+  return null;
+}
 
+function formatFollowers(n) {
+  if (!n && n !== 0) return null;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return `${n}`;
+}
+
+function PlatformIcon({ platform, size = 20 }) {
+  const cls = `w-${size === 20 ? 5 : 4} h-${size === 20 ? 5 : 4}`;
+  if (platform === "X") return (
+    <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+  if (platform === "LinkedIn") return (
+    <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  );
+  if (platform === "TikTok") return (
+    <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" />
+    </svg>
+  );
+  if (platform === "Facebook") return (
+    <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+  if (platform === "Instagram") return (
+    <svg className={cls} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162S8.597 18.163 12 18.163s6.162-2.759 6.162-6.162S15.403 5.838 12 5.838zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+    </svg>
+  );
+  return null;
+}
+
+function Avatar({ src, initials, size = 48 }) {
+  const [failed, setFailed] = useState(false);
+  const sz = `${size}px`;
+  return (
+    <div style={{ width: sz, height: sz }} className="relative flex-shrink-0">
+      <div
+        style={{ width: sz, height: sz }}
+        className="rounded-full bg-blue-600 flex items-center justify-center absolute inset-0"
+      >
+        <span className="text-white font-bold text-sm">{initials || "?"}</span>
+      </div>
+      {src && !failed && (
+        <img
+          src={src}
+          alt=""
+          style={{ width: sz, height: sz }}
+          className="rounded-full object-cover absolute inset-0"
+          onError={() => setFailed(true)}
+        />
+      )}
+    </div>
+  );
+}
+
+// Inline URL override input
+function OverrideInput({ value, onChange, onConfirm, onCancel, placeholder }) {
+  const ref = useRef(null);
+  useEffect(() => { ref.current?.focus(); }, []);
+  return (
+    <div className="flex items-center gap-1 mt-2">
+      <input
+        ref={ref}
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+        onKeyDown={e => { if (e.key === "Enter") onConfirm(); if (e.key === "Escape") onCancel(); }}
+      />
+      <button onClick={onConfirm} className="text-green-600 hover:text-green-700"><HiOutlineCheck className="w-4 h-4" /></button>
+      <button onClick={onCancel} className="text-gray-400 hover:text-gray-600"><HiOutlineX className="w-4 h-4" /></button>
+    </div>
+  );
+}
+
+function PlatformCard({ platform, status, result, selected, onToggle, overrideUrl, onOverrideConfirm }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(overrideUrl || "");
+
+  const isLoading = status === "loading";
+  const isFound = status === "found";
+  const isEmpty = status === "empty";
+  const isError = status === "error";
+  const isOverridden = status === "overridden";
+
+  const canSelect = isFound || isOverridden;
+
+  const handleConfirm = () => {
+    if (draft.trim()) {
+      onOverrideConfirm(draft.trim());
+    }
+    setEditing(false);
+  };
+
+  const platformColors = {
+    X: "border-gray-900",
+    LinkedIn: "border-blue-700",
+    TikTok: "border-gray-900",
+    Facebook: "border-blue-600",
+    Instagram: "border-pink-500",
+  };
+
+  return (
+    <div
+      className={`relative rounded-xl border-2 p-4 transition-all ${
+        selected
+          ? `${platformColors[platform]} bg-blue-50 shadow-md`
+          : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+      } ${canSelect ? "cursor-pointer" : ""}`}
+      onClick={() => { if (canSelect && !editing) onToggle(); }}
+    >
+      {/* Selected checkmark */}
+      {selected && (
+        <div className="absolute top-3 right-3 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+          <HiOutlineCheck className="w-3 h-3 text-white" />
+        </div>
+      )}
+
+      {/* Platform header */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`${selected ? "text-blue-700" : "text-gray-600"}`}>
+          <PlatformIcon platform={platform} />
+        </div>
+        <span className="font-semibold text-sm text-gray-800">{platform}</span>
+        {isLoading && (
+          <div className="ml-auto animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent" />
+        )}
+        {isFound && <span className="ml-auto text-xs text-green-600 font-medium">Found</span>}
+        {isOverridden && <span className="ml-auto text-xs text-blue-600 font-medium">Custom</span>}
+        {isEmpty && <span className="ml-auto text-xs text-gray-400">No results</span>}
+        {isError && <span className="ml-auto text-xs text-red-400">Error</span>}
+      </div>
+
+      {/* Content */}
+      {isLoading && (
+        <div className="space-y-2">
+          <div className="h-3 bg-gray-100 rounded animate-pulse w-3/4" />
+          <div className="h-3 bg-gray-100 rounded animate-pulse w-1/2" />
+        </div>
+      )}
+
+      {(isFound || isOverridden) && result && (
+        <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+          <Avatar
+            src={result.avatar}
+            initials={result.initials || (result.name || "?").split(" ").filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase()}
+            size={40}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1 min-w-0">
+              <p className="font-medium text-sm text-gray-900 truncate">{result.name}</p>
+              {result.verified && (
+                platform === "X" ? (
+                  <img src={twitterVerifiedBadge} alt="Verified" className="w-4 h-4 flex-shrink-0" />
+                ) : (
+                  <span className="text-blue-500 text-xs flex-shrink-0">✓</span>
+                )
+              )}
+            </div>
+            <p className="text-xs text-gray-500 truncate">{result.screenName}</p>
+            {result.followers != null && (
+              <p className="text-xs text-blue-600 font-medium">{formatFollowers(result.followers)} followers</p>
+            )}
+          </div>
+          {/* Edit button — click to open override, stop card toggle */}
+          <button
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 p-1"
+            title="Use a different account"
+            onClick={e => { e.stopPropagation(); setDraft(""); setEditing(true); }}
+          >
+            <HiOutlinePencil className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {(isEmpty || isError) && !editing && (
+        <div className="text-xs text-gray-400 mb-2">
+          {isError ? "Couldn't load results." : "No match found."}
+        </div>
+      )}
+
+      {/* Override input */}
+      {editing && (
+        <div onClick={e => e.stopPropagation()}>
+          <OverrideInput
+            value={draft}
+            onChange={setDraft}
+            onConfirm={handleConfirm}
+            onCancel={() => setEditing(false)}
+            placeholder={`Paste ${platform} profile URL`}
+          />
+        </div>
+      )}
+
+      {/* "Paste URL" prompt when empty/error and not editing */}
+      {(isEmpty || isError) && !editing && (
+        <button
+          className="text-xs text-blue-600 hover:underline mt-1"
+          onClick={e => { e.stopPropagation(); setDraft(""); setEditing(true); }}
+        >
+          + Paste URL manually
+        </button>
+      )}
+    </div>
+  );
+}
+
+export default function SearchResult() {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Get query from URL parameters or state
   const searchParams = new URLSearchParams(location.search);
-  const queryFromUrl = searchParams.get('query');
-  const searchQuery = queryFromUrl || location.state?.query || "";
+  const searchQuery = searchParams.get("query") || location.state?.query || "";
 
-  // Map store data to simplify rendering
-  const dataMap = {
-    X: twitterData?.twitterUsers?.timeline || [],
-    LinkedIn: linkedinData?.linkedinUsers || [],
-    TikTok: tiktokData?.tiktokUsers || [],
-    Facebook: facebookSubTab === "Pages"
-      ? facebookData?.facebookUsers || []
-      : facebookProfileData?.facebookUsers || [],
-    Instagram: instagramData?.instagramUsers || [],
-  };
-  const currentData = dataMap[activeTab] || [];
+  // Per-platform state: { status: loading|found|empty|error|overridden, result, rawData, overrideUrl }
+  const [platforms, setPlatforms] = useState(() =>
+    Object.fromEntries(PLATFORMS.map(p => [p, { status: "loading", result: null, rawData: null, overrideUrl: "" }]))
+  );
 
-  const getCurrentData = () => {
-    if (activeTab === "X") {
-      return twitterData?.twitterUsers?.timeline || [];
-    }
-    if (activeTab === "LinkedIn") {
-      return linkedinData?.linkedinUsers || [];
-    }
-    if (activeTab === "TikTok") {
-      const users = tiktokData?.tiktokUsers || [];
-      return [...users].sort((a, b) => (b.user_info?.verified ? 1 : 0) - (a.user_info?.verified ? 1 : 0));
-    }
-    if (activeTab === "Facebook") {
-      return facebookSubTab === "Pages"
-        ? facebookData?.facebookUsers || []
-        : facebookProfileData?.facebookUsers || [];
-    }
-    if (activeTab === "Instagram") {
-      return instagramData?.instagramUsers || [];
-    }
-    return [];
-  };
+  const [selected, setSelected] = useState(new Set());
 
-  // Fetch data whenever the active tab or search query changes
+  // Fire all platform searches in parallel on mount / query change
   useEffect(() => {
     if (!searchQuery) return;
-  
-    switch (activeTab) {
-      case "X":
-        if (!twitterData || twitterData.query !== searchQuery) {
-          getTwitterData(searchQuery);
-        }
-        break;
-      case "LinkedIn":
-        if (!linkedinData || linkedinData.query !== searchQuery) {
-          getLinkedInData(searchQuery);
-        }
-        break;
-      case "TikTok":
-        if (!tiktokData || tiktokData.query !== searchQuery) {
-          getTikTokData(searchQuery);
-        }
-        break;
-      case "Facebook":
-        if (facebookSubTab === "Pages") {
-          if (!facebookData || facebookData.query !== searchQuery) {
-            getFacebookData(searchQuery);
-          }
-        } else {
-          if (!facebookProfileData || facebookProfileData.query !== searchQuery) {
-            getFacebookProfileData(searchQuery);
-          }
-        }
-        break;
-      case "Instagram":
-        if (!instagramData || instagramData.query !== searchQuery) {
-          getInstagramData(searchQuery);
-        }
-        break;
-      default:
-        setLoadingFalse();
-        break;
-    }
-  }, [activeTab, searchQuery, facebookSubTab]);
-  
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
+    // Reset
+    setPlatforms(Object.fromEntries(PLATFORMS.map(p => [p, { status: "loading", result: null, rawData: null, overrideUrl: "" }])));
+    setSelected(new Set());
 
-    if (tab !== "Cross Platform") {
-      setPlatformToggles({
-        X: false,
-        LinkedIn: false,
-        TikTok: false,
-        Facebook: false,
-        InstaRab: false,
-        Instagram: false,
-      });
-    }
+    const fetchers = {
+      X: () => fetchTwitterData(searchQuery),
+      LinkedIn: () => fetchLinkedInData(searchQuery),
+      TikTok: () => fetchTikTokData(searchQuery),
+      Facebook: () => fetchFacebookData(searchQuery),
+      Instagram: () => fetchInstagramData(searchQuery),
+    };
 
-    localStorage.removeItem("profileUserData");
-  };
-
-  const handleUserClick = (user) => {
-    switch (activeTab) {
-      case "LinkedIn": {
-        const linkedinUser = {
-          name: user.full_name,
-          screen_name: user.type,
-          avatar: user.profile_picture?.[0]?.url || null,
-          headline: user.headline,
-          url: user.url,
-          platform: "linkedin",
-        };
-        navigate("/profile", { state: { user: linkedinUser } });
-        break;
-      }
-      case "TikTok": {
-        const tiktokUser = {
-          name: user.user_info.nickname,
-          screen_name: user.user_info.unique_id,
-          avatar: user.user_info.avatar_thumb.url_list[0],
-          sec_uid: user.user_info.sec_uid,
-          follower_count: user.user_info.follower_count,
-          signature: user.user_info.signature,
-          platform: "tiktok",
-        };
-        navigate("/profile", { state: { user: tiktokUser } });
-        break;
-      }
-      case "Facebook": {
-        const facebookUser = {
-          name: user.name,
-          screen_name: user.type,
-          avatar: user.image.uri,
-          facebook_id: user.facebook_id,
-          url: user.url,
-          is_verified: user.is_verified,
-          platform: "facebook",
-        };
-        navigate("/profile", { state: { user: facebookUser, subtab: facebookSubTab } });
-        break;
-      }
-      case "Instagram": {
-        const instagramUser = {
-          name: user.full_name,
-          screen_name: user.username,
-          avatar: user.profile_pic_url,
-          instagram_id: user.id,
-          is_verified: user.is_verified,
-          platform: "instagram",
-        };
-        navigate("/profile", { state: { user: instagramUser } });
-        break;
-      }
-      default: {
-        const twitterUser = { ...user, platform: "X" };
-        navigate("/profile", { state: { user: twitterUser } });
-        break;
-      }
-    }
-  };
-
-  const handleToggleChange = (platform) => {
-    setPlatformToggles((prev) => ({
-      ...prev,
-      [platform]: !prev[platform],
-    }));
-  };
-
-  const handleInputChange = (platform, value) => {
-    setInputValues((prev) => ({ ...prev, [platform]: value }));
-  };
-
-  const handleReportGenerate = async () => {
-    try {
-      // Log cross-platform search
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/search-logs/log`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          platform: 'CROSS_PLATFORM',
-          searchQuery: brandName,
-          filters: {
-            platforms: Object.entries(platformToggles)
-              .filter(([_, enabled]) => enabled)
-              .map(([platform]) => platform),
-            urls: inputValues
+    PLATFORMS.forEach(platform => {
+      fetchers[platform]()
+        .then(data => {
+          const result = normaliseResult(platform, data);
+          setPlatforms(prev => ({
+            ...prev,
+            [platform]: {
+              ...prev[platform],
+              status: result ? "found" : "empty",
+              result,
+              rawData: data,
+            },
+          }));
+          // Auto-select if a result was found
+          if (result) {
+            setSelected(prev => new Set([...prev, platform]));
           }
         })
-      });
-    } catch (error) {
-      console.error('Error logging cross-platform search:', error);
-    }
-    
-    const navigationState = { 
-      brandName, 
-      urls: inputValues, 
-      toggles: platformToggles,
-      facebookType: platformToggles.Facebook ? facebookType : undefined,
-      linkedinType: platformToggles.LinkedIn ? linkedinType : undefined,
-    };
-    
-    console.log('Navigation state being passed:', navigationState);
-    console.log('Facebook toggle:', platformToggles.Facebook);
-    console.log('Facebook type:', facebookType);
-    
-    navigate("/profile", {
-      state: navigationState
+        .catch(() => {
+          setPlatforms(prev => ({
+            ...prev,
+            [platform]: { ...prev[platform], status: "error", result: null, rawData: null },
+          }));
+        });
+    });
+  }, [searchQuery]);
+
+  const toggleSelect = (platform) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(platform) ? next.delete(platform) : next.add(platform);
+      return next;
     });
   };
 
-  // Google Business search handler
-  const handleGoogleBusinessSearch = async () => {
-    if (!searchQuery.trim() || !googleLocation.trim()) return;
-    setGoogleLoading(true);
-    setGoogleError("");
-    setGoogleResults([]);
-    try {
-      const joinedQuery = `${searchQuery}, ${googleLocation}`;
-      const url = `${import.meta.env.VITE_BACKEND_URL}/google/fetch-businesses?query=${encodeURIComponent(joinedQuery)}`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" }
+  // Handle manual URL override
+  const handleOverride = (platform, url) => {
+    // Build a minimal result object from the URL so the card shows something
+    const result = {
+      name: url,
+      screenName: url,
+      avatar: null,
+      followers: null,
+    };
+    setPlatforms(prev => ({
+      ...prev,
+      [platform]: { ...prev[platform], status: "overridden", result, overrideUrl: url },
+    }));
+    setSelected(prev => new Set([...prev, platform]));
+  };
+
+  const selectedCount = selected.size;
+  const anyLoading = PLATFORMS.some(p => platforms[p].status === "loading");
+
+  const buildProfileUrl = (platform) => {
+    const p = platforms[platform];
+    if (p.status === "overridden") return p.overrideUrl;
+    const raw = p.rawData;
+    if (!raw) return "";
+    if (platform === "X") return (raw.twitterUsers?.timeline?.[0]?.screen_name) ? `https://twitter.com/${raw.twitterUsers.timeline[0].screen_name}` : "";
+    if (platform === "LinkedIn") return raw.linkedinUsers?.[0]?.url || "";
+    if (platform === "TikTok") return raw.tiktokUsers?.[0]?.user_info?.unique_id ? `https://www.tiktok.com/@${raw.tiktokUsers[0].user_info.unique_id}` : "";
+    if (platform === "Facebook") return raw.facebookUsers?.[0]?.url || "";
+    if (platform === "Instagram") return raw.instagramUsers?.[0]?.username ? `https://www.instagram.com/${raw.instagramUsers[0].username}` : "";
+    return "";
+  };
+
+  const handleGenerateReport = (reportType) => {
+    const toggles = {};
+    const urls = {};
+    PLATFORMS.forEach(p => {
+      const on = selected.has(p);
+      const key = p === "Instagram" ? "InstaRab" : p;
+      toggles[key] = on;
+      if (on) urls[key] = buildProfileUrl(p);
+    });
+
+    if (reportType === "combined") {
+      navigate("/profile", {
+        state: {
+          brandName: searchQuery,
+          urls,
+          toggles,
+        },
       });
-      const data = await res.json();
-      console.log(data);
-      if (data.googleUsers.status === "OK" && Array.isArray(data.googleUsers.data)) {
-        setGoogleResults(data.googleUsers.data);
-        setGoogleBusinessData({ data: data.googleUsers.data, query: joinedQuery });
-      } else {
-        setGoogleError("No results found.");
+    } else {
+      // Individual: navigate to first selected platform's ProfileDisplay
+      const firstPlatform = [...selected][0];
+      const p = platforms[firstPlatform];
+      const raw = p.rawData;
+      if (!raw) return;
+
+      if (firstPlatform === "X") {
+        const u = raw.twitterUsers?.timeline?.[0];
+        navigate("/profile", { state: { user: { ...u, platform: "X" } } });
+      } else if (firstPlatform === "LinkedIn") {
+        const u = raw.linkedinUsers?.[0];
+        navigate("/profile", { state: { user: { name: u.full_name, screen_name: u.type, avatar: u.profile_picture?.[0]?.url || null, headline: u.headline, url: u.url, platform: "linkedin" } } });
+      } else if (firstPlatform === "TikTok") {
+        const u = raw.tiktokUsers?.[0];
+        navigate("/profile", { state: { user: { name: u.user_info.nickname, screen_name: u.user_info.unique_id, avatar: u.user_info.avatar_thumb.url_list[0], sec_uid: u.user_info.sec_uid, follower_count: u.user_info.follower_count, signature: u.user_info.signature, platform: "tiktok" } } });
+      } else if (firstPlatform === "Facebook") {
+        const u = raw.facebookUsers?.[0];
+        navigate("/profile", { state: { user: { name: u.name, screen_name: u.type, avatar: u.image?.uri, facebook_id: u.facebook_id, url: u.url, is_verified: u.is_verified, platform: "facebook" } } });
+      } else if (firstPlatform === "Instagram") {
+        const u = raw.instagramUsers?.[0];
+        navigate("/profile", { state: { user: { name: u.full_name, screen_name: u.username, avatar: u.profile_pic_url, instagram_id: u.id, is_verified: u.is_verified, platform: "instagram" } } });
       }
-    } catch (err) {
-      setGoogleError("Failed to fetch Google Business data.");
-    } finally {
-      setGoogleLoading(false);
     }
   };
 
-  // Instantly fetch on tab select if both searchQuery and googleLocation are present
-  useEffect(() => {
-    if (activeTab === "Google Business") {
-      if (googleBusinessData && googleBusinessData.query === `${searchQuery}, ${googleLocation}`) {
-        setGoogleResults(googleBusinessData.data);
-        setGoogleError("");
-        setGoogleLoading(false);
-      } else if (searchQuery && googleLocation) {
-        handleGoogleBusinessSearch();
-      } else {
-        setGoogleResults([]);
-        setGoogleError("");
-        setGoogleLoading(false);
-      }
-    }
-    // eslint-disable-next-line
-  }, [activeTab]);
-
   return (
-    <div className="min-h-screen w-[80%] mx-auto bg-white">
-      {/* Header */}
-      <header>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="w-full max-w-md mx-auto">
-            <SearchBar placeholder="Search for a business or person..." initialValue={searchQuery} />
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Search bar */}
+      <header className="bg-white border-b">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <SearchBar placeholder="Search for a business or person..." initialValue={searchQuery} />
         </div>
       </header>
 
-      {/* Filters */}
-      <nav className="border-b sticky top-0 bg-white z-10">
-        <div className="max-w-7xl mx-auto flex overflow-x-auto no-scrollbar px-4 py-2 scroll-smooth">
-          <div className="flex flex-nowrap gap-2 mx-auto">
-            {["X", "LinkedIn", "TikTok", "Facebook", "Instagram", "Google Business", "Cross Platform"].map(
-              (filter) => (
-                <button
-                  key={filter}
-                  onClick={() => handleTabChange(filter)}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    filter === activeTab
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  {filter}
-                </button>
-              )
-            )}
-          </div>
+      <main className="max-w-3xl mx-auto px-4 py-8">
+        {/* Heading */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {anyLoading ? `Searching "${searchQuery}" across all platforms…` : `Results for "${searchQuery}"`}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Select the accounts you want to include in the report. Click the pencil icon to use a different account.
+          </p>
         </div>
-      </nav>
 
-      {/* Tab-specific messages */}
-      {activeTab === "X" && (
-        <div className="text-center py-4 text-gray-600">
-          If you didn't find the account you're looking for try using the exact username
+        {/* Platform grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+          {PLATFORMS.map(platform => (
+            <PlatformCard
+              key={platform}
+              platform={platform}
+              status={platforms[platform].status}
+              result={platforms[platform].result}
+              selected={selected.has(platform)}
+              onToggle={() => toggleSelect(platform)}
+              overrideUrl={platforms[platform].overrideUrl}
+              onOverrideConfirm={(url) => handleOverride(platform, url)}
+            />
+          ))}
         </div>
-      )}
-      {activeTab === "LinkedIn" && (
-        <div className="text-center py-4 text-gray-600">
-          For now only Company accounts are supported, To search for a Profile account please use the Cross Platform tab 
-        </div>
-      )}
-      {activeTab === "Facebook" && (
-        <>
-          <div className="flex justify-center gap-4 py-2">
-            {["Pages", "Profiles"].map((subTab) => (
-              <button
-                key={subTab}
-                onClick={() => setFacebookSubTab(subTab)}
-                className={`px-4 py-1 text-sm font-medium border-b-2 transition-colors ${
-                  facebookSubTab === subTab
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {subTab}
-              </button>
-            ))}
-          </div>
-          <div className="text-center py-4 text-gray-600">
-            {facebookSubTab === "Pages"
-              ? "For now only Pages are supported"
-              : "For now only Profiles are supported"}
-          </div>
-        </>
-      )}
-      {activeTab === "TikTok" && (
-        <div className="text-center py-4 text-gray-600">
-          If you didn't find the account you're looking for try using the exact username
-        </div>
-      )}
-      {activeTab === "Instagram" && (
-        <div className="text-center py-4 text-gray-600">
-          If you didn't find the account you're looking for try using the exact username
-        </div>
-      )}
-      {activeTab === "Google Business" && (
-        <div className="text-center py-4 text-gray-600">
-          Enter exact location of the business in the format "area name, city name"
-        </div>
-      )}
 
-      {/* Main Content */}
-      <main className="w-full px-4 py-8">
-        {loading && activeTab !== "Google Business" && (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
-        )}
-
-        {/* Google Business Tab */}
-        {activeTab === "Google Business" && (
-          <div className="max-w-md mx-auto space-y-6">
+        {/* Generate Report bar */}
+        {selectedCount > 0 && (
+          <div className="sticky bottom-6 bg-white border border-gray-200 rounded-2xl shadow-lg px-6 py-4 flex items-center justify-between gap-4">
             <div>
-              <label className="block mb-1 text-sm font-semibold text-gray-700">
-                Enter exact location of the business in the format "area name, city name"
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder='enter exact location of the business in the format "area name, city name"'
-                  value={googleLocation}
-                  onChange={e => setGoogleLocation(e.target.value)}
-                  className="flex-1 px-4 py-2 text-gray-900 placeholder-gray-400 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
+              <p className="font-semibold text-gray-900 text-sm">
+                {selectedCount} platform{selectedCount > 1 ? "s" : ""} selected
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {[...selected].join(", ")}
+              </p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              {selectedCount === 1 ? (
                 <button
-                  onClick={handleGoogleBusinessSearch}
-                  disabled={!googleLocation.trim()}
-                  className="px-4 py-2 font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => handleGenerateReport("individual")}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                 >
-                  Search
+                  Generate Report <HiOutlineArrowRight className="w-4 h-4" />
                 </button>
-              </div>
-            </div>
-            {googleLoading && (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              </div>
-            )}
-            {googleError && (
-              <div className="text-center text-red-500 py-4">{googleError}</div>
-            )}
-            {!googleLoading && !googleError && googleResults.length > 0 && (
-              <div className="space-y-4">
-                {googleResults.map((biz, idx) => (
-                  <div
-                    key={biz.business_id || idx}
-                    onClick={() => navigate("/profile", { state: { user: biz, business_id: biz.business_id, platform: "google-business" } })}
-                    className="bg-white p-4 rounded-lg border w-full mx-auto hover:shadow-md transition-shadow flex items-center gap-4 cursor-pointer"
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleGenerateReport("individual")}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                      <img
-                        src={biz.photos_sample && biz.photos_sample[0] && biz.photos_sample[0].photo_url ? biz.photos_sample[0].photo_url : 'https://via.placeholder.com/64?text=No+Image'}
-                        alt={biz.name}
-                        className="w-full h-full object-cover"
-                        onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/64?text=No+Image'; }}
-                      />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-base">{biz.name}</h3>
-                      <p className="text-gray-500 text-sm">{biz.full_address}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {/* Show no results only if not loading, no error, and no googleResults */}
-            {!googleLoading && !googleError && googleResults.length === 0 && (
-              <div className="text-center py-12 px-4">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" /></svg>
-                </div>
-                <p className="text-lg font-medium text-gray-900">No local businesses found</p>
-                <p className="text-gray-500 mt-1 max-w-xs mx-auto">We couldn't find a business matching that name in that location. Try a different city or check the spelling.</p>
-                <button onClick={() => setActiveTab("Cross Platform")} className="mt-6 text-blue-600 font-semibold hover:text-blue-700">
-                  Try Cross-Platform Search instead →
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Global Empty State for other platforms */}
-        {!loading && activeTab !== "Cross Platform" && activeTab !== "Google Business" && getCurrentData().length === 0 && (
-           <div className="text-center py-20 px-4">
-            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Finding "{searchQuery}" on {activeTab}</h3>
-            <p className="text-gray-600 max-w-md mx-auto mb-8">
-              We couldn't find an exact match for this account. Try using their exact username or check if you're in the right tab.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-               {["X", "Instagram", "TikTok"].filter(p => p !== activeTab).map(p => (
-                 <button key={p} onClick={() => setActiveTab(p)} className="px-4 py-2 border border-gray-200 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors">
-                   Search on {p}
-                 </button>
-               ))}
-            </div>
-          </div>
-        )}
-
-        {/* Existing platform results */}
-        {activeTab !== "Cross Platform" && activeTab !== "Google Business" &&
-          getCurrentData().length > 0 && (
-            <div className="mx-auto px-4 space-y-4">
-              {getCurrentData().map((user, index) => {
-                if (activeTab === "X") {
-                  return (
-                    <div
-                      key={user.user_id || user.id}
-                      onClick={() => handleUserClick(user)}
-                      className="bg-white p-4 rounded-lg border w-full mx-auto hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-base">
-                            {user.name}
-                            {(user.is_blue_verified || user.blue_verified) && (
-                              <span className="ml-1 align-middle">
-                                <img
-                                  src={twitterVerifiedBadge}
-                                  alt="Verified"
-                                  className="inline-block h-[18px] w-[18px]"
-                                  style={{ verticalAlign: 'middle' }}
-                                />
-                              </span>
-                            )}
-                          </h3>
-                          <p className="text-gray-500">@{user.screen_name}</p>
-                        </div>
-                      </div>
-                      <HiOutlineArrowRight className="text-gray-400 w-5 h-5" />
-                    </div>
-                  );
-                } else if (activeTab === "LinkedIn") {
-                  const imgUrl = user.profile_picture?.[0]?.url;
-                  const initials = (user.full_name || "?").split(" ").filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase();
-                  const followers = user.follower_count || 0;
-                  const followersLabel = followers >= 1000000
-                    ? `${(followers / 1000000).toFixed(1)}M followers`
-                    : followers >= 1000
-                    ? `${(followers / 1000).toFixed(1)}K followers`
-                    : followers > 0
-                    ? `${followers} followers`
-                    : null;
-                  return (
-                    <div
-                      key={user.url || index}
-                      onClick={() => handleUserClick(user)}
-                      className="bg-white p-4 rounded-lg border hover:shadow-md w-full transition-shadow cursor-pointer flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="relative w-12 h-12 flex-shrink-0">
-                          {/* Always show initials circle as base layer */}
-                          <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center absolute inset-0">
-                            <span className="text-white font-bold text-sm leading-none">{initials}</span>
-                          </div>
-                          {/* Real image sits on top — hides itself on error, revealing initials below */}
-                          {imgUrl && (
-                            <img
-                              src={imgUrl}
-                              alt={user.full_name}
-                              className="w-12 h-12 rounded-full object-cover absolute inset-0"
-                              onError={e => { e.target.style.display = 'none'; }}
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-base">{user.full_name}</h3>
-                          <p className="text-gray-500 text-sm">{user.type}</p>
-                          {followersLabel && (
-                            <p className="text-blue-600 text-xs font-medium mt-0.5">{followersLabel}</p>
-                          )}
-                          {user.headline && (
-                            <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{user.headline}</p>
-                          )}
-                        </div>
-                      </div>
-                      <HiOutlineArrowRight className="text-gray-400 w-5 h-5" />
-                    </div>
-                  );
-                } else if (activeTab === "Facebook") {
-                  return (
-                    <div
-                      key={`${user.facebook_id || user.rank_id || index}-${index}`}
-                      onClick={() => handleUserClick(user)}
-                      className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden">
-                          <img
-                            src={user.image.uri}
-                            alt={user.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-base">
-                            {user.name}
-                            {user.is_verified && (
-                              <span className="ml-1 text-blue-500">✓</span>
-                            )}
-                          </h3>
-                          <p className="text-gray-500">{user.type}</p>
-                        </div>
-                      </div>
-                      <HiOutlineArrowRight className="text-gray-400 w-5 h-5" />
-                    </div>
-                  );
-                } else if (activeTab === "Instagram") {
-                  return (
-                    <div
-                      key={user.id}
-                      onClick={() => handleUserClick(user)}
-                      className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden">
-                          <img
-                            src={user.profile_pic_url}
-                            alt={user.full_name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-base">
-                            {user.full_name}
-                            {user.is_verified && (
-                              <span className="ml-1 text-blue-500">✓</span>
-                            )}
-                          </h3>
-                          <p className="text-gray-500">@{user.username}</p>
-                        </div>
-                      </div>
-                      <HiOutlineArrowRight className="text-gray-400 w-5 h-5" />
-                    </div>
-                  );
-                } else {
-                  return (
-                    <div
-                      key={`${user.user_info.sec_uid}-${index}`}
-                      onClick={() => handleUserClick(user)}
-                      className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow cursor-pointer flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden">
-                          <img
-                            src={user.user_info.avatar_thumb.url_list[0]}
-                            alt={user.user_info.nickname}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-base flex items-center gap-1">
-                            {user.user_info.nickname}
-                            {user.user_info.verified && (
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="inline-block h-[18px] w-[18px]" style={{ verticalAlign: 'middle' }}>
-                                <circle cx="12" cy="12" r="12" fill="#20D5EC"/>
-                                <path d="M17.5 8.5l-7 7-3-3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                              </svg>
-                            )}
-                          </h3>
-                          <p className="text-gray-500">
-                            @{user.user_info.unique_id}
-                          </p>
-                        </div>
-                      </div>
-                      <HiOutlineArrowRight className="text-gray-400 w-5 h-5" />
-                    </div>
-                  );
-                }
-              })}
-            </div>
-          )}
-
-        {/* Cross Platform Panel */}
-        {!loading && activeTab === "Cross Platform" && (
-          <div>
-            {/* Toggles */}
-            <div className="flex flex-wrap justify-center gap-4 mb-6">
-              {["X", "LinkedIn", "TikTok", "Facebook", "InstaRab", "Instagram"].map((platform) => (
-                <div key={platform} className="flex items-center gap-2">
-                  <span className="text-gray-700">{platform}</span>
-                  <label
-                    htmlFor={`toggle-${platform}`}
-                    className="relative inline-flex items-center cursor-pointer"
+                    Individual Reports
+                  </button>
+                  <button
+                    onClick={() => handleGenerateReport("combined")}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                   >
-                    <input
-                      id={`toggle-${platform}`}
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={platformToggles[platform]}
-                      onChange={() => handleToggleChange(platform)}
-                    />
-                    <div
-                      className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-600 rounded-full
-                    dark:bg-gray-700
-                    peer-checked:after:translate-x-full peer-checked:after:border-white
-                    after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                    after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all
-                    dark:border-gray-600 peer-checked:bg-blue-600"
-                    ></div>
-                  </label>
-                </div>
-              ))}
-            </div>
-
-            {/* Brand + URLs */}
-            <div className="max-w-md mx-auto space-y-6">
-              <div>
-                <label className="block mb-1 text-sm font-semibold text-gray-700">
-                  Brand Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter Brand Name"
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  className="w-full px-4 py-2 text-gray-900 placeholder-gray-400 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              {Object.entries(platformToggles).map(
-                ([platform, isActive]) =>
-                  isActive && (
-                    <div key={platform}>
-                      <label className="block mb-1 text-sm font-semibold text-gray-700">
-                        {platform} URL
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder={`Enter ${platform} URL`}
-                          value={inputValues[platform]}
-                          onChange={(e) =>
-                            handleInputChange(platform, e.target.value)
-                          }
-                          className="flex-1 px-4 py-2 text-gray-900 placeholder-gray-400 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        />
-                        {platform === "Facebook" && (
-                          <div className="flex gap-2">
-                            <label className="flex items-center">
-                              <input
-                                type="radio"
-                                name="facebookType"
-                                value="page"
-                                checked={facebookType === "page"}
-                                onChange={(e) => setFacebookType(e.target.value)}
-                                className="sr-only"
-                              />
-                              <span className={`px-4 py-2 text-sm font-medium border rounded-lg transition-colors cursor-pointer ${
-                                facebookType === "page"
-                                  ? "bg-blue-600 text-white border-blue-600"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                              }`}>
-                                Page
-                              </span>
-                            </label>
-                            <label className="flex items-center">
-                              <input
-                                type="radio"
-                                name="facebookType"
-                                value="profile"
-                                checked={facebookType === "profile"}
-                                onChange={(e) => setFacebookType(e.target.value)}
-                                className="sr-only"
-                              />
-                              <span className={`px-4 py-2 text-sm font-medium border rounded-lg transition-colors cursor-pointer ${
-                                facebookType === "profile"
-                                  ? "bg-blue-600 text-white border-blue-600"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                              }`}>
-                                Profile
-                              </span>
-                            </label>
-                          </div>
-                        )}
-                        {platform === "LinkedIn" && (
-                          <div className="flex gap-2">
-                            <label className="flex items-center">
-                              <input
-                                type="radio"
-                                name="linkedinType"
-                                value="company"
-                                checked={linkedinType === "company"}
-                                onChange={(e) => setLinkedinType(e.target.value)}
-                                className="sr-only"
-                              />
-                              <span className={`px-4 py-2 text-sm font-medium border rounded-lg transition-colors cursor-pointer ${
-                                linkedinType === "company"
-                                  ? "bg-blue-600 text-white border-blue-600"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                              }`}>
-                                Company
-                              </span>
-                            </label>
-                            <label className="flex items-center">
-                              <input
-                                type="radio"
-                                name="linkedinType"
-                                value="profile"
-                                checked={linkedinType === "profile"}
-                                onChange={(e) => setLinkedinType(e.target.value)}
-                                className="sr-only"
-                              />
-                              <span className={`px-4 py-2 text-sm font-medium border rounded-lg transition-colors cursor-pointer ${
-                                linkedinType === "profile"
-                                  ? "bg-blue-600 text-white border-blue-600"
-                                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                              }`}>
-                                Profile
-                              </span>
-                            </label>
-                          </div>
-                        )}
-                        {/* Add custom InstaRab handling here if needed */}
-                      </div>
-                    </div>
-                  )
+                    Combined Report <HiOutlineArrowRight className="w-4 h-4" />
+                  </button>
+                </>
               )}
-
-              <div className="flex justify-center">
-                <button
-                  onClick={handleReportGenerate}
-                  disabled={
-                    !brandName.trim() ||
-                    !Object.entries(platformToggles).some(
-                      ([p, on]) => on && inputValues[p].trim()
-                    )
-                  }
-                  className="px-6 py-3 font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Report Generate
-                </button>
-              </div>
             </div>
           </div>
         )}
@@ -849,5 +518,3 @@ function SearchResult() {
     </div>
   );
 }
-
-export default SearchResult;
