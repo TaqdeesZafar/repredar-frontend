@@ -165,8 +165,7 @@ function SearchResult() {
         const linkedinUser = {
           name: user.full_name,
           screen_name: user.type,
-          avatar:
-            user.profile_picture?.[0]?.url || "https://via.placeholder.com/100",
+          avatar: user.profile_picture?.[0]?.url || null,
           headline: user.headline,
           url: user.url,
           platform: "linkedin",
