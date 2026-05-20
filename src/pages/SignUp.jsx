@@ -3,16 +3,16 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import Logo from "../components/common/Logo";
 
 const SignUp = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
+    email: location?.state?.prefillEmail || "",
     password: "",
     confirmPassword: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
