@@ -5,7 +5,7 @@ import {
 } from "react-icons/fa6";
 import { FaGoogle, FaEnvelope, FaLock } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../Utils/token";
+import { isTokenExpired } from "../utils/token";
 
 const getLoggedInEmail = () => {
   const token = localStorage.getItem("token");
