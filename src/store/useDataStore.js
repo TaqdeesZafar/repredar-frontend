@@ -113,18 +113,24 @@ const useDataStore = create((set, get) => ({
           });
           const { enriched } = await res.json();
           if (enriched?.length) {
-            const imgMap = {};
-            enriched.forEach(e => { if (e.profile_image_url) imgMap[e.url] = e.profile_image_url; });
-            set(state => ({
-              linkedinData: {
-                ...state.linkedinData,
-                linkedinUsers: (state.linkedinData?.linkedinUsers || []).map(u =>
-                  imgMap[u.url]
-                    ? { ...u, profile_picture: [{ url: imgMap[u.url] }] }
-                    : u
-                ),
-              },
-            }));
+            const enrichMap = {};
+            enriched.forEach(e => { enrichMap[e.url] = e; });
+            set(state => {
+              const updated = (state.linkedinData?.linkedinUsers || []).map(u => {
+                const e = enrichMap[u.url];
+                if (!e) return u;
+                return {
+                  ...u,
+                  ...(e.profile_image_url ? { profile_picture: [{ url: e.profile_image_url }] } : {}),
+                  ...(e.follower_count ? { follower_count: e.follower_count } : {}),
+                };
+              });
+              // Re-sort after enrichment since follower counts may have updated
+              updated.sort((a, b) => (b.follower_count || 0) - (a.follower_count || 0));
+              return {
+                linkedinData: { ...state.linkedinData, linkedinUsers: updated },
+              };
+            });
           }
         } catch {
           // enrichment failed silently — placeholder avatars stay

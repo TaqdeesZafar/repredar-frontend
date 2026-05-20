@@ -544,6 +544,14 @@ function SearchResult() {
                 } else if (activeTab === "LinkedIn") {
                   const imgUrl = user.profile_picture?.[0]?.url;
                   const initials = (user.full_name || "?").split(" ").filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+                  const followers = user.follower_count || 0;
+                  const followersLabel = followers >= 1000000
+                    ? `${(followers / 1000000).toFixed(1)}M followers`
+                    : followers >= 1000
+                    ? `${(followers / 1000).toFixed(1)}K followers`
+                    : followers > 0
+                    ? `${followers} followers`
+                    : null;
                   return (
                     <div
                       key={user.url || index}
@@ -551,23 +559,29 @@ function SearchResult() {
                       className="bg-white p-4 rounded-lg border hover:shadow-md w-full transition-shadow cursor-pointer flex items-center justify-between"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-blue-600 flex items-center justify-center">
-                          {imgUrl ? (
+                        <div className="relative w-12 h-12 flex-shrink-0">
+                          {/* Always show initials circle as base layer */}
+                          <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center absolute inset-0">
+                            <span className="text-white font-bold text-sm leading-none">{initials}</span>
+                          </div>
+                          {/* Real image sits on top — hides itself on error, revealing initials below */}
+                          {imgUrl && (
                             <img
                               src={imgUrl}
                               alt={user.full_name}
-                              className="w-12 h-12 rounded-full object-cover"
+                              className="w-12 h-12 rounded-full object-cover absolute inset-0"
                               onError={e => { e.target.style.display = 'none'; }}
                             />
-                          ) : (
-                            <span className="text-white font-bold text-sm leading-none">{initials}</span>
                           )}
                         </div>
                         <div>
                           <h3 className="font-medium text-base">{user.full_name}</h3>
-                          <p className="text-gray-500">{user.type}</p>
+                          <p className="text-gray-500 text-sm">{user.type}</p>
+                          {followersLabel && (
+                            <p className="text-blue-600 text-xs font-medium mt-0.5">{followersLabel}</p>
+                          )}
                           {user.headline && (
-                            <p className="text-gray-400 text-sm mt-1 line-clamp-1">{user.headline}</p>
+                            <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{user.headline}</p>
                           )}
                         </div>
                       </div>
