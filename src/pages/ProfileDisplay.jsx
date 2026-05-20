@@ -330,12 +330,19 @@ export default function ProfileDisplay() {
           <div className="px-6 pb-6">
             <div className="flex items-end gap-4 -mt-10 mb-4 relative z-10">
               {userData?.avatar ? (
-                <img src={userData.avatar} alt={getDisplayName()} className="w-20 h-20 rounded-full border-4 border-white shadow-xl object-cover" />
-              ) : (
-                <div className="w-20 h-20 rounded-full border-4 border-white shadow-xl flex items-center justify-center text-3xl font-bold text-white" style={{ background: cfg.bg }}>
-                  {cfg.Icon ? <cfg.Icon style={{ color: cfg.iconColor, fontSize: 30 }} /> : getDisplayName().charAt(0).toUpperCase()}
-                </div>
-              )}
+                <img
+                  src={userData.avatar}
+                  alt={getDisplayName()}
+                  className="w-20 h-20 rounded-full border-4 border-white shadow-xl object-cover"
+                  onError={e => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'flex'; }}
+                />
+              ) : null}
+              <div
+                className="w-20 h-20 rounded-full border-4 border-white shadow-xl items-center justify-center text-3xl font-bold text-white"
+                style={{ background: cfg.bg, display: userData?.avatar ? 'none' : 'flex' }}
+              >
+                {cfg.Icon ? <cfg.Icon style={{ color: cfg.iconColor, fontSize: 30 }} /> : getDisplayName().charAt(0).toUpperCase()}
+              </div>
               <div className="mb-2 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
                 style={{ background: cfg.bg, border: cfg.border || "none", color: cfg.iconColor }}>
                 {cfg.Icon && <cfg.Icon style={{ color: cfg.iconColor, fontSize: 12 }} />}

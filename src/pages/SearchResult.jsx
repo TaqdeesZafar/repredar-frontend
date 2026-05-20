@@ -544,7 +544,7 @@ function SearchResult() {
                   );
                 } else if (activeTab === "LinkedIn") {
                   const imgUrl = user.profile_picture?.[0]?.url;
-                  const initials = (user.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+                  const initials = (user.full_name || "?").split(" ").filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase();
                   return (
                     <div
                       key={user.url || index}
@@ -552,21 +552,17 @@ function SearchResult() {
                       className="bg-white p-4 rounded-lg border hover:shadow-md w-full transition-shadow cursor-pointer flex items-center justify-between"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-blue-600 flex items-center justify-center">
                           {imgUrl ? (
                             <img
                               src={imgUrl}
                               alt={user.full_name}
-                              className="w-full h-full object-cover"
-                              onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                              className="w-12 h-12 rounded-full object-cover"
+                              onError={e => { e.target.style.display = 'none'; }}
                             />
-                          ) : null}
-                          <div
-                            className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm"
-                            style={{ display: imgUrl ? 'none' : 'flex' }}
-                          >
-                            {initials}
-                          </div>
+                          ) : (
+                            <span className="text-white font-bold text-sm leading-none">{initials}</span>
+                          )}
                         </div>
                         <div>
                           <h3 className="font-medium text-base">{user.full_name}</h3>
