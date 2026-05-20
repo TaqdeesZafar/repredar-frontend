@@ -85,7 +85,8 @@ function SearchResult() {
       return linkedinData?.linkedinUsers || [];
     }
     if (activeTab === "TikTok") {
-      return tiktokData?.tiktokUsers || [];
+      const users = tiktokData?.tiktokUsers || [];
+      return [...users].sort((a, b) => (b.user_info?.verified ? 1 : 0) - (a.user_info?.verified ? 1 : 0));
     }
     if (activeTab === "Facebook") {
       return facebookSubTab === "Pages"
@@ -524,7 +525,7 @@ function SearchResult() {
                         <div>
                           <h3 className="font-medium text-base">
                             {user.name}
-                            {user.is_blue_verified && (
+                            {(user.is_blue_verified || user.blue_verified) && (
                               <span className="ml-1 align-middle">
                                 <img
                                   src={twitterVerifiedBadge}
@@ -542,32 +543,36 @@ function SearchResult() {
                     </div>
                   );
                 } else if (activeTab === "LinkedIn") {
+                  const imgUrl = user.profile_picture?.[0]?.url;
+                  const initials = (user.full_name || "?").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
                   return (
                     <div
-                      key={user.id}
+                      key={user.url || index}
                       onClick={() => handleUserClick(user)}
                       className="bg-white p-4 rounded-lg border hover:shadow-md w-full transition-shadow cursor-pointer flex items-center justify-between"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden">
-                          <img
-                            src={
-                              user.profile_picture?.[0]?.url ||
-                              "https://via.placeholder.com/100"
-                            }
-                            alt={user.full_name}
-                            className="w-full h-full object-cover"
-                          />
+                        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                          {imgUrl ? (
+                            <img
+                              src={imgUrl}
+                              alt={user.full_name}
+                              className="w-full h-full object-cover"
+                              onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                            />
+                          ) : null}
+                          <div
+                            className="w-full h-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm"
+                            style={{ display: imgUrl ? 'none' : 'flex' }}
+                          >
+                            {initials}
+                          </div>
                         </div>
                         <div>
-                          <h3 className="font-medium text-base">
-                            {user.full_name}
-                          </h3>
+                          <h3 className="font-medium text-base">{user.full_name}</h3>
                           <p className="text-gray-500">{user.type}</p>
                           {user.headline && (
-                            <p className="text-gray-400 text-sm mt-1 line-clamp-1">
-                              {user.headline}
-                            </p>
+                            <p className="text-gray-400 text-sm mt-1 line-clamp-1">{user.headline}</p>
                           )}
                         </div>
                       </div>
@@ -646,8 +651,14 @@ function SearchResult() {
                           />
                         </div>
                         <div>
-                          <h3 className="font-medium text-base">
+                          <h3 className="font-medium text-base flex items-center gap-1">
                             {user.user_info.nickname}
+                            {user.user_info.verified && (
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="inline-block h-[18px] w-[18px]" style={{ verticalAlign: 'middle' }}>
+                                <circle cx="12" cy="12" r="12" fill="#20D5EC"/>
+                                <path d="M17.5 8.5l-7 7-3-3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                              </svg>
+                            )}
                           </h3>
                           <p className="text-gray-500">
                             @{user.user_info.unique_id}

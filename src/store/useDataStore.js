@@ -86,7 +86,6 @@ const useDataStore = create((set, get) => ({
   // LinkedIn
   getLinkedInData: async (query) => {
     const { linkedinData, logSearch } = get();
-    console.log("linke : ", linkedinData);
     if (linkedinData && linkedinData.query === query) {
       return;
     }
@@ -97,7 +96,40 @@ const useDataStore = create((set, get) => ({
       const result = await fetchLinkedInData(query);
       const resultCount = result?.linkedinUsers?.length || 0;
       await logSearch('LINKEDIN', query, resultCount);
+      // Show results immediately
       set({ linkedinData: { ...result, query }, loading: false });
+
+      // Enrich profile pictures in background
+      const peopleUrls = (result?.linkedinUsers || [])
+        .filter(u => u.type === 'Person' && u.url)
+        .map(u => u.url);
+
+      if (peopleUrls.length > 0) {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/linkedin/enrich-users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ urls: peopleUrls }),
+          });
+          const { enriched } = await res.json();
+          if (enriched?.length) {
+            const imgMap = {};
+            enriched.forEach(e => { if (e.profile_image_url) imgMap[e.url] = e.profile_image_url; });
+            set(state => ({
+              linkedinData: {
+                ...state.linkedinData,
+                linkedinUsers: (state.linkedinData?.linkedinUsers || []).map(u =>
+                  imgMap[u.url]
+                    ? { ...u, profile_picture: [{ url: imgMap[u.url] }] }
+                    : u
+                ),
+              },
+            }));
+          }
+        } catch {
+          // enrichment failed silently — placeholder avatars stay
+        }
+      }
     } catch (error) {
       await logSearch('LINKEDIN', query, 0, { error: error.message });
       set({ error: error.message || "LinkedIn fetch failed", loading: false });
