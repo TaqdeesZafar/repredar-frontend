@@ -80,3 +80,15 @@ export const fetchInstagramData = async (query) => {
     throw error;
   }
 };
+
+export const resolveSearchQuery = async (query, mode = "person") => {
+  try {
+    const response = await apiClient.get(
+      `/search/resolve?query=${encodeURIComponent(query)}&mode=${mode}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
