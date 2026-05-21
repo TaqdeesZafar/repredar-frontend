@@ -531,9 +531,8 @@ export default function SearchResult() {
     if (reportType === "combined") {
       const toggles = {}, urls = {};
       selectedArr.forEach(id => {
-        const key = id === "instagram" ? "InstaRab" : id.charAt(0).toUpperCase() + id.slice(1);
-        toggles[key] = true;
-        urls[key] = buildUrl(id, profiles[id]);
+        toggles[id] = true;
+        urls[id] = buildUrl(id, profiles[id]);
         if (id === "google" && profiles[id]?.businessId) urls["googleBusinessId"] = profiles[id].businessId;
       });
       navigate("/profile", { state: { brandName: username, urls, toggles, mode } });
@@ -543,12 +542,22 @@ export default function SearchResult() {
     const p = profiles[firstId];
     const raw = p?.raw;
     if (!raw && !p?.overrideUrl) return;
-    if (firstId === "twitter")   navigate("/profile", { state: { user: { ...raw, platform: "X" } } });
-    else if (firstId === "linkedin") navigate("/profile", { state: { user: { name: raw.full_name, screen_name: raw.type, avatar: raw.avatar, headline: raw.headline, url: raw.url, platform: "linkedin" } } });
-    else if (firstId === "tiktok")   navigate("/profile", { state: { user: { name: raw.nickname, screen_name: raw.unique_id, avatar: raw.avatar, sec_uid: raw.sec_uid, follower_count: raw.follower_count, signature: raw.signature, platform: "tiktok" } } });
-    else if (firstId === "facebook") navigate("/profile", { state: { user: { name: raw.name, screen_name: raw.type, avatar: raw.avatar, facebook_id: raw.facebook_id, url: raw.url, platform: "facebook" } } });
-    else if (firstId === "instagram") navigate("/profile", { state: { user: { name: raw.full_name, screen_name: raw.username, avatar: raw.avatar, instagram_id: raw.id, is_verified: raw.is_verified, platform: "instagram" } } });
-    else if (firstId === "google")   navigate("/profile", { state: { user: { name: raw.name, screen_name: raw.address, avatar: raw.avatar, business_id: raw.business_id, url: raw.url, platform: "google" } } });
+
+    let user = null;
+    if (firstId === "twitter") {
+      user = { name: raw.name, screen_name: raw.screen_name || raw.screenName, avatar: raw.avatar, followers_count: raw.followers_count || raw.followers, description: raw.description, platform: "twitter" };
+    } else if (firstId === "instagram") {
+      user = { name: raw.full_name || raw.username, screen_name: raw.username, avatar: raw.avatar || raw.profile_pic_url, followers_count: raw.follower_count, biography: raw.biography, is_verified: raw.is_verified, platform: "instagram" };
+    } else if (firstId === "tiktok") {
+      user = { name: raw.nickname, screen_name: raw.unique_id || raw.uniqueId, avatar: raw.avatar, sec_uid: raw.sec_uid || raw.secUid, follower_count: raw.follower_count || raw.followerCount, signature: raw.signature, platform: "tiktok" };
+    } else if (firstId === "facebook") {
+      user = { name: raw.name, username: raw.username, avatar: raw.avatar, facebook_id: raw.facebook_id, url: raw.url, followers: raw.followers, type: raw.type, platform: "facebook" };
+    } else if (firstId === "linkedin") {
+      user = { name: raw.full_name || raw.name, screen_name: raw.url?.split("/").filter(Boolean).pop(), avatar: raw.avatar, headline: raw.headline, url: raw.url, follower_count: raw.follower_count, platform: "linkedin" };
+    } else if (firstId === "google") {
+      user = { name: raw.name, screen_name: raw.address, avatar: raw.avatar, business_id: raw.business_id, url: raw.url, platform: "google" };
+    }
+    if (user) navigate("/profile", { state: { user, mode } });
   };
 
   const anyLoading  = platforms.some(p => profiles[p] === undefined);
