@@ -11,7 +11,7 @@ const ALL_PLATFORMS = [
   { id: "tiktok",    label: "TikTok",         color: "bg-black",         textColor: "text-white" },
   { id: "facebook",  label: "Facebook",       color: "bg-blue-600",      textColor: "text-white" },
   { id: "linkedin",  label: "LinkedIn",       color: "bg-blue-700",      textColor: "text-white" },
-  { id: "google",    label: "Google",         color: "bg-white border border-gray-200", textColor: "text-gray-700" },
+  { id: "google",    label: "Google Business", color: "bg-white border border-gray-200", textColor: "text-gray-700" },
 ];
 
 const RING_COLORS = {
@@ -69,7 +69,7 @@ function Avatar({ src, name, size = 52 }) {
     <div style={{ width: size, height: size }} className="relative flex-shrink-0">
       <div style={{ width: size, height: size }}
         className="rounded-full bg-blue-600 flex items-center justify-center absolute inset-0 select-none">
-        <span className="text-white font-bold text-sm">{initials}</span>
+        <span className="text-white font-bold" style={{ fontSize: size * 0.28 }}>{initials}</span>
       </div>
       {src && !failed && (
         <img src={src} alt="" style={{ width: size, height: size }}
@@ -95,7 +95,7 @@ function StarRating({ rating }) {
     <div className="flex items-center gap-1 mt-0.5">
       <div className="flex">
         {[1,2,3,4,5].map(i => (
-          <svg key={i} className={`w-3.5 h-3.5 ${i <= full ? "text-yellow-400" : i === full + 1 && half ? "text-yellow-300" : "text-gray-200"}`}
+          <svg key={i} className={`w-3.5 h-3.5 ${i <= full ? "text-yellow-400" : i === full+1 && half ? "text-yellow-300" : "text-gray-200"}`}
             fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
@@ -106,34 +106,57 @@ function StarRating({ rating }) {
   );
 }
 
-// ─── Normalise raw API response to display profile ────────────────────────────
-function normaliseProfile(platformId, raw) {
-  if (!raw) return null;
+// ─── Normalise raw API response ───────────────────────────────────────────────
+// Backend now returns { best, alternatives } — we normalise best into display profile
+// and carry alternatives for the "wrong account?" switcher
+function normaliseProfile(platformId, data) {
+  if (!data) return null;
+  // Support both old shape (flat object) and new shape ({ best, alternatives })
+  const raw = data.best ?? data;
+  const alternatives = data.alternatives ?? [];
+
+  let profile = null;
+
   if (platformId === "twitter") {
-    if (!raw.id && !raw.screen_name) return null;
-    return { found: true, name: raw.name || raw.screen_name, username: raw.screen_name, avatar: raw.avatar, followers: raw.followers_count || 0, verified: raw.is_blue_verified || false, raw };
-  }
-  if (platformId === "tiktok") {
-    if (!raw.sec_uid && !raw.unique_id) return null;
-    return { found: true, name: raw.nickname, username: raw.unique_id, avatar: raw.avatar, followers: raw.follower_count || 0, verified: raw.verified || false, raw };
-  }
-  if (platformId === "instagram") {
-    if (!raw.username) return null;
-    return { found: true, name: raw.full_name || raw.username, username: raw.username, avatar: raw.avatar, followers: raw.follower_count || 0, verified: raw.is_verified || false, raw };
-  }
-  if (platformId === "facebook") {
+    const sn = raw.screen_name || raw.screenName;
+    const displayName = raw.name || sn;
+    if (!displayName) return null;
+    profile = { found: true, name: displayName, username: sn || displayName, avatar: raw.avatar, followers: raw.followers_count || raw.followers || 0, verified: raw.is_blue_verified || false, bio: raw.description || '', raw };
+  } else if (platformId === "tiktok") {
+    const displayName = raw.nickname || raw.unique_id || raw.uniqueId;
+    const uid = raw.unique_id || raw.uniqueId || raw.sec_uid || raw.secUid;
+    if (!displayName && !uid) return null;
+    profile = { found: true, name: displayName || uid, username: raw.unique_id || raw.uniqueId || uid, avatar: raw.avatar || raw.avatarThumb || raw.avatarMedium, followers: raw.follower_count || raw.followerCount || 0, verified: raw.verified || false, bio: raw.signature || '', raw };
+  } else if (platformId === "instagram") {
+    const displayName = raw.full_name || raw.username;
+    if (!displayName) return null;
+    profile = { found: true, name: displayName, username: raw.username, avatar: raw.avatar || raw.profile_pic_url, followers: raw.follower_count || 0, verified: raw.is_verified || false, bio: raw.biography || '', raw };
+  } else if (platformId === "facebook") {
+    const displayName = raw.name;
+    if (!displayName) return null;
+    profile = { found: true, name: displayName, username: raw.username, avatar: raw.avatar, followers: raw.followers || raw.followers_count || raw.fan_count || 0, verified: raw.is_verified || false, bio: raw.category || raw.about || '', raw };
+  } else if (platformId === "linkedin") {
+    const displayName = raw.full_name || raw.name;
+    if (!displayName) return null;
+    profile = { found: true, name: displayName, username: raw.url ? raw.url.split("/").filter(Boolean).pop() : "", avatar: raw.avatar, followers: raw.follower_count || raw.followers_count || 0, verified: false, bio: raw.headline || raw.description || '', raw };
+  } else if (platformId === "google") {
     if (!raw.name) return null;
-    return { found: true, name: raw.name, username: raw.username, avatar: raw.avatar, followers: raw.followers || 0, verified: raw.is_verified || false, raw };
+    profile = { found: true, name: raw.name, username: raw.address || "", avatar: raw.avatar, rating: raw.rating, reviewCount: raw.review_count, businessId: raw.business_id, url: raw.url, type: raw.type, raw };
   }
-  if (platformId === "linkedin") {
-    if (!raw.full_name) return null;
-    return { found: true, name: raw.full_name, username: raw.url ? raw.url.split("/").filter(Boolean).pop() : "", avatar: raw.avatar, followers: raw.follower_count || 0, verified: false, raw };
-  }
-  if (platformId === "google") {
-    if (!raw.name) return null;
-    return { found: true, name: raw.name, username: raw.address || "", avatar: raw.avatar, rating: raw.rating, reviewCount: raw.review_count, businessId: raw.business_id, url: raw.url, type: raw.type, raw };
-  }
-  return null;
+
+  if (!profile) return null;
+
+  // Normalise alternatives into same mini shape
+  profile.alternatives = alternatives.map(a => {
+    if (!a) return null;
+    const name = a.name || a.full_name || a.nickname || '';
+    const username = a.screen_name || a.unique_id || a.username || (a.url ? a.url.split('/').filter(Boolean).pop() : '') || '';
+    const followers = a.followers_count || a.follower_count || a.followers || 0;
+    const avatar = a.avatar || a.profile_pic_url || null;
+    return name ? { name, username, followers, avatar, raw: a } : null;
+  }).filter(Boolean);
+
+  return profile;
 }
 
 function buildUrl(platformId, profile) {
@@ -148,8 +171,8 @@ function buildUrl(platformId, profile) {
   return "";
 }
 
-// ─── Single result card ───────────────────────────────────────────────────────
-function ResultCard({ platformId, label, profile, selected, onToggle, onOverride, onRetry }) {
+// ─── Result card ──────────────────────────────────────────────────────────────
+function ResultCard({ platformId, label, profile, selected, onToggle, onOverride, onRetry, onSwapAlternative }) {
   const [editing, setEditing]       = useState(false);
   const [overrideVal, setOverride]  = useState("");
   const [retryVal, setRetryVal]     = useState("");
@@ -165,15 +188,16 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
   const isOverride = profile?.overrideUrl;
   const canSelect  = isFound || isOverride;
   const isGoogle   = platformId === "google";
+  const alternatives = profile?.alternatives || [];
 
   const pl = ALL_PLATFORMS.find(p => p.id === platformId);
 
   return (
     <div
-      onClick={() => { if (canSelect && !editing) onToggle(); }}
-      className={`relative bg-white rounded-2xl border-2 p-4 transition-all
-        ${canSelect && !editing ? "cursor-pointer hover:shadow-md hover:border-blue-300" : ""}
-        ${selected ? `border-transparent ring-2 ${RING_COLORS[platformId]} shadow-md bg-blue-50/30` : "border-gray-100 shadow-sm"}
+      onClick={() => { if (canSelect && !editing && !retrying) onToggle(); }}
+      className={`relative bg-white rounded-2xl border-2 transition-all
+        ${canSelect && !editing && !retrying ? "cursor-pointer hover:shadow-md hover:border-blue-300" : ""}
+        ${selected ? `border-transparent ring-2 ${RING_COLORS[platformId]} shadow-md` : "border-gray-100 shadow-sm"}
       `}
     >
       {/* Selected tick */}
@@ -183,120 +207,178 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
         </div>
       )}
 
-      {/* Platform header */}
-      <div className="flex items-center gap-2 mb-3">
+      {/* ── Platform header ── */}
+      <div className={`flex items-center gap-2 px-4 pt-4 pb-2`}>
         <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${pl?.color} ${pl?.textColor}`}>
           <PlatformIcon id={platformId} className="w-3.5 h-3.5" />
         </div>
         <span className="text-sm font-bold text-gray-800">{label}</span>
-        <div className="ml-auto">
+        <div className="ml-auto flex-shrink-0">
           {isLoading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-400 border-t-transparent" />}
-          {isFound && !isLoading && <span className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full">Found ✓</span>}
-          {isNotFound && !isLoading && <span className="text-xs text-gray-400">Not found</span>}
+          {isFound && <span className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full">Found ✓</span>}
+          {isNotFound && <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">Not found</span>}
         </div>
       </div>
 
-      {/* Skeleton */}
+      {/* ── Skeleton ── */}
       {isLoading && (
-        <div className="flex items-center gap-3 animate-pulse">
-          <div className="w-12 h-12 rounded-full bg-gray-100 flex-shrink-0" />
+        <div className="px-4 pb-4 flex items-center gap-3 animate-pulse">
+          <div className="w-14 h-14 rounded-full bg-gray-100 flex-shrink-0" />
           <div className="flex-1 space-y-2">
             <div className="h-3 bg-gray-100 rounded w-3/4" />
             <div className="h-3 bg-gray-100 rounded w-1/2" />
+            <div className="h-3 bg-gray-100 rounded w-1/3" />
           </div>
         </div>
       )}
 
-      {/* Found: social profile */}
+      {/* ── Found: social profile ── */}
       {isFound && !isGoogle && (
-        <div className="flex items-center gap-3">
-          <Avatar src={profile.avatar} name={profile.name} size={48} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1 flex-wrap">
-              <p className="font-bold text-gray-900 text-sm truncate">{profile.name}</p>
-              {profile.verified && (
-                platformId === "twitter"
-                  ? <img src={twitterVerifiedBadge} alt="verified" className="w-4 h-4 flex-shrink-0" />
-                  : <span className="text-blue-500 text-xs">✓</span>
+        <div className="px-4 pb-3">
+          <div className="flex items-center gap-3">
+            <Avatar src={profile.avatar} name={profile.name} size={52} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 flex-wrap">
+                <p className="font-bold text-gray-900 text-sm truncate">{profile.name}</p>
+                {profile.verified && (
+                  platformId === "twitter"
+                    ? <img src={twitterVerifiedBadge} alt="verified" className="w-4 h-4 flex-shrink-0" />
+                    : <span className="text-blue-500 text-xs flex-shrink-0">✓</span>
+                )}
+              </div>
+              {profile.username && (
+                <p className="text-xs text-gray-400 truncate">@{profile.username}</p>
+              )}
+              {profile.bio && (
+                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">{profile.bio}</p>
+              )}
+              {/* Followers — prominent */}
+              {profile.followers > 0 && (
+                <div className="mt-1.5 inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                  </svg>
+                  {formatNum(profile.followers)} followers
+                </div>
               )}
             </div>
-            <p className="text-xs text-gray-400 truncate">@{profile.username}</p>
-            {profile.followers > 0 && (
-              <p className="text-xs text-blue-600 font-semibold mt-0.5">{formatNum(profile.followers)} followers</p>
-            )}
           </div>
         </div>
       )}
 
-      {/* Found: Google Business */}
+      {/* ── Found: Google Business ── */}
       {isFound && isGoogle && (
-        <div className="flex items-start gap-3">
-          {profile.avatar
-            ? <img src={profile.avatar} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" onError={e => { e.target.style.display='none'; }} />
-            : <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                <PlatformIcon id="google" className="w-6 h-6" />
-              </div>
-          }
-          <div className="min-w-0 flex-1">
-            <p className="font-bold text-gray-900 text-sm truncate">{profile.name}</p>
-            <StarRating rating={profile.rating} />
-            {profile.reviewCount > 0 && <p className="text-xs text-gray-400">{formatNum(profile.reviewCount)} reviews</p>}
-            {profile.username && <p className="text-xs text-gray-400 truncate mt-0.5">{profile.username}</p>}
+        <div className="px-4 pb-3">
+          <div className="flex items-start gap-3">
+            {profile.avatar
+              ? <img src={profile.avatar} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" onError={e => { e.target.style.display='none'; }} />
+              : <div className="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0 border border-green-100">
+                  <PlatformIcon id="google" className="w-6 h-6" />
+                </div>
+            }
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-gray-900 text-sm">{profile.name}</p>
+              <StarRating rating={profile.rating} />
+              {profile.reviewCount > 0 && (
+                <div className="mt-1 inline-flex items-center gap-1 bg-yellow-50 text-yellow-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {formatNum(profile.reviewCount)} reviews
+                </div>
+              )}
+              {profile.username && <p className="text-xs text-gray-400 truncate mt-0.5">{profile.username}</p>}
+              {profile.type && <p className="text-xs text-gray-400">{profile.type}</p>}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Override display */}
+      {/* ── Override display ── */}
       {isOverride && !isFound && (
-        <div className="flex items-center gap-3">
+        <div className="px-4 pb-3 flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
             <span className="text-purple-600 text-lg">🔗</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-bold text-gray-900 text-sm truncate">Custom URL</p>
+            <p className="font-bold text-gray-900 text-sm">Custom URL</p>
             <p className="text-xs text-gray-400 truncate">{profile.overrideUrl}</p>
           </div>
         </div>
       )}
 
-      {/* Not found state */}
+      {/* ── AI alternatives ── */}
+      {isFound && alternatives.length > 0 && !editing && !retrying && (
+        <div className="mx-4 mb-3 rounded-xl overflow-hidden border-2 border-orange-100 bg-orange-50/40" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-orange-100">
+            <span className="text-orange-500 text-sm">⚠️</span>
+            <p className="text-xs font-semibold text-orange-700">Not the right account?</p>
+            <p className="text-xs text-orange-500 ml-auto">Tap to swap</p>
+          </div>
+          {alternatives.map((alt, i) => (
+            <button
+              key={i}
+              onClick={() => onSwapAlternative(alt.raw)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-orange-50 transition-colors border-b border-orange-100/50 last:border-0 text-left"
+            >
+              <Avatar src={alt.avatar} name={alt.name} size={30} />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-gray-800 truncate">{alt.name}</p>
+                {alt.username && <p className="text-xs text-gray-500">@{alt.username}</p>}
+              </div>
+              {alt.followers > 0 && (
+                <span className="text-xs text-gray-500 flex-shrink-0">{formatNum(alt.followers)}</span>
+              )}
+              <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full flex-shrink-0 font-semibold">Use</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Not found state ── */}
       {isNotFound && !editing && !retrying && (
-        <div className="mt-1 space-y-3" onClick={e => e.stopPropagation()}>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            {isGoogle
-              ? "No Google Business listing found. Add a city to narrow the search."
-              : "Not found with that username. Try their exact handle."}
-          </p>
-          <div className="flex gap-2">
+        <div className="px-4 pb-4 space-y-3" onClick={e => e.stopPropagation()}>
+          <div className="flex items-start gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
+            <span className="text-lg mt-0.5">🔍</span>
+            <p className="text-xs text-gray-600 leading-relaxed">
+              {isGoogle
+                ? "No Google Business listing found. Try including the city (e.g. \"Nike New York\")."
+                : "Couldn't find this account automatically. Enter their exact username or paste a profile URL below."}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={e => { e.stopPropagation(); setRetrying(true); }}
-              className="flex-1 py-1.5 text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+              className="py-2 text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition-colors flex items-center justify-center gap-1.5"
             >
-              {isGoogle ? "Try with city →" : "Try different username →"}
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {isGoogle ? "Add city" : "Try username"}
             </button>
             <button
               onClick={e => { e.stopPropagation(); setEditing(true); }}
-              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="py-2 text-xs font-bold bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-400 hover:text-blue-600 rounded-xl transition-colors flex items-center justify-center gap-1.5"
             >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
               Paste URL
             </button>
           </div>
         </div>
       )}
 
-      {/* Retry with different handle */}
+      {/* ── Retry / username input ── */}
       {retrying && (
-        <div className="mt-2 space-y-2" onClick={e => e.stopPropagation()}>
-          <p className="text-xs text-gray-500 font-medium">
-            {isGoogle ? "Enter business name + city:" : `Enter their ${label} username:`}
+        <div className="px-4 pb-4 space-y-2.5 border-t-2 border-blue-100 pt-3" onClick={e => e.stopPropagation()}>
+          <p className="text-xs font-bold text-gray-700">
+            {isGoogle ? "Enter business name + city:" : `Enter their exact ${label} username:`}
           </p>
           <input
             ref={retryRef}
             type="text"
             value={retryVal}
             onChange={e => setRetryVal(e.target.value)}
-            placeholder={isGoogle ? "e.g. Nike New York" : "@username"}
-            className="w-full text-xs px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500"
+            placeholder={isGoogle ? "e.g. Nike New York" : "e.g. @donaldtrump"}
+            className="w-full text-sm px-3.5 py-2.5 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 bg-blue-50/30"
             onKeyDown={e => {
               if (e.key === "Enter" && retryVal.trim()) { onRetry(retryVal.trim()); setRetrying(false); setRetryVal(""); }
               if (e.key === "Escape") { setRetrying(false); setRetryVal(""); }
@@ -306,40 +388,47 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
             <button
               disabled={!retryVal.trim()}
               onClick={() => { if (retryVal.trim()) { onRetry(retryVal.trim()); setRetrying(false); setRetryVal(""); } }}
-              className="flex-1 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-40 font-semibold"
-            >
-              Search
-            </button>
+              className="flex-1 py-2 bg-blue-600 text-white text-xs rounded-xl hover:bg-blue-700 disabled:opacity-40 font-bold"
+            >Search</button>
             <button onClick={() => { setRetrying(false); setRetryVal(""); }}
-              className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">
-              Cancel
-            </button>
+              className="px-4 py-2 border-2 border-gray-200 text-gray-500 text-xs rounded-xl hover:bg-gray-50 font-semibold">Cancel</button>
           </div>
         </div>
       )}
 
-      {/* Wrong result edit link */}
-      {(isFound || isOverride) && !editing && (
-        <button
-          onClick={e => { e.stopPropagation(); setEditing(true); }}
-          className="mt-2.5 flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition-colors"
-        >
-          <HiOutlinePencil className="w-3 h-3" />
-          {isGoogle ? "Wrong business? Paste correct URL" : "Wrong account? Paste correct URL"}
-        </button>
+      {/* ── Wrong result — visible button always shown when found ── */}
+      {(isFound || isOverride) && !editing && !retrying && (
+        <div className="border-t-2 border-gray-100 flex" onClick={e => e.stopPropagation()}>
+          <button
+            onClick={e => { e.stopPropagation(); setRetrying(true); }}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-bl-2xl border-r border-gray-100"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Try username
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); setEditing(true); }}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-br-2xl"
+          >
+            <HiOutlinePencil className="w-3.5 h-3.5" />
+            Paste URL
+          </button>
+        </div>
       )}
 
-      {/* Inline URL paste */}
+      {/* ── Paste URL input ── */}
       {editing && (
-        <div className="mt-3 space-y-2" onClick={e => e.stopPropagation()}>
-          <p className="text-xs text-gray-500 font-medium">Paste the correct URL:</p>
+        <div className="px-4 pb-4 pt-3 space-y-2.5 border-t-2 border-blue-100" onClick={e => e.stopPropagation()}>
+          <p className="text-xs font-bold text-gray-700">Paste the correct profile URL:</p>
           <input
             ref={inputRef}
             type="text"
             value={overrideVal}
             onChange={e => setOverride(e.target.value)}
-            placeholder="https://..."
-            className="w-full text-xs px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500"
+            placeholder="https://twitter.com/username"
+            className="w-full text-sm px-3.5 py-2.5 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 bg-blue-50/30"
             onKeyDown={e => {
               if (e.key === "Enter" && overrideVal.trim()) { onOverride(overrideVal.trim()); setEditing(false); }
               if (e.key === "Escape") setEditing(false);
@@ -349,14 +438,10 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
             <button
               disabled={!overrideVal.trim()}
               onClick={() => { if (overrideVal.trim()) { onOverride(overrideVal.trim()); setEditing(false); } }}
-              className="flex-1 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-40 font-semibold"
-            >
-              Use this URL
-            </button>
+              className="flex-1 py-2 bg-blue-600 text-white text-xs rounded-xl hover:bg-blue-700 disabled:opacity-40 font-bold"
+            >Use this URL</button>
             <button onClick={() => setEditing(false)}
-              className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">
-              Cancel
-            </button>
+              className="px-4 py-2 border-2 border-gray-200 text-gray-500 text-xs rounded-xl hover:bg-gray-50 font-semibold">Cancel</button>
           </div>
         </div>
       )}
@@ -366,64 +451,71 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
 
 // ─── Main results page ────────────────────────────────────────────────────────
 export default function SearchResult() {
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const state     = location.state || {};
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state    = location.state || {};
 
-  // Accept state from HeroSection form OR from a legacy ?query= param
-  const qParam    = new URLSearchParams(location.search).get("query") || "";
-  const username  = state.username || qParam || "";
-  const mode      = state.mode || "company";
-  const platforms = state.platforms || ALL_PLATFORMS.map(p => p.id).filter(id => id !== "google");
-  const handles   = state.handles   || Object.fromEntries(platforms.map(p => [p, username]));
+  const qParam         = new URLSearchParams(location.search).get("query") || "";
+  const username       = state.username || qParam || "";
+  const mode           = state.mode || "company";
+  const platforms      = state.platforms || ALL_PLATFORMS.map(p => p.id).filter(id => id !== "google");
+  const handles        = state.handles || Object.fromEntries(platforms.map(p => [p, username]));
   const googleLocation = state.googleLocation || "";
 
-  const [profiles, setProfiles]   = useState(
+  const [profiles, setProfiles] = useState(
     () => Object.fromEntries(platforms.map(p => [p, undefined]))
   );
-  const [selected, setSelected]   = useState(new Set());
+  const [selected, setSelected] = useState(new Set());
 
-  // Fire each platform lookup independently
+  // Freeze the search params on mount so re-renders never re-fire lookups
+  const searchRef = useRef(null);
+  if (!searchRef.current && username) {
+    searchRef.current = { username, platforms: [...platforms], handles: { ...handles }, mode, googleLocation };
+  }
+
   useEffect(() => {
-    if (!username) return;
-    platforms.forEach(platformId => {
-      const handle = handles[platformId] || username;
-      lookupProfiles(handle, [platformId], mode, platformId === "google" ? googleLocation : "")
+    const params = searchRef.current;
+    if (!params) return;
+    params.platforms.forEach(platformId => {
+      const handle = params.handles[platformId] || params.username;
+      lookupProfiles(handle, [platformId], params.mode, platformId === "google" ? params.googleLocation : "")
         .then(data => {
           const raw = data.profiles?.[platformId];
           const profile = normaliseProfile(platformId, raw);
           setProfiles(prev => ({ ...prev, [platformId]: profile }));
           if (profile?.found) setSelected(prev => new Set([...prev, platformId]));
         })
-        .catch(() => {
-          setProfiles(prev => ({ ...prev, [platformId]: null }));
-        });
+        .catch(() => setProfiles(prev => ({ ...prev, [platformId]: null })));
     });
-  }, [username]);
+  }, []); // empty deps — run exactly once on mount
 
   const handleOverride = (platformId, url) => {
     setProfiles(prev => ({
       ...prev,
-      [platformId]: { found: false, overrideUrl: url, name: url, username: url, avatar: null },
+      [platformId]: { found: false, overrideUrl: url, name: url, username: url, avatar: null, alternatives: [] },
     }));
     setSelected(prev => new Set([...prev, platformId]));
   };
 
   const handleRetry = (platformId, newHandle) => {
-    // Reset this platform to loading and re-run lookup with new handle
     setProfiles(prev => ({ ...prev, [platformId]: undefined }));
     setSelected(prev => { const next = new Set(prev); next.delete(platformId); return next; });
-    const isGoogle = platformId === "google";
-    lookupProfiles(newHandle, [platformId], mode, isGoogle ? newHandle : "")
+    lookupProfiles(newHandle, [platformId], mode, platformId === "google" ? newHandle : "")
       .then(data => {
         const raw = data.profiles?.[platformId];
         const profile = normaliseProfile(platformId, raw);
         setProfiles(prev => ({ ...prev, [platformId]: profile }));
         if (profile?.found) setSelected(prev => new Set([...prev, platformId]));
       })
-      .catch(() => {
-        setProfiles(prev => ({ ...prev, [platformId]: null }));
-      });
+      .catch(() => setProfiles(prev => ({ ...prev, [platformId]: null })));
+  };
+
+  // User taps "Use →" on an alternative — swap it in as the main result
+  const handleSwapAlternative = (platformId, altRaw) => {
+    const profile = normaliseProfile(platformId, { best: altRaw, alternatives: [] });
+    if (!profile) return;
+    setProfiles(prev => ({ ...prev, [platformId]: profile }));
+    setSelected(prev => new Set([...prev, platformId]));
   };
 
   const toggleSelect = (platformId) => {
@@ -436,57 +528,43 @@ export default function SearchResult() {
 
   const handleGenerateReport = (reportType) => {
     const selectedArr = [...selected];
-
     if (reportType === "combined") {
-      const toggles = {};
-      const urls    = {};
+      const toggles = {}, urls = {};
       selectedArr.forEach(id => {
         const key = id === "instagram" ? "InstaRab" : id.charAt(0).toUpperCase() + id.slice(1);
         toggles[key] = true;
         urls[key] = buildUrl(id, profiles[id]);
         if (id === "google" && profiles[id]?.businessId) urls["googleBusinessId"] = profiles[id].businessId;
       });
-      navigate("/profile", { state: { brandName: username, urls, toggles } });
+      navigate("/profile", { state: { brandName: username, urls, toggles, mode } });
       return;
     }
-
-    // Individual
     const firstId = selectedArr[0];
     const p = profiles[firstId];
     const raw = p?.raw;
     if (!raw && !p?.overrideUrl) return;
-
-    if (firstId === "twitter") {
-      navigate("/profile", { state: { user: { ...raw, platform: "X" } } });
-    } else if (firstId === "linkedin") {
-      navigate("/profile", { state: { user: { name: raw.full_name, screen_name: raw.type, avatar: raw.avatar, headline: raw.headline, url: raw.url, platform: "linkedin" } } });
-    } else if (firstId === "tiktok") {
-      navigate("/profile", { state: { user: { name: raw.nickname, screen_name: raw.unique_id, avatar: raw.avatar, sec_uid: raw.sec_uid, follower_count: raw.follower_count, signature: raw.signature, platform: "tiktok" } } });
-    } else if (firstId === "facebook") {
-      navigate("/profile", { state: { user: { name: raw.name, screen_name: raw.type, avatar: raw.avatar, facebook_id: raw.facebook_id, url: raw.url, platform: "facebook" } } });
-    } else if (firstId === "instagram") {
-      navigate("/profile", { state: { user: { name: raw.full_name, screen_name: raw.username, avatar: raw.avatar, instagram_id: raw.id, is_verified: raw.is_verified, platform: "instagram" } } });
-    } else if (firstId === "google") {
-      navigate("/profile", { state: { user: { name: raw.name, screen_name: raw.address, avatar: raw.avatar, business_id: raw.business_id, url: raw.url, platform: "google" } } });
-    }
+    if (firstId === "twitter")   navigate("/profile", { state: { user: { ...raw, platform: "X" } } });
+    else if (firstId === "linkedin") navigate("/profile", { state: { user: { name: raw.full_name, screen_name: raw.type, avatar: raw.avatar, headline: raw.headline, url: raw.url, platform: "linkedin" } } });
+    else if (firstId === "tiktok")   navigate("/profile", { state: { user: { name: raw.nickname, screen_name: raw.unique_id, avatar: raw.avatar, sec_uid: raw.sec_uid, follower_count: raw.follower_count, signature: raw.signature, platform: "tiktok" } } });
+    else if (firstId === "facebook") navigate("/profile", { state: { user: { name: raw.name, screen_name: raw.type, avatar: raw.avatar, facebook_id: raw.facebook_id, url: raw.url, platform: "facebook" } } });
+    else if (firstId === "instagram") navigate("/profile", { state: { user: { name: raw.full_name, screen_name: raw.username, avatar: raw.avatar, instagram_id: raw.id, is_verified: raw.is_verified, platform: "instagram" } } });
+    else if (firstId === "google")   navigate("/profile", { state: { user: { name: raw.name, screen_name: raw.address, avatar: raw.avatar, business_id: raw.business_id, url: raw.url, platform: "google" } } });
   };
 
-  const anyLoading   = platforms.some(p => profiles[p] === undefined);
-  const foundCount   = platforms.filter(p => profiles[p]?.found).length;
-  const selectedArr  = [...selected];
+  const anyLoading  = platforms.some(p => profiles[p] === undefined);
+  const foundCount  = platforms.filter(p => profiles[p]?.found).length;
+  const selectedArr = [...selected];
 
-  if (!username) {
-    navigate("/");
-    return null;
-  }
+  if (!username) { navigate("/"); return null; }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Top bar */}
+
+      {/* ── Sticky top bar ── */}
       <div className="bg-white border-b shadow-sm sticky top-0 z-20">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-4">
           <button onClick={() => navigate("/")}
-            className="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 transition-colors flex-shrink-0">
+            className="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 flex-shrink-0">
             ← Back
           </button>
           <div className="flex-1 min-w-0">
@@ -499,21 +577,35 @@ export default function SearchResult() {
               </span>
             </div>
             <p className="text-xs text-gray-400">
-              {anyLoading
-                ? "Fetching profiles…"
-                : `${foundCount} of ${platforms.length} platforms found`}
+              {anyLoading ? "Searching platforms…" : `${foundCount} of ${platforms.length} found`}
             </p>
           </div>
         </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Instruction */}
-        <p className="text-sm text-gray-500 mb-5">
-          Select the accounts to include in your report. Can't find the right one? Click the pencil icon to paste a direct URL.
-        </p>
+        {/* Instruction banner */}
+        <div className="mb-5 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3.5 flex gap-3">
+          <span className="text-xl flex-shrink-0 mt-0.5">🤖</span>
+          <div className="space-y-1.5">
+            <p className="text-sm font-bold text-blue-900">AI picked the best match on each platform</p>
+            <div className="flex flex-col gap-1 text-xs text-blue-700">
+              <span className="flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</span>
+                Review each card — check the name, photo and follower count
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</span>
+                Wrong account? Use <strong>"Try username"</strong> or <strong>"Paste URL"</strong> at the bottom of each card
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</span>
+                Select the platforms you want, then tap Generate Report
+              </span>
+            </div>
+          </div>
+        </div>
 
-        {/* Results grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-28">
           {platforms.map(platformId => {
             const pl = ALL_PLATFORMS.find(p => p.id === platformId);
@@ -525,15 +617,16 @@ export default function SearchResult() {
                 profile={profiles[platformId]}
                 selected={selected.has(platformId)}
                 onToggle={() => toggleSelect(platformId)}
-                onOverride={(url) => handleOverride(platformId, url)}
-                onRetry={(handle) => handleRetry(platformId, handle)}
+                onOverride={url => handleOverride(platformId, url)}
+                onRetry={handle => handleRetry(platformId, handle)}
+                onSwapAlternative={altRaw => handleSwapAlternative(platformId, altRaw)}
               />
             );
           })}
         </div>
       </div>
 
-      {/* Sticky generate bar */}
+      {/* ── Sticky generate bar ── */}
       {selectedArr.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-6 pt-2">
           <div className="max-w-2xl mx-auto bg-gray-900 rounded-2xl shadow-2xl px-5 py-4 flex items-center justify-between gap-4">
@@ -558,15 +651,11 @@ export default function SearchResult() {
                   <button
                     onClick={() => handleGenerateReport("individual")}
                     className="px-4 py-2.5 border border-gray-600 text-gray-300 text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors"
-                  >
-                    Individual
-                  </button>
+                  >Individual</button>
                   <button
                     onClick={() => handleGenerateReport("combined")}
                     className="px-4 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors"
-                  >
-                    Combined <HiOutlineArrowRight className="w-4 h-4" />
-                  </button>
+                  >Combined <HiOutlineArrowRight className="w-4 h-4" /></button>
                 </>
               )}
             </div>

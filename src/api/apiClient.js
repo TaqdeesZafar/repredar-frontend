@@ -93,6 +93,32 @@ export const resolveSearchQuery = async (query, mode = "person") => {
   }
 };
 
+export const scanMentions = async (name, location = "") => {
+  try {
+    const loc = location ? `&location=${encodeURIComponent(location)}` : "";
+    const response = await apiClient.get(
+      `/mentions/scan?name=${encodeURIComponent(name)}${loc}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
+
+export const personScan = async (name, location = "") => {
+  try {
+    const loc = location ? `&location=${encodeURIComponent(location)}` : "";
+    const response = await apiClient.get(
+      `/mentions/person-scan?name=${encodeURIComponent(name)}${loc}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
+
 export const lookupProfiles = async (username, platforms, mode = "person", location = "") => {
   try {
     const loc = location ? `&location=${encodeURIComponent(location)}` : "";
