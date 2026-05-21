@@ -466,6 +466,7 @@ export default function SearchResult() {
     () => Object.fromEntries(platforms.map(p => [p, undefined]))
   );
   const [selected, setSelected] = useState(new Set());
+  const [showPlatformPicker, setShowPlatformPicker] = useState(false);
 
   // Freeze the search params on mount so re-renders never re-fire lookups
   const searchRef = useRef(null);
@@ -526,8 +527,22 @@ export default function SearchResult() {
     });
   };
 
-  const handleGenerateReport = (reportType) => {
+  // Build a user object from a platform id + its profile raw data
+  const buildUserForPlatform = (platformId, p) => {
+    const raw = p?.raw;
+    if (!raw) return null;
+    if (platformId === "twitter")   return { name: raw.name, screen_name: raw.screen_name || raw.screenName, avatar: raw.avatar, followers_count: raw.followers_count || raw.followers, description: raw.description, platform: "twitter" };
+    if (platformId === "instagram") return { name: raw.full_name || raw.username, screen_name: raw.username, avatar: raw.avatar || raw.profile_pic_url, followers_count: raw.follower_count, biography: raw.biography, is_verified: raw.is_verified, platform: "instagram" };
+    if (platformId === "tiktok")    return { name: raw.nickname, screen_name: raw.unique_id || raw.uniqueId, avatar: raw.avatar, sec_uid: raw.sec_uid || raw.secUid, follower_count: raw.follower_count || raw.followerCount, signature: raw.signature, platform: "tiktok" };
+    if (platformId === "facebook")  return { name: raw.name, username: raw.username, avatar: raw.avatar, facebook_id: raw.facebook_id, url: raw.url, followers: raw.followers, type: raw.type, platform: "facebook" };
+    if (platformId === "linkedin")  return { name: raw.full_name || raw.name, screen_name: raw.url?.split("/").filter(Boolean).pop(), avatar: raw.avatar, headline: raw.headline, url: raw.url, follower_count: raw.follower_count, platform: "linkedin" };
+    if (platformId === "google")    return { name: raw.name, screen_name: raw.address, avatar: raw.avatar, business_id: raw.business_id, url: raw.url, platform: "google" };
+    return null;
+  };
+
+  const handleGenerateReport = (reportType, forcePlatformId = null) => {
     const selectedArr = [...selected];
+
     if (reportType === "combined") {
       const toggles = {}, urls = {};
       selectedArr.forEach(id => {
@@ -538,25 +553,16 @@ export default function SearchResult() {
       navigate("/profile", { state: { brandName: username, urls, toggles, mode } });
       return;
     }
-    const firstId = selectedArr[0];
-    const p = profiles[firstId];
-    const raw = p?.raw;
-    if (!raw && !p?.overrideUrl) return;
 
-    let user = null;
-    if (firstId === "twitter") {
-      user = { name: raw.name, screen_name: raw.screen_name || raw.screenName, avatar: raw.avatar, followers_count: raw.followers_count || raw.followers, description: raw.description, platform: "twitter" };
-    } else if (firstId === "instagram") {
-      user = { name: raw.full_name || raw.username, screen_name: raw.username, avatar: raw.avatar || raw.profile_pic_url, followers_count: raw.follower_count, biography: raw.biography, is_verified: raw.is_verified, platform: "instagram" };
-    } else if (firstId === "tiktok") {
-      user = { name: raw.nickname, screen_name: raw.unique_id || raw.uniqueId, avatar: raw.avatar, sec_uid: raw.sec_uid || raw.secUid, follower_count: raw.follower_count || raw.followerCount, signature: raw.signature, platform: "tiktok" };
-    } else if (firstId === "facebook") {
-      user = { name: raw.name, username: raw.username, avatar: raw.avatar, facebook_id: raw.facebook_id, url: raw.url, followers: raw.followers, type: raw.type, platform: "facebook" };
-    } else if (firstId === "linkedin") {
-      user = { name: raw.full_name || raw.name, screen_name: raw.url?.split("/").filter(Boolean).pop(), avatar: raw.avatar, headline: raw.headline, url: raw.url, follower_count: raw.follower_count, platform: "linkedin" };
-    } else if (firstId === "google") {
-      user = { name: raw.name, screen_name: raw.address, avatar: raw.avatar, business_id: raw.business_id, url: raw.url, platform: "google" };
+    // Individual — if multiple selected and no platform forced, show picker
+    if (reportType === "individual" && selectedArr.length > 1 && !forcePlatformId) {
+      setShowPlatformPicker(true);
+      return;
     }
+
+    const targetId = forcePlatformId || selectedArr[0];
+    const p = profiles[targetId];
+    const user = buildUserForPlatform(targetId, p);
     if (user) navigate("/profile", { state: { user, mode } });
   };
 
@@ -667,6 +673,74 @@ export default function SearchResult() {
                   >Combined <HiOutlineArrowRight className="w-4 h-4" /></button>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Platform picker bottom sheet (Individual with multiple selected) ── */}
+      {showPlatformPicker && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
+          onClick={() => setShowPlatformPicker(false)}>
+          <div className="w-full max-w-2xl bg-white rounded-t-3xl shadow-2xl pb-safe"
+            onClick={e => e.stopPropagation()}>
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-gray-200" />
+            </div>
+            <div className="px-5 pt-2 pb-6">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-base font-bold text-gray-900">Pick a platform for individual report</h3>
+                <button onClick={() => setShowPlatformPicker(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                  <HiOutlineArrowRight className="w-4 h-4 rotate-[-90deg]" />
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mb-4">Each platform gives a focused report on that channel only.</p>
+              <div className="space-y-2">
+                {selectedArr.map(platformId => {
+                  const pl = ALL_PLATFORMS.find(p => p.id === platformId);
+                  const prof = profiles[platformId];
+                  const followers = prof?.followers;
+                  const fmtFollowers = followers >= 1_000_000 ? `${(followers/1_000_000).toFixed(1)}M` : followers >= 1000 ? `${(followers/1000).toFixed(1)}K` : followers ? String(followers) : null;
+                  return (
+                    <button
+                      key={platformId}
+                      onClick={() => { setShowPlatformPicker(false); handleGenerateReport("individual", platformId); }}
+                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 border-transparent hover:border-blue-200 hover:bg-blue-50 transition-all text-left group"
+                    >
+                      {/* Platform icon */}
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${pl?.color} ${pl?.textColor}`}>
+                        <PlatformIcon id={platformId} className="w-4 h-4" />
+                      </div>
+                      {/* Avatar + name */}
+                      {prof?.avatar && (
+                        <img src={prof.avatar} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                          onError={e => { e.target.style.display = "none"; }} />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm truncate">{prof?.name || pl?.label}</p>
+                        <p className="text-xs text-gray-400 truncate">
+                          {prof?.username ? `@${prof.username}` : pl?.label}
+                          {fmtFollowers ? ` · ${fmtFollowers} followers` : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                          Select →
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-center text-xs text-gray-400 mt-4">
+                Want all platforms in one report?{" "}
+                <button onClick={() => { setShowPlatformPicker(false); handleGenerateReport("combined"); }}
+                  className="text-blue-600 font-semibold hover:underline">
+                  Use Combined →
+                </button>
+              </p>
             </div>
           </div>
         </div>

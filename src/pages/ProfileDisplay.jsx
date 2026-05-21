@@ -118,69 +118,94 @@ function buildUrls(state) {
   };
 }
 
-// ─── Small components ─────────────────────────────────────────────────────────
+function fmtNum(n) {
+  if (!n) return null;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
+
 function PlatformBadge({ platformId }) {
   const cfg = getPlatformCfg(platformId);
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
       style={{ background: cfg.bg, border: cfg.border || "none", color: cfg.iconColor }}>
-      {cfg.Icon && <cfg.Icon style={{ color: cfg.iconColor, fontSize: 11 }} />}
+      {cfg.Icon && <cfg.Icon style={{ color: cfg.iconColor, fontSize: 10 }} />}
       <span style={{ color: cfg.iconColor }}>{cfg.label}</span>
-    </div>
-  );
-}
-
-function Avatar({ src, name, size = 80, bg = "#6366f1" }) {
-  const [failed, setFailed] = useState(false);
-  const initials = (name || "?").split(" ").filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase();
-  return (
-    <div style={{ width: size, height: size }} className="relative flex-shrink-0 rounded-full border-4 border-white shadow-xl overflow-hidden">
-      <div style={{ width: size, height: size, background: bg }}
-        className="flex items-center justify-center absolute inset-0">
-        <span className="text-white font-bold" style={{ fontSize: size * 0.28 }}>{initials}</span>
-      </div>
-      {src && !failed && (
-        <img src={src} alt="" style={{ width: size, height: size }}
-          className="object-cover absolute inset-0"
-          onError={() => setFailed(true)} />
-      )}
     </div>
   );
 }
 
 // ─── Profile header — single platform ────────────────────────────────────────
 function SingleProfileHeader({ user }) {
-  const plt = (user?.platform || "x").toLowerCase();
-  const cfg = getPlatformCfg(plt);
-  const name = user?.name || user?.screen_name || "Unknown";
-  const handle = user?.screen_name ? `@${user.screen_name}` : (user?.username ? `@${user.username}` : "");
-  const bio = user?.description || user?.headline || user?.signature || user?.biography || "";
+  const plt      = (user?.platform || "x").toLowerCase();
+  const cfg      = getPlatformCfg(plt);
+  const name     = user?.name || user?.screen_name || "Unknown";
+  const handle   = user?.screen_name ? `@${user.screen_name}` : user?.username ? `@${user.username}` : "";
+  const bio      = user?.description || user?.headline || user?.signature || user?.biography || "";
   const followers = user?.followers_count || user?.follower_count || user?.followers || 0;
+  const avatar   = user?.avatar;
+  const solidBg  = typeof cfg.bg === "string" && !cfg.bg.includes("gradient") ? cfg.bg : "#312e81";
 
   return (
-    <div className="bg-white rounded-3xl shadow-md overflow-hidden">
-      <div className="h-24 relative" style={{ background: "linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%)" }}>
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: "radial-gradient(circle at 20% 50%,#fff 1px,transparent 1px),radial-gradient(circle at 80% 50%,#fff 1px,transparent 1px)", backgroundSize: "30px 30px" }} />
-      </div>
-      <div className="px-6 pb-5">
-        <div className="flex items-end gap-3 -mt-10 mb-3 relative z-10">
-          <Avatar src={user?.avatar} name={name} size={76} bg={typeof cfg.bg === "string" && !cfg.bg.includes("gradient") ? cfg.bg : "#6366f1"} />
-          <div className="mb-1">
-            <PlatformBadge platformId={plt} />
-          </div>
+    <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+      {/* Cover — blurred avatar if available, else platform colour */}
+      <div className="relative h-36 overflow-hidden">
+        {avatar ? (
+          <>
+            <img src={avatar} alt="" className="absolute inset-0 w-full h-full object-cover scale-110"
+              style={{ filter: "blur(18px) brightness(0.5)" }} />
+            <div className="absolute inset-0 opacity-50" style={{ background: solidBg }} />
+          </>
+        ) : (
+          <div className="absolute inset-0" style={{ background: `linear-gradient(135deg,${solidBg}dd,${solidBg}88)` }} />
+        )}
+        {/* Dot grid overlay */}
+        <div className="absolute inset-0 opacity-[0.07]"
+          style={{ backgroundImage: "radial-gradient(circle,#fff 1px,transparent 1px)", backgroundSize: "20px 20px" }} />
+        {/* Watermark platform icon */}
+        <div className="absolute top-3 right-5 opacity-[0.15]">
+          {cfg.Icon && <cfg.Icon style={{ color: "#fff", fontSize: 56 }} />}
         </div>
-        <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: "'Poppins',sans-serif" }}>{name}</h1>
-        {handle && <p className="text-sm text-gray-400">{handle}</p>}
-        {bio && <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">{bio}</p>}
+        {/* Name + handle overlaid bottom-left, offset for avatar */}
+        <div className="absolute bottom-4 left-[108px] right-4">
+          <h1 className="text-white font-black text-xl leading-tight truncate"
+            style={{ fontFamily: "'Poppins',sans-serif", textShadow: "0 2px 10px rgba(0,0,0,0.6)" }}>
+            {name}
+          </h1>
+          {handle && <p className="text-white/65 text-xs font-medium mt-0.5">{handle}</p>}
+        </div>
+      </div>
+
+      {/* Card body */}
+      <div className="px-5 pb-5">
+        {/* Avatar floats up over the cover */}
+        <div className="flex items-end justify-between -mt-11 mb-3 relative z-10">
+          <div className="w-20 h-20 rounded-full border-[3px] border-white shadow-xl overflow-hidden flex-shrink-0"
+            style={{ background: solidBg }}>
+            {avatar
+              ? <img src={avatar} alt={name} className="w-full h-full object-cover"
+                  onError={e => { e.target.style.display = "none"; }} />
+              : <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-white font-black text-2xl" style={{ fontFamily: "'Poppins',sans-serif" }}>
+                    {name[0]?.toUpperCase()}
+                  </span>
+                </div>
+            }
+          </div>
+          <div className="mb-1"><PlatformBadge platformId={plt} /></div>
+        </div>
+
+        {bio && <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">{bio}</p>}
+
         {followers > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+          <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-xl">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
               </svg>
-              {followers >= 1_000_000 ? `${(followers/1_000_000).toFixed(1)}M` : followers >= 1000 ? `${(followers/1000).toFixed(1)}K` : followers} followers
-            </span>
+              <span className="text-xs font-bold">{fmtNum(followers)} followers</span>
+            </div>
           </div>
         )}
       </div>
@@ -190,28 +215,53 @@ function SingleProfileHeader({ user }) {
 
 // ─── Profile header — combined / multi-platform ───────────────────────────────
 function CombinedProfileHeader({ brandName, selectedPlatforms, mode }) {
+  const initial = (brandName || "?")[0].toUpperCase();
   return (
-    <div className="bg-white rounded-3xl shadow-md overflow-hidden">
-      <div className="h-24 relative" style={{ background: "linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%)" }}>
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: "radial-gradient(circle at 20% 50%,#fff 1px,transparent 1px),radial-gradient(circle at 80% 50%,#fff 1px,transparent 1px)", backgroundSize: "30px 30px" }} />
+    <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+      {/* Cover — abstract multi-platform gradient */}
+      <div className="relative h-36 overflow-hidden"
+        style={{ background: "linear-gradient(135deg,#1e1b4b 0%,#3730a3 40%,#6d28d9 70%,#0e7490 100%)" }}>
+        {/* Concentric rings watermark */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-10">
+          {[0,1,2,3].map(i => (
+            <div key={i} className="absolute rounded-full border-2 border-white"
+              style={{ width: 48 + i * 44, height: 48 + i * 44, top: -(i * 22), left: -(i * 22) }} />
+          ))}
+        </div>
+        {/* Dot grid */}
+        <div className="absolute inset-0 opacity-[0.06]"
+          style={{ backgroundImage: "radial-gradient(circle,#fff 1px,transparent 1px)", backgroundSize: "20px 20px" }} />
+        {/* Floating platform icons strip */}
+        <div className="absolute top-4 right-5 flex gap-2.5 opacity-25">
+          {selectedPlatforms.slice(0, 5).map(id => {
+            const cfg = getPlatformCfg(id);
+            return cfg.Icon ? <cfg.Icon key={id} style={{ color: "#fff", fontSize: 18 }} /> : null;
+          })}
+        </div>
+        {/* Name bottom-left */}
+        <div className="absolute bottom-4 left-[108px] right-4">
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold mb-1 inline-block ${mode === "company" ? "bg-blue-400/25 text-blue-100" : "bg-purple-400/25 text-purple-100"}`}>
+            {mode === "company" ? "🏢 Business" : "👤 Person"}
+          </span>
+          <h1 className="text-white font-black text-xl leading-tight truncate"
+            style={{ fontFamily: "'Poppins',sans-serif", textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
+            {brandName}
+          </h1>
+          <p className="text-white/55 text-xs mt-0.5">Multi-platform analysis</p>
+        </div>
       </div>
-      <div className="px-6 pb-5">
-        <div className="flex items-end gap-3 -mt-10 mb-3 relative z-10">
-          <div className="w-[76px] h-[76px] rounded-full border-4 border-white shadow-xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-2xl font-bold" style={{ fontFamily: "'Poppins',sans-serif" }}>
-              {(brandName || "?")[0].toUpperCase()}
-            </span>
+
+      <div className="px-5 pb-5">
+        <div className="flex items-end justify-between -mt-11 mb-4 relative z-10">
+          <div className="w-20 h-20 rounded-full border-[3px] border-white shadow-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "linear-gradient(135deg,#4F46E5,#7C3AED)" }}>
+            <span className="text-white font-black text-2xl" style={{ fontFamily: "'Poppins',sans-serif" }}>{initial}</span>
           </div>
-          <div className="mb-1">
-            <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${mode === "company" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"}`}>
-              {mode === "company" ? "🏢 Business" : "👤 Person"} · Multi-Platform
-            </span>
+          <div className="mb-1 text-xs font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+            {selectedPlatforms.length} platforms
           </div>
         </div>
-        <h1 className="text-xl font-bold text-gray-900" style={{ fontFamily: "'Poppins',sans-serif" }}>{brandName}</h1>
-        <p className="text-xs text-gray-400 mt-0.5">Cross-platform reputation analysis</p>
-        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-gray-100">
+        <div className="flex flex-wrap gap-1.5">
           {selectedPlatforms.map(id => <PlatformBadge key={id} platformId={id} />)}
         </div>
       </div>
