@@ -149,11 +149,15 @@ function buildUrl(platformId, profile) {
 }
 
 // ─── Single result card ───────────────────────────────────────────────────────
-function ResultCard({ platformId, label, profile, selected, onToggle, onOverride }) {
+function ResultCard({ platformId, label, profile, selected, onToggle, onOverride, onRetry }) {
   const [editing, setEditing]       = useState(false);
   const [overrideVal, setOverride]  = useState("");
+  const [retryVal, setRetryVal]     = useState("");
+  const [retrying, setRetrying]     = useState(false);
   const inputRef                    = useRef(null);
+  const retryRef                    = useRef(null);
   useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
+  useEffect(() => { if (retrying) retryRef.current?.focus(); }, [retrying]);
 
   const isLoading  = profile === undefined;
   const isFound    = profile?.found === true;
@@ -256,19 +260,61 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
       )}
 
       {/* Not found state */}
-      {isNotFound && !editing && (
-        <div className="mt-1 space-y-2">
-          <p className="text-xs text-gray-400">
+      {isNotFound && !editing && !retrying && (
+        <div className="mt-1 space-y-3" onClick={e => e.stopPropagation()}>
+          <p className="text-xs text-gray-400 leading-relaxed">
             {isGoogle
-              ? "No Google Business found. Try adding a city in the search."
-              : "No account found with this username."}
+              ? "No Google Business listing found. Add a city to narrow the search."
+              : "Not found with that username. Try their exact handle."}
           </p>
-          <button
-            onClick={e => { e.stopPropagation(); setEditing(true); }}
-            className="text-xs text-blue-600 hover:underline font-semibold"
-          >
-            + Paste URL manually
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={e => { e.stopPropagation(); setRetrying(true); }}
+              className="flex-1 py-1.5 text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+            >
+              {isGoogle ? "Try with city →" : "Try different username →"}
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); setEditing(true); }}
+              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Paste URL
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Retry with different handle */}
+      {retrying && (
+        <div className="mt-2 space-y-2" onClick={e => e.stopPropagation()}>
+          <p className="text-xs text-gray-500 font-medium">
+            {isGoogle ? "Enter business name + city:" : `Enter their ${label} username:`}
+          </p>
+          <input
+            ref={retryRef}
+            type="text"
+            value={retryVal}
+            onChange={e => setRetryVal(e.target.value)}
+            placeholder={isGoogle ? "e.g. Nike New York" : "@username"}
+            className="w-full text-xs px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500"
+            onKeyDown={e => {
+              if (e.key === "Enter" && retryVal.trim()) { onRetry(retryVal.trim()); setRetrying(false); setRetryVal(""); }
+              if (e.key === "Escape") { setRetrying(false); setRetryVal(""); }
+            }}
+          />
+          <div className="flex gap-2">
+            <button
+              disabled={!retryVal.trim()}
+              onClick={() => { if (retryVal.trim()) { onRetry(retryVal.trim()); setRetrying(false); setRetryVal(""); } }}
+              className="flex-1 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-40 font-semibold"
+            >
+              Search
+            </button>
+            <button onClick={() => { setRetrying(false); setRetryVal(""); }}
+              className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
@@ -361,6 +407,23 @@ export default function SearchResult() {
       [platformId]: { found: false, overrideUrl: url, name: url, username: url, avatar: null },
     }));
     setSelected(prev => new Set([...prev, platformId]));
+  };
+
+  const handleRetry = (platformId, newHandle) => {
+    // Reset this platform to loading and re-run lookup with new handle
+    setProfiles(prev => ({ ...prev, [platformId]: undefined }));
+    setSelected(prev => { const next = new Set(prev); next.delete(platformId); return next; });
+    const isGoogle = platformId === "google";
+    lookupProfiles(newHandle, [platformId], mode, isGoogle ? newHandle : "")
+      .then(data => {
+        const raw = data.profiles?.[platformId];
+        const profile = normaliseProfile(platformId, raw);
+        setProfiles(prev => ({ ...prev, [platformId]: profile }));
+        if (profile?.found) setSelected(prev => new Set([...prev, platformId]));
+      })
+      .catch(() => {
+        setProfiles(prev => ({ ...prev, [platformId]: null }));
+      });
   };
 
   const toggleSelect = (platformId) => {
@@ -463,6 +526,7 @@ export default function SearchResult() {
                 selected={selected.has(platformId)}
                 onToggle={() => toggleSelect(platformId)}
                 onOverride={(url) => handleOverride(platformId, url)}
+                onRetry={(handle) => handleRetry(platformId, handle)}
               />
             );
           })}

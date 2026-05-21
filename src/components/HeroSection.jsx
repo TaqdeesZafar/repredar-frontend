@@ -87,6 +87,20 @@ function HeroSearchForm() {
     });
   };
 
+  // Google Business is only relevant for companies — auto-toggle when mode changes
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    if (newMode === "person") {
+      setActive(prev => {
+        const next = new Set(prev);
+        next.delete("google");
+        return next;
+      });
+    } else {
+      setActive(prev => new Set([...prev, "google"]));
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!username.trim() || activePlatforms.size === 0) return;
@@ -136,7 +150,7 @@ function HeroSearchForm() {
           <button
             key={opt.id}
             type="button"
-            onClick={() => setMode(opt.id)}
+            onClick={() => handleModeChange(opt.id)}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
               mode === opt.id
                 ? "border-blue-500 bg-blue-50 text-blue-700"
