@@ -92,3 +92,15 @@ export const resolveSearchQuery = async (query, mode = "person") => {
     throw error;
   }
 };
+
+export const lookupProfiles = async (username, platforms, mode = "person") => {
+  try {
+    const response = await apiClient.get(
+      `/lookup/profiles?username=${encodeURIComponent(username)}&platforms=${platforms.join(",")}&mode=${mode}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
