@@ -550,7 +550,11 @@ export default function SearchResult() {
         urls[id] = buildUrl(id, profiles[id]);
         if (id === "google" && profiles[id]?.businessId) urls["googleBusinessId"] = profiles[id].businessId;
       });
-      navigate("/profile", { state: { brandName: username, urls, toggles, mode } });
+      // Pick first available avatar from any selected platform
+      const avatar = selectedArr
+        .map(id => profiles[id]?.avatar)
+        .find(a => a && typeof a === "string" && a.startsWith("http")) || null;
+      navigate("/profile", { state: { brandName: username, urls, toggles, mode, avatar } });
       return;
     }
 

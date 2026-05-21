@@ -214,24 +214,25 @@ function SingleProfileHeader({ user }) {
 }
 
 // ─── Profile header — combined / multi-platform ───────────────────────────────
-function CombinedProfileHeader({ brandName, selectedPlatforms, mode }) {
+function CombinedProfileHeader({ brandName, selectedPlatforms, mode, avatar }) {
   const initial = (brandName || "?")[0].toUpperCase();
   return (
     <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
-      {/* Cover — abstract multi-platform gradient */}
+      {/* Cover — blurred avatar if available, else gradient */}
       <div className="relative h-36 overflow-hidden"
         style={{ background: "linear-gradient(135deg,#1e1b4b 0%,#3730a3 40%,#6d28d9 70%,#0e7490 100%)" }}>
-        {/* Concentric rings watermark */}
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-10">
-          {[0,1,2,3].map(i => (
-            <div key={i} className="absolute rounded-full border-2 border-white"
-              style={{ width: 48 + i * 44, height: 48 + i * 44, top: -(i * 22), left: -(i * 22) }} />
-          ))}
-        </div>
+        {avatar && (
+          <>
+            <img src={avatar} alt="" className="absolute inset-0 w-full h-full object-cover scale-110"
+              style={{ filter: "blur(18px) brightness(0.45)" }} />
+            <div className="absolute inset-0 opacity-60"
+              style={{ background: "linear-gradient(135deg,#1e1b4b,#3730a3,#6d28d9)" }} />
+          </>
+        )}
         {/* Dot grid */}
         <div className="absolute inset-0 opacity-[0.06]"
           style={{ backgroundImage: "radial-gradient(circle,#fff 1px,transparent 1px)", backgroundSize: "20px 20px" }} />
-        {/* Floating platform icons strip */}
+        {/* Floating platform icons */}
         <div className="absolute top-4 right-5 flex gap-2.5 opacity-25">
           {selectedPlatforms.slice(0, 5).map(id => {
             const cfg = getPlatformCfg(id);
@@ -253,9 +254,16 @@ function CombinedProfileHeader({ brandName, selectedPlatforms, mode }) {
 
       <div className="px-5 pb-5">
         <div className="flex items-end justify-between -mt-11 mb-4 relative z-10">
-          <div className="w-20 h-20 rounded-full border-[3px] border-white shadow-xl flex items-center justify-center flex-shrink-0"
+          {/* Avatar — real photo if available, else monogram */}
+          <div className="w-20 h-20 rounded-full border-[3px] border-white shadow-xl overflow-hidden flex-shrink-0"
             style={{ background: "linear-gradient(135deg,#4F46E5,#7C3AED)" }}>
-            <span className="text-white font-black text-2xl" style={{ fontFamily: "'Poppins',sans-serif" }}>{initial}</span>
+            {avatar
+              ? <img src={avatar} alt={brandName} className="w-full h-full object-cover"
+                  onError={e => { e.target.style.display = "none"; }} />
+              : <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-white font-black text-2xl" style={{ fontFamily: "'Poppins',sans-serif" }}>{initial}</span>
+                </div>
+            }
           </div>
           <div className="mb-1 text-xs font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
             {selectedPlatforms.length} platforms
@@ -447,7 +455,7 @@ export default function ProfileDisplay() {
 
         {/* Profile header */}
         {isCombined
-          ? <CombinedProfileHeader brandName={state.brandName} selectedPlatforms={selectedPlatforms} mode={state.mode} />
+          ? <CombinedProfileHeader brandName={state.brandName} selectedPlatforms={selectedPlatforms} mode={state.mode} avatar={state.avatar} />
           : state.user && <SingleProfileHeader user={state.user} />
         }
 
