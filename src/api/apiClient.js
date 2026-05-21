@@ -93,10 +93,11 @@ export const resolveSearchQuery = async (query, mode = "person") => {
   }
 };
 
-export const lookupProfiles = async (username, platforms, mode = "person") => {
+export const lookupProfiles = async (username, platforms, mode = "person", location = "") => {
   try {
+    const loc = location ? `&location=${encodeURIComponent(location)}` : "";
     const response = await apiClient.get(
-      `/lookup/profiles?username=${encodeURIComponent(username)}&platforms=${platforms.join(",")}&mode=${mode}`
+      `/lookup/profiles?username=${encodeURIComponent(username)}&platforms=${platforms.join(",")}&mode=${mode}${loc}`
     );
     return response.data;
   } catch (error) {
