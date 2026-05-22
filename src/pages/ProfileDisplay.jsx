@@ -49,6 +49,9 @@ const scoreBg    = (s) => s >= 7 ? "#F0FDF4" : s >= 5 ? "#FEFCE8" : "#FEF2F2";
 
 function buildUrls(state) {
   const base = import.meta.env.VITE_BACKEND_URL;
+  // mode "company" → profile_type=business, "person" → profile_type=influencer
+  const profileType = state?.mode === "person" ? "influencer" : "business";
+  const ptParam = `&profile_type=${profileType}`;
 
   // ── Combined / multi-platform ─────────────────────────────────────────────
   if (state?.brandName && state?.urls) {
@@ -60,8 +63,8 @@ function buildUrls(state) {
       .join("&");
     if (!nonEmpty) return { analyzeUrl: null, pdfUrl: null };
     const q = encodeURIComponent(state.brandName);
-    const analyzeUrl = `${base}/crossplatform/fetch-analyze-posts?${nonEmpty}&query=${q}`;
-    const pdfUrl     = `${base}/crossplatform/generate-pdf-report?${nonEmpty}&query=${q}`;
+    const analyzeUrl = `${base}/crossplatform/fetch-analyze-posts?${nonEmpty}&query=${q}${ptParam}`;
+    const pdfUrl     = `${base}/crossplatform/generate-pdf-report?${nonEmpty}&query=${q}${ptParam}`;
     return { analyzeUrl, pdfUrl };
   }
 
@@ -73,24 +76,24 @@ function buildUrls(state) {
     const bId = u.business_id || "";
     const q   = encodeURIComponent(u.name || "");
     return {
-      analyzeUrl: `${base}/google/fetch-analyze-businesses?query=${q}&business_id=${encodeURIComponent(bId)}`,
-      pdfUrl:     `${base}/google/generate-pdf-report?query=${q}&business_id=${encodeURIComponent(bId)}`,
+      analyzeUrl: `${base}/google/fetch-analyze-businesses?query=${q}&business_id=${encodeURIComponent(bId)}${ptParam}`,
+      pdfUrl:     `${base}/google/generate-pdf-report?query=${q}&business_id=${encodeURIComponent(bId)}${ptParam}`,
     };
   }
   if (plt === "linkedin") {
     const url = encodeURIComponent(u.url || "");
     const q   = encodeURIComponent(u.name || u.full_name || "");
     return {
-      analyzeUrl: `${base}/linkedin/fetch-analyze-posts?url=${url}&query=${q}`,
-      pdfUrl:     `${base}/linkedin/generate-pdf-report?url=${url}&query=${q}`,
+      analyzeUrl: `${base}/linkedin/fetch-analyze-posts?url=${url}&query=${q}${ptParam}`,
+      pdfUrl:     `${base}/linkedin/generate-pdf-report?url=${url}&query=${q}${ptParam}`,
     };
   }
   if (plt === "tiktok") {
     const uid = encodeURIComponent(u.sec_uid || "");
     const q   = encodeURIComponent(u.name || "");
     return {
-      analyzeUrl: `${base}/tiktok/fetch-analyze-posts?secUid=${uid}&query=${q}`,
-      pdfUrl:     `${base}/tiktok/generate-pdf-report?secUid=${uid}&query=${q}`,
+      analyzeUrl: `${base}/tiktok/fetch-analyze-posts?secUid=${uid}&query=${q}${ptParam}`,
+      pdfUrl:     `${base}/tiktok/generate-pdf-report?secUid=${uid}&query=${q}${ptParam}`,
     };
   }
   if (plt === "facebook") {
@@ -99,22 +102,22 @@ function buildUrls(state) {
     const id  = encodeURIComponent(u.facebook_id || "");
     const q   = encodeURIComponent(u.name || "");
     return {
-      analyzeUrl: `${base}/facebook/fetch-analyze-posts?${param}=${id}&query=${q}`,
-      pdfUrl:     `${base}/facebook/generate-pdf-report?${param}=${id}&query=${q}`,
+      analyzeUrl: `${base}/facebook/fetch-analyze-posts?${param}=${id}&query=${q}${ptParam}`,
+      pdfUrl:     `${base}/facebook/generate-pdf-report?${param}=${id}&query=${q}${ptParam}`,
     };
   }
   if (plt === "instagram") {
     const handle = encodeURIComponent(u.screen_name || u.username || "");
     return {
-      analyzeUrl: `${base}/instagram/fetch-analyze-posts?query=@${handle}`,
-      pdfUrl:     `${base}/instagram/generate-pdf-report?query=@${handle}`,
+      analyzeUrl: `${base}/instagram/fetch-analyze-posts?query=@${handle}${ptParam}`,
+      pdfUrl:     `${base}/instagram/generate-pdf-report?query=@${handle}${ptParam}`,
     };
   }
   // twitter / x
   const handle = encodeURIComponent(u.screen_name || u.username || "");
   return {
-    analyzeUrl: `${base}/twitter/fetch-analyze-tweets?query=@${handle}`,
-    pdfUrl:     `${base}/twitter/generate-pdf-report?query=@${handle}`,
+    analyzeUrl: `${base}/twitter/fetch-analyze-tweets?query=@${handle}${ptParam}`,
+    pdfUrl:     `${base}/twitter/generate-pdf-report?query=@${handle}${ptParam}`,
   };
 }
 
