@@ -349,12 +349,18 @@ export default function ProfileDisplay() {
       } else {
         let msg = "";
         try { const d = await res.json(); msg = d.message || d.error || ""; } catch { msg = res.statusText; }
-        setErrorMessage(`Scan failed: ${msg}`);
-        setPhase("idle");
+        // Treat "private" / "no posts" as a soft warning — still let user download
+        if (msg.toLowerCase().includes("private") || msg.toLowerCase().includes("no accessible")) {
+          setReportData(null);
+          setPhase("preview");
+        } else {
+          setErrorMessage(`Unable to complete scan. Please try a different platform or search again. (${msg})`);
+          setPhase("idle");
+        }
       }
     } catch (err) {
       stopTicker();
-      setErrorMessage(`Scan failed: ${err.message || "Network error"}`);
+      setErrorMessage(`Network error — please check your connection and try again.`);
       setPhase("idle");
     }
   };
