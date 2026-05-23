@@ -195,10 +195,10 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
     background: selected
       ? "linear-gradient(180deg,rgba(0,144,255,0.06),rgba(0,144,255,0.02))"
       : "var(--card-bg)",
-    border: selected ? "1px solid rgba(0,212,255,0.4)" : "1px solid rgba(139,160,200,0.10)",
+    border: selected ? "1px solid var(--chip-accent-border)" : "1px solid var(--card-border)",
     borderRadius: 16,
     backdropFilter: "blur(18px)",
-    boxShadow: selected ? "0 0 30px rgba(0,212,255,0.08)" : "none",
+    boxShadow: selected ? "var(--shadow-card)" : "var(--shadow-card)",
     position: "relative",
     cursor: canSelect && !editing && !retrying ? "pointer" : "default",
     transition: "all 0.2s",
@@ -218,7 +218,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
           width: 20, height: 20, borderRadius: "50%",
           background: "var(--accent)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 0 12px rgba(0,212,255,0.6)", zIndex: 10,
+          boxShadow: "var(--shadow-btn)", zIndex: 10,
         }}>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#051120" strokeWidth="3.5">
             <path d="M5 12l5 5L20 7"/>
@@ -238,10 +238,10 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
         <div style={{ marginLeft: "auto" }}>
           {isLoading && (
-            <div style={{ width: 16, height: 16, border: "2px solid rgba(0,212,255,0.3)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            <div style={{ width: 16, height: 16, border: "2px solid var(--chip-accent-bg)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
           )}
           {isFound && (
-            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--positive)", background: "rgba(0,200,150,0.1)", border: "1px solid rgba(0,200,150,0.25)", padding: "2px 8px", borderRadius: 999, fontFamily: "monospace" }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--found-text)", background: "var(--found-bg)", border: "1px solid var(--found-border)", padding: "2px 8px", borderRadius: 999, fontFamily: "monospace" }}>
               FOUND
             </span>
           )}
@@ -256,10 +256,10 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
       {/* Skeleton */}
       {isLoading && (
         <div style={{ padding: "4px 16px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "linear-gradient(90deg,#0F1729 25%,#1E2D4A 50%,#0F1729 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", flexShrink: 0 }} />
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "linear-gradient(90deg,var(--shimmer-a) 25%,var(--shimmer-b) 50%,var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", flexShrink: 0 }} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg,#0F1729 25%,#1E2D4A 50%,#0F1729 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "70%" }} />
-            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg,#0F1729 25%,#1E2D4A 50%,#0F1729 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "45%" }} />
+            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg,var(--shimmer-a) 25%,var(--shimmer-b) 50%,var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "70%" }} />
+            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg,var(--shimmer-a) 25%,var(--shimmer-b) 50%,var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "45%" }} />
           </div>
         </div>
       )}
@@ -285,7 +285,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
                 <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.5 }}>{profile.bio}</div>
               )}
               {profile.followers > 0 && (
-                <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", padding: "3px 10px", borderRadius: 999 }}>
+                <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)", padding: "3px 10px", borderRadius: 999 }}>
                   <svg style={{ width: 11, height: 11, color: "var(--accent)" }} fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
@@ -327,7 +327,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
       {/* Override display */}
       {isOverride && !isFound && (
         <div style={{ padding: "4px 16px 14px", display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>
             🔗
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
@@ -396,7 +396,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
 
       {/* Retry / username input */}
       {retrying && (
-        <div style={{ padding: "0 14px 14px", borderTop: "1px solid rgba(0,212,255,0.15)" }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border-subtle)" }} onClick={e => e.stopPropagation()}>
           <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", margin: "10px 0 8px" }}>
             {isGoogle ? "Enter business name + city:" : `Enter exact ${label} username:`}
           </p>
@@ -445,7 +445,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
 
       {/* Paste URL input */}
       {editing && (
-        <div style={{ padding: "0 14px 14px", borderTop: "1px solid rgba(0,212,255,0.15)" }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border-subtle)" }} onClick={e => e.stopPropagation()}>
           <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", margin: "10px 0 8px" }}>Paste the correct profile URL:</p>
           <input ref={inputRef} type="text" value={overrideVal} onChange={e => setOverride(e.target.value)}
             placeholder="https://twitter.com/username"
@@ -598,7 +598,7 @@ export default function SearchResult() {
       {/* Grid background */}
       <div style={{
         position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-        backgroundImage: "linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px)",
+        backgroundImage: "linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px)",
         backgroundSize: "60px 60px",
       }} />
 
@@ -631,8 +631,8 @@ export default function SearchResult() {
             <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{username}</span>
             <span style={{
               fontSize: 11, fontWeight: 600, color: mode === "company" ? "var(--accent)" : "var(--gold)",
-              background: mode === "company" ? "rgba(0,212,255,0.08)" : "rgba(245,166,35,0.08)",
-              border: `1px solid ${mode === "company" ? "rgba(0,212,255,0.25)" : "rgba(245,166,35,0.25)"}`,
+              background: mode === "company" ? "var(--chip-accent-bg)" : "rgba(180,83,9,0.08)",
+              border: `1px solid ${mode === "company" ? "var(--chip-accent-border)" : "rgba(180,83,9,0.25)"}`,
               padding: "2px 8px", borderRadius: 999, flexShrink: 0,
             }}>
               {mode === "company" ? "🏢 Business" : "👤 Person"}
@@ -656,12 +656,12 @@ export default function SearchResult() {
         {/* Instruction banner */}
         <div style={{
           display: "flex", gap: 14, padding: "16px 18px", marginBottom: 24,
-          background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.2)",
+          background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)",
           borderRadius: 14, backdropFilter: "blur(12px)",
         }}>
           <div style={{
             width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-            background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)",
+            background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)",
             display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15,
           }}>🤖</div>
           <div>
@@ -712,9 +712,9 @@ export default function SearchResult() {
           <div style={{
             maxWidth: 900, margin: "0 auto",
             background: "var(--nav-bg)",
-            border: "1px solid rgba(0,212,255,0.2)",
+            border: "1px solid var(--border-soft)",
             borderRadius: 18, backdropFilter: "blur(24px)",
-            boxShadow: "0 -4px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,255,0.08) inset",
+            boxShadow: "0 -4px 40px rgba(0,0,0,0.15), var(--shadow-card)",
             padding: "16px 20px",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
           }}>
@@ -730,9 +730,9 @@ export default function SearchResult() {
             <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
               {selectedArr.length === 1 ? (
                 <button onClick={() => handleGenerateReport("individual")}
-                  style={{ padding: "11px 22px", fontSize: 13, fontWeight: 600, background: "linear-gradient(135deg,#00D4FF,#0090FF)", color: "#051120", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 0 20px rgba(0,212,255,0.3)", transition: "all 0.2s" }}
-                  onMouseOver={e => e.currentTarget.style.boxShadow = "0 0 32px rgba(0,212,255,0.55)"}
-                  onMouseOut={e => e.currentTarget.style.boxShadow = "0 0 20px rgba(0,212,255,0.3)"}>
+                  style={{ padding: "11px 22px", fontSize: 13, fontWeight: 600, background: "linear-gradient(135deg,var(--accent),var(--accent-2))", color: "#fff", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "var(--shadow-btn)", transition: "all 0.2s" }}
+                  onMouseOver={e => e.currentTarget.style.opacity = "0.9"}
+                  onMouseOut={e => e.currentTarget.style.opacity = "1"}>
                   Generate Report
                   <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M5 12h14M13 5l7 7-7 7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -768,7 +768,7 @@ export default function SearchResult() {
           <div style={{
             width: "100%", maxWidth: 580,
             background: "var(--nav-bg)",
-            border: "1px solid rgba(0,212,255,0.15)",
+            border: "1px solid var(--border-soft)",
             borderRadius: "24px 24px 0 0",
             backdropFilter: "blur(24px)",
             boxShadow: "0 -20px 60px rgba(0,0,0,0.5)",
@@ -793,14 +793,14 @@ export default function SearchResult() {
                   return (
                     <button key={platformId}
                       onClick={() => { setShowPlatformPicker(false); handleGenerateReport("individual", platformId); }}
-                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, background: "rgba(139,160,200,0.04)", border: "1px solid rgba(139,160,200,0.08)", cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}
-                      onMouseOver={e => { e.currentTarget.style.background = "rgba(0,212,255,0.06)"; e.currentTarget.style.borderColor = "rgba(0,212,255,0.25)"; }}
-                      onMouseOut={e => { e.currentTarget.style.background = "rgba(139,160,200,0.04)"; e.currentTarget.style.borderColor = "rgba(139,160,200,0.08)"; }}>
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, background: "var(--bg-elev)", border: "1px solid var(--border-soft)", cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}
+                      onMouseOver={e => { e.currentTarget.style.background = "var(--chip-accent-bg)"; e.currentTarget.style.borderColor = "var(--chip-accent-border)"; }}
+                      onMouseOut={e => { e.currentTarget.style.background = "var(--bg-elev)"; e.currentTarget.style.borderColor = "var(--border-soft)"; }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: pl?.bg, color: pl?.tc, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <PlatformIcon id={platformId} size={16} />
                       </div>
                       {prof?.avatar && (
-                        <img src={prof.avatar} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid rgba(0,212,255,0.2)" }}
+                        <img src={prof.avatar} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid var(--chip-accent-border)" }}
                           onError={e => { e.target.style.display = "none"; }} />
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -810,7 +810,7 @@ export default function SearchResult() {
                           {fmtFollowers ? ` · ${fmtFollowers} followers` : ""}
                         </div>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", padding: "4px 12px", borderRadius: 999, flexShrink: 0 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--chip-accent-text)", background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)", padding: "4px 12px", borderRadius: 999, flexShrink: 0 }}>
                         Select →
                       </span>
                     </button>

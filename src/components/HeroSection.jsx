@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 // animations and CSS vars come from theme.css (imported in main.jsx)
 
@@ -122,9 +123,9 @@ function HeroSearchForm() {
     display:"inline-flex", alignItems:"center", gap:6, padding:"6px 12px",
     borderRadius:999, fontSize:12, fontWeight:600, cursor:"pointer", border:"1px solid",
     transition:"all .2s",
-    background: active ? "rgba(0,212,255,0.12)" : "rgba(139,160,200,0.06)",
-    borderColor: active ? "rgba(0,212,255,0.4)" : "rgba(139,160,200,0.15)",
-    color: active ? "var(--accent)" : "var(--text-secondary)",
+    background: active ? "var(--chip-accent-bg)" : "var(--bg-elev)",
+    borderColor: active ? "var(--chip-accent-border)" : "var(--border-subtle)",
+    color: active ? "var(--chip-accent-text)" : "var(--text-secondary)",
   });
 
   return (
@@ -173,7 +174,7 @@ function HeroSearchForm() {
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
               cursor:"pointer", transition:"all .2s", border:"1px solid",
               background: mode===opt.id ? "rgba(0,144,255,0.10)" : "var(--bg-surface)",
-              borderColor: mode===opt.id ? "rgba(0,212,255,0.45)" : "var(--border-subtle)",
+              borderColor: mode===opt.id ? "var(--chip-accent-border)" : "var(--border-subtle)",
               color: mode===opt.id ? "var(--accent)" : "var(--text-secondary)",
             }}>
             <span>{opt.emoji}</span>{opt.label}
@@ -274,7 +275,7 @@ function HeroSearchForm() {
           color:"#051120", border:"none", cursor: (!username.trim() || activePlatforms.size===0) ? "not-allowed" : "pointer",
           opacity: (!username.trim() || activePlatforms.size===0) ? 0.4 : 1,
           display:"flex", alignItems:"center", justifyContent:"center", gap:9,
-          boxShadow:"0 0 0 1px rgba(0,212,255,0.4) inset, 0 8px 30px rgba(0,212,255,0.25)",
+          boxShadow:"var(--shadow-btn)",
           transition:"all .2s",
         }}>
         Find Accounts & Check Reputation
@@ -297,7 +298,7 @@ function HowItWorks() {
         <div style={{ textAlign:"center", marginBottom:52 }}>
           <span style={{
             display:"inline-flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:999,
-            fontSize:11, fontWeight:600, background:"rgba(0,212,255,0.08)", border:"1px solid rgba(0,212,255,0.25)", color:"var(--accent)", marginBottom:14,
+            fontSize:11, fontWeight:600, background:"var(--chip-accent-bg)", border:"1px solid var(--chip-accent-border)", color:"var(--chip-accent-text)", marginBottom:14,
           }}>How it works</span>
           <h2 style={{ fontSize:36, fontWeight:700, color:"var(--text-primary)", letterSpacing:"-0.02em", margin:0 }}>
             From a name to a full report in 30 seconds.
@@ -346,6 +347,14 @@ function StatsStrip() {
 
 // ─── Main Hero export ─────────────────────────────────────────────────────────
 const Hero = () => {
+  const { isDark } = useTheme();
+  const headlineGradient = isDark
+    ? "linear-gradient(135deg,#00D4FF 0%,#7CE3FF 50%,#F5A623 120%)"
+    : "linear-gradient(135deg,#1B6EF3 0%,#0050D8 50%,#7C3AED 100%)";
+  const topGlow = isDark
+    ? "radial-gradient(circle,rgba(0,212,255,0.15),transparent 60%)"
+    : "radial-gradient(circle,rgba(27,110,243,0.12),transparent 60%)";
+
   return (
     <>
       {/* ── Hero section ── */}
@@ -356,7 +365,7 @@ const Hero = () => {
         {/* Background mesh */}
         <div style={{
           position:"absolute", inset:0, pointerEvents:"none",
-          background:"radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,212,255,0.14),transparent 70%), radial-gradient(ellipse 60% 50% at 100% 50%,rgba(15,88,130,0.16),transparent 70%)",
+          background:"radial-gradient(ellipse 80% 50% at 50% -10%,var(--hero-mesh-a),transparent 70%), radial-gradient(ellipse 60% 50% at 100% 50%,var(--hero-mesh-b),transparent 70%)",
         }}/>
         {/* Grid */}
         <div style={{
@@ -365,7 +374,7 @@ const Hero = () => {
           backgroundSize:"60px 60px",
         }}/>
         {/* Top glow */}
-        <div style={{ position:"absolute", top:-100, left:"50%", transform:"translateX(-50%)", width:600, height:600, background:"radial-gradient(circle,rgba(0,212,255,0.15),transparent 60%)", pointerEvents:"none" }}/>
+        <div style={{ position:"absolute", top:-100, left:"50%", transform:"translateX(-50%)", width:600, height:600, background:topGlow, pointerEvents:"none" }}/>
 
         <div style={{ position:"relative", zIndex:2, width:"100%", maxWidth:1100, display:"grid", gridTemplateColumns:"1.1fr 0.9fr", gap:60, alignItems:"center" }}>
 
@@ -375,7 +384,7 @@ const Hero = () => {
             <div style={{ marginBottom:20 }}>
               <span style={{
                 display:"inline-flex", alignItems:"center", gap:8, padding:"6px 14px", borderRadius:999,
-                fontSize:11, fontWeight:700, background:"rgba(0,212,255,0.08)", border:"1px solid rgba(0,212,255,0.28)", color:"var(--accent)",
+                fontSize:11, fontWeight:700, background:"var(--chip-accent-bg)", border:"1px solid var(--chip-accent-border)", color:"var(--chip-accent-text)",
               }}>
                 <span style={{ width:6, height:6, borderRadius:"50%", background:"var(--accent)", boxShadow:"0 0 8px var(--accent)", display:"inline-block" }}/>
                 Free AI Reputation Report · No signup required
@@ -386,7 +395,7 @@ const Hero = () => {
             <h1 style={{ fontSize:"clamp(36px,4.5vw,60px)", fontWeight:900, lineHeight:0.98, letterSpacing:"-0.035em", marginBottom:16, color:"var(--text-primary)" }}>
               What is the internet
               <br/>
-              <span style={{ background:"linear-gradient(135deg,#00D4FF 0%,#7CE3FF 50%,#F5A623 120%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}>
+              <span style={{ background:headlineGradient, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}>
                 saying about you?
               </span>
             </h1>
@@ -416,7 +425,7 @@ const Hero = () => {
 
           {/* RIGHT — radar */}
           <div style={{ display:"flex", justifyContent:"center", alignItems:"center", position:"relative" }}>
-            <div style={{ position:"absolute", inset:-40, background:"radial-gradient(circle,rgba(0,212,255,0.15),transparent 65%)", pointerEvents:"none" }}/>
+            <div style={{ position:"absolute", inset:-40, background:topGlow, pointerEvents:"none" }}/>
             <div style={{ position:"relative" }}>
               <RadarViz size={340} />
               {/* Live scan chip */}
