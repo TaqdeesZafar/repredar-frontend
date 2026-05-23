@@ -17,7 +17,7 @@ function Logo({ className = '' }) {
         
         {/* Text Content */}
         <div className="flex flex-col">
-        <div className="text-[#2d3361] font-bold text-2xl md:text-2xl" style={{ lineHeight: "1" }}>
+          <div style={{ color: "#F0F4FF", fontWeight: 700, fontSize: 22, lineHeight: 1, letterSpacing: "-0.02em", fontFamily: "inherit" }}>
             Rep<br />Radar
           </div>
         </div>

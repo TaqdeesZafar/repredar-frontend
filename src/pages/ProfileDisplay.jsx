@@ -1,62 +1,60 @@
 import { useState, useEffect, useRef } from "react";
-import { IoMdClose } from "react-icons/io";
-import {
-  FaFacebook, FaInstagram, FaXTwitter, FaLinkedin, FaTiktok,
-} from "react-icons/fa6";
-import { FaGoogle, FaEnvelope, FaLock } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 
 // ─── Platform config ──────────────────────────────────────────────────────────
 const PLATFORM_CFG = {
-  twitter:   { label: "X / Twitter",     Icon: FaXTwitter,  bg: "#000",     iconColor: "#fff" },
-  x:         { label: "X / Twitter",     Icon: FaXTwitter,  bg: "#000",     iconColor: "#fff" },
-  instagram: { label: "Instagram",        Icon: FaInstagram, bg: "linear-gradient(135deg,#833AB4,#C13584,#F56040)", iconColor: "#fff" },
-  tiktok:    { label: "TikTok",           Icon: FaTiktok,    bg: "#010101",  iconColor: "#fff" },
-  facebook:  { label: "Facebook",         Icon: FaFacebook,  bg: "#1877F2",  iconColor: "#fff" },
-  linkedin:  { label: "LinkedIn",         Icon: FaLinkedin,  bg: "#0A66C2",  iconColor: "#fff" },
-  google:    { label: "Google Business",  Icon: FaGoogle,    bg: "#fff",     iconColor: "#4285F4", border: "1px solid #e2e8f0" },
+  twitter:   { label:"X / Twitter",     bg:"#000",     icon:"twitter" },
+  x:         { label:"X / Twitter",     bg:"#000",     icon:"twitter" },
+  instagram: { label:"Instagram",        bg:"linear-gradient(135deg,#833AB4,#C13584,#F56040)", icon:"instagram" },
+  tiktok:    { label:"TikTok",           bg:"#010101",  icon:"tiktok" },
+  facebook:  { label:"Facebook",         bg:"#1877F2",  icon:"facebook" },
+  linkedin:  { label:"LinkedIn",         bg:"#0A66C2",  icon:"linkedin" },
+  google:    { label:"Google Business",  bg:"#fff",     icon:"google", textDark:true },
 };
+const getPlatformCfg = (k) => PLATFORM_CFG[k?.toLowerCase()] || PLATFORM_CFG.twitter;
 
-const getPlatformCfg = (key) => PLATFORM_CFG[key?.toLowerCase()] || PLATFORM_CFG.twitter;
-
-// Steps shown during scan
+// Steps
 const STEPS = [
-  { id: 1, label: "Connecting to networks",       emoji: "🔗", threshold: 0  },
-  { id: 2, label: "Scanning posts & mentions",    emoji: "🔍", threshold: 12 },
-  { id: 3, label: "Reading audience sentiment",   emoji: "🧠", threshold: 25 },
-  { id: 4, label: "Calculating reputation score", emoji: "⭐", threshold: 40 },
-  { id: 5, label: "Identifying key trends",       emoji: "📊", threshold: 55 },
-  { id: 6, label: "Benchmarking competitors",     emoji: "🏆", threshold: 68 },
-  { id: 7, label: "Composing AI insights",        emoji: "✨", threshold: 80 },
-  { id: 8, label: "Building your PDF report",     emoji: "📄", threshold: 91 },
+  { id:1, label:"Connecting to networks",       emoji:"🔗", threshold:0  },
+  { id:2, label:"Scanning posts & mentions",    emoji:"🔍", threshold:12 },
+  { id:3, label:"Reading audience sentiment",   emoji:"🧠", threshold:25 },
+  { id:4, label:"Calculating reputation score", emoji:"⭐", threshold:40 },
+  { id:5, label:"Identifying key trends",       emoji:"📊", threshold:55 },
+  { id:6, label:"Benchmarking competitors",     emoji:"🏆", threshold:68 },
+  { id:7, label:"Composing AI insights",        emoji:"✨", threshold:80 },
+  { id:8, label:"Building your PDF report",     emoji:"📄", threshold:91 },
 ];
 
-const SENTIMENT_COLORS = {
-  positive: { bg: "#F0FDF4", text: "#16A34A", dot: "#22C55E" },
-  neutral:  { bg: "#FEFCE8", text: "#CA8A04", dot: "#EAB308" },
-  negative: { bg: "#FEF2F2", text: "#DC2626", dot: "#EF4444" },
-};
+const scoreColor = (s) => s >= 7 ? "#00C896" : s >= 5 ? "#F5A623" : "#FF4757";
+const scoreBg    = (s) => s >= 7 ? "rgba(0,200,150,0.1)" : s >= 5 ? "rgba(245,166,35,0.1)" : "rgba(255,71,87,0.1)";
 
-const scoreColor = (s) => s >= 7 ? "#16A34A" : s >= 5 ? "#CA8A04" : "#DC2626";
-const scoreBg    = (s) => s >= 7 ? "#F0FDF4" : s >= 5 ? "#FEFCE8" : "#FEF2F2";
+function fmtNum(n) {
+  if (!n) return null;
+  if (n >= 1_000_000) return `${(n/1_000_000).toFixed(1)}M`;
+  if (n >= 1_000)     return `${(n/1_000).toFixed(1)}K`;
+  return String(n);
+}
 
-// ─── Build backend URLs ───────────────────────────────────────────────────────
-// state shape from SearchResult:
-//   single:   { user: { name, screen_name, avatar, platform, ...platformFields }, mode }
-//   combined: { brandName, urls, toggles, mode }
-//     urls keys: Twitter, Instagram, TikTok, Facebook, Linkedin, InstaRab, Google
-//     + googleBusinessId if google selected
+// ─── Platform SVG icons ───────────────────────────────────────────────────────
+function PlatformSVG({ id, size = 14 }) {
+  const s = { width:size, height:size };
+  if (id==="twitter") return <svg style={s} viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>;
+  if (id==="instagram") return <svg style={s} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162S8.597 18.163 12 18.163s6.162-2.759 6.162-6.162S15.403 5.838 12 5.838zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>;
+  if (id==="tiktok") return <svg style={s} viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>;
+  if (id==="facebook") return <svg style={s} viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>;
+  if (id==="linkedin") return <svg style={s} viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>;
+  if (id==="google") return <svg style={s} viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>;
+  return null;
+}
 
+// ─── Build backend URLs (UNCHANGED) ──────────────────────────────────────────
 function buildUrls(state) {
   const base = import.meta.env.VITE_BACKEND_URL;
-  // mode "company" → profile_type=business, "person" → profile_type=influencer
   const profileType = state?.mode === "person" ? "influencer" : "business";
   const ptParam = `&profile_type=${profileType}`;
 
-  // ── Combined / multi-platform ─────────────────────────────────────────────
   if (state?.brandName && state?.urls) {
     const urls = state.urls || {};
-    // crossplatform controller expects: twitter, instagram, tiktok, facebook, linkedin, google
     const nonEmpty = Object.entries(urls)
       .filter(([k, v]) => k !== "googleBusinessId" && String(v).trim() !== "")
       .map(([k, v]) => `${encodeURIComponent(k.toLowerCase())}=${encodeURIComponent(String(v).trim())}`)
@@ -68,7 +66,6 @@ function buildUrls(state) {
     return { analyzeUrl, pdfUrl };
   }
 
-  // ── Single platform ───────────────────────────────────────────────────────
   const u   = state?.user || {};
   const plt = (u.platform || "x").toLowerCase();
 
@@ -113,7 +110,6 @@ function buildUrls(state) {
       pdfUrl:     `${base}/instagram/generate-pdf-report?query=@${handle}${ptParam}`,
     };
   }
-  // twitter / x
   const handle = encodeURIComponent(u.screen_name || u.username || "");
   return {
     analyzeUrl: `${base}/twitter/fetch-analyze-tweets?query=@${handle}${ptParam}`,
@@ -121,94 +117,58 @@ function buildUrls(state) {
   };
 }
 
-function fmtNum(n) {
-  if (!n) return null;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
-}
+// ─── Shared card style ────────────────────────────────────────────────────────
+const card = {
+  background:"var(--card-bg)",
+  border:"1px solid var(--card-border)", borderRadius:20, padding:24,
+  backdropFilter:"blur(22px)",
+};
 
-function PlatformBadge({ platformId }) {
-  const cfg = getPlatformCfg(platformId);
-  return (
-    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
-      style={{ background: cfg.bg, border: cfg.border || "none", color: cfg.iconColor }}>
-      {cfg.Icon && <cfg.Icon style={{ color: cfg.iconColor, fontSize: 10 }} />}
-      <span style={{ color: cfg.iconColor }}>{cfg.label}</span>
-    </div>
-  );
-}
-
-// ─── Profile header — single platform ────────────────────────────────────────
+// ─── Profile header — single ──────────────────────────────────────────────────
 function SingleProfileHeader({ user }) {
-  const plt      = (user?.platform || "x").toLowerCase();
-  const cfg      = getPlatformCfg(plt);
-  const name     = user?.name || user?.screen_name || "Unknown";
-  const handle   = user?.screen_name ? `@${user.screen_name}` : user?.username ? `@${user.username}` : "";
-  const bio      = user?.description || user?.headline || user?.signature || user?.biography || "";
+  const plt    = (user?.platform || "x").toLowerCase();
+  const cfg    = getPlatformCfg(plt);
+  const name   = user?.name || user?.screen_name || "Unknown";
+  const handle = user?.screen_name ? `@${user.screen_name}` : user?.username ? `@${user.username}` : "";
+  const bio    = user?.description || user?.headline || user?.signature || user?.biography || "";
   const followers = user?.followers_count || user?.follower_count || user?.followers || 0;
-  const avatar   = user?.avatar;
-  const solidBg  = typeof cfg.bg === "string" && !cfg.bg.includes("gradient") ? cfg.bg : "#312e81";
+  const avatar = user?.avatar;
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
-      {/* Cover — blurred avatar if available, else platform colour */}
-      <div className="relative h-36 overflow-hidden">
-        {avatar ? (
-          <>
-            <img src={avatar} alt="" className="absolute inset-0 w-full h-full object-cover scale-110"
-              style={{ filter: "blur(18px) brightness(0.5)" }} />
-            <div className="absolute inset-0 opacity-50" style={{ background: solidBg }} />
-          </>
-        ) : (
-          <div className="absolute inset-0" style={{ background: `linear-gradient(135deg,${solidBg}dd,${solidBg}88)` }} />
-        )}
-        {/* Dot grid overlay */}
-        <div className="absolute inset-0 opacity-[0.07]"
-          style={{ backgroundImage: "radial-gradient(circle,#fff 1px,transparent 1px)", backgroundSize: "20px 20px" }} />
-        {/* Watermark platform icon */}
-        <div className="absolute top-3 right-5 opacity-[0.15]">
-          {cfg.Icon && <cfg.Icon style={{ color: "#fff", fontSize: 56 }} />}
+    <div style={{ ...card, overflow:"hidden", padding:0 }}>
+      {/* Cover */}
+      <div style={{ height:100, position:"relative", overflow:"hidden", background:"linear-gradient(135deg,#0F1F3D,#1a3a6e,#0F1F3D)" }}>
+        {avatar && <img src={avatar} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"blur(16px) brightness(0.35)", transform:"scale(1.1)" }}/>}
+        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle,rgba(0,212,255,0.07) 1px,transparent 1px)", backgroundSize:"20px 20px" }}/>
+        {/* Platform watermark */}
+        <div style={{ position:"absolute", top:10, right:16, opacity:0.12, color:"#fff" }}>
+          <PlatformSVG id={cfg.icon} size={48} />
         </div>
-        {/* Name + handle overlaid bottom-left, offset for avatar */}
-        <div className="absolute bottom-4 left-[108px] right-4">
-          <h1 className="text-white font-black text-xl leading-tight truncate"
-            style={{ fontFamily: "'Poppins',sans-serif", textShadow: "0 2px 10px rgba(0,0,0,0.6)" }}>
-            {name}
-          </h1>
-          {handle && <p className="text-white/65 text-xs font-medium mt-0.5">{handle}</p>}
+        <div style={{ position:"absolute", bottom:12, left:90, right:12 }}>
+          <h1 style={{ color:"#fff", fontWeight:800, fontSize:18, margin:0, lineHeight:1.2 }}>{name}</h1>
+          {handle && <p style={{ color:"rgba(255,255,255,0.55)", fontSize:12, margin:"2px 0 0" }}>{handle}</p>}
         </div>
       </div>
-
-      {/* Card body */}
-      <div className="px-5 pb-5">
-        {/* Avatar floats up over the cover */}
-        <div className="flex items-end justify-between -mt-11 mb-3 relative z-10">
-          <div className="w-20 h-20 rounded-full border-[3px] border-white shadow-xl overflow-hidden flex-shrink-0"
-            style={{ background: solidBg }}>
+      {/* Body */}
+      <div style={{ padding:"0 20px 20px" }}>
+        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginTop:-28, marginBottom:14, position:"relative", zIndex:2 }}>
+          <div style={{ width:56, height:56, borderRadius:"50%", border:"3px solid var(--bg-dark)", overflow:"hidden", background:typeof cfg.bg==="string"&&!cfg.bg.includes("gradient")?cfg.bg:"#312e81" }}>
             {avatar
-              ? <img src={avatar} alt={name} className="w-full h-full object-cover"
-                  onError={e => { e.target.style.display = "none"; }} />
-              : <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-white font-black text-2xl" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                    {name[0]?.toUpperCase()}
-                  </span>
+              ? <img src={avatar} alt={name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none";}}/>
+              : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <span style={{ color:"#fff", fontWeight:800, fontSize:20 }}>{name[0]?.toUpperCase()}</span>
                 </div>
             }
           </div>
-          <div className="mb-1"><PlatformBadge platformId={plt} /></div>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:cfg.textDark?"#fff":"rgba(255,255,255,0.08)", color:cfg.textDark?"#000":"#fff" }}>
+            <PlatformSVG id={cfg.icon} size={10} />{cfg.label}
+          </div>
         </div>
-
-        {bio && <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">{bio}</p>}
-
+        {bio && <p style={{ fontSize:12, color:"rgba(139,160,200,0.8)", lineHeight:1.5, margin:"0 0 12px", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>{bio}</p>}
         {followers > 0 && (
-          <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-            <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-xl">
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-              </svg>
-              <span className="text-xs font-bold">{fmtNum(followers)} followers</span>
-            </div>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 10px", borderRadius:999, background:"rgba(0,212,255,0.08)", border:"1px solid rgba(0,212,255,0.2)", fontSize:11, color:"var(--accent)", fontWeight:600 }}>
+            <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+            {fmtNum(followers)} followers
           </div>
         )}
       </div>
@@ -216,64 +176,46 @@ function SingleProfileHeader({ user }) {
   );
 }
 
-// ─── Profile header — combined / multi-platform ───────────────────────────────
+// ─── Profile header — combined ────────────────────────────────────────────────
 function CombinedProfileHeader({ brandName, selectedPlatforms, mode, avatar }) {
   const initial = (brandName || "?")[0].toUpperCase();
   return (
-    <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
-      {/* Cover — blurred avatar if available, else gradient */}
-      <div className="relative h-36 overflow-hidden"
-        style={{ background: "linear-gradient(135deg,#1e1b4b 0%,#3730a3 40%,#6d28d9 70%,#0e7490 100%)" }}>
-        {avatar && (
-          <>
-            <img src={avatar} alt="" className="absolute inset-0 w-full h-full object-cover scale-110"
-              style={{ filter: "blur(18px) brightness(0.45)" }} />
-            <div className="absolute inset-0 opacity-60"
-              style={{ background: "linear-gradient(135deg,#1e1b4b,#3730a3,#6d28d9)" }} />
-          </>
-        )}
-        {/* Dot grid */}
-        <div className="absolute inset-0 opacity-[0.06]"
-          style={{ backgroundImage: "radial-gradient(circle,#fff 1px,transparent 1px)", backgroundSize: "20px 20px" }} />
-        {/* Floating platform icons */}
-        <div className="absolute top-4 right-5 flex gap-2.5 opacity-25">
-          {selectedPlatforms.slice(0, 5).map(id => {
-            const cfg = getPlatformCfg(id);
-            return cfg.Icon ? <cfg.Icon key={id} style={{ color: "#fff", fontSize: 18 }} /> : null;
-          })}
+    <div style={{ ...card, overflow:"hidden", padding:0 }}>
+      <div style={{ height:100, position:"relative", overflow:"hidden", background:"linear-gradient(135deg,#0F1F3D,#1a3a6e,#0F1F3D)" }}>
+        {avatar && <img src={avatar} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"blur(16px) brightness(0.3)", transform:"scale(1.1)" }}/>}
+        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle,rgba(0,212,255,0.07) 1px,transparent 1px)", backgroundSize:"20px 20px" }}/>
+        <div style={{ position:"absolute", top:10, right:14, display:"flex", gap:8, opacity:0.2 }}>
+          {selectedPlatforms.slice(0,4).map(id => <PlatformSVG key={id} id={id==="x"?"twitter":id} size={18} />)}
         </div>
-        {/* Name bottom-left */}
-        <div className="absolute bottom-4 left-[108px] right-4">
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold mb-1 inline-block ${mode === "company" ? "bg-blue-400/25 text-blue-100" : "bg-purple-400/25 text-purple-100"}`}>
-            {mode === "company" ? "🏢 Business" : "👤 Person"}
+        <div style={{ position:"absolute", bottom:12, left:90, right:12 }}>
+          <span style={{ fontSize:10, padding:"2px 8px", borderRadius:999, fontWeight:700, background:"rgba(0,212,255,0.2)", color:"#38BDF8" }}>
+            {mode==="company"?"🏢 Business":"👤 Person"}
           </span>
-          <h1 className="text-white font-black text-xl leading-tight truncate"
-            style={{ fontFamily: "'Poppins',sans-serif", textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>
-            {brandName}
-          </h1>
-          <p className="text-white/55 text-xs mt-0.5">Multi-platform analysis</p>
+          <h1 style={{ color:"#fff", fontWeight:800, fontSize:18, margin:"4px 0 0", lineHeight:1.2 }}>{brandName}</h1>
+          <p style={{ color:"rgba(255,255,255,0.45)", fontSize:11, margin:"2px 0 0" }}>Multi-platform analysis</p>
         </div>
       </div>
-
-      <div className="px-5 pb-5">
-        <div className="flex items-end justify-between -mt-11 mb-4 relative z-10">
-          {/* Avatar — real photo if available, else monogram */}
-          <div className="w-20 h-20 rounded-full border-[3px] border-white shadow-xl overflow-hidden flex-shrink-0"
-            style={{ background: "linear-gradient(135deg,#4F46E5,#7C3AED)" }}>
+      <div style={{ padding:"0 20px 20px" }}>
+        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginTop:-28, marginBottom:14, position:"relative", zIndex:2 }}>
+          <div style={{ width:56, height:56, borderRadius:"50%", border:"3px solid var(--bg-dark)", overflow:"hidden", background:"linear-gradient(135deg,#1A56DB,#0EA5E9)", display:"flex", alignItems:"center", justifyContent:"center" }}>
             {avatar
-              ? <img src={avatar} alt={brandName} className="w-full h-full object-cover"
-                  onError={e => { e.target.style.display = "none"; }} />
-              : <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-white font-black text-2xl" style={{ fontFamily: "'Poppins',sans-serif" }}>{initial}</span>
-                </div>
+              ? <img src={avatar} alt={brandName} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none";}}/>
+              : <span style={{ color:"#fff", fontWeight:800, fontSize:22 }}>{initial}</span>
             }
           </div>
-          <div className="mb-1 text-xs font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+          <span style={{ fontSize:11, color:"rgba(139,160,200,0.7)", background:"rgba(139,160,200,0.06)", border:"1px solid rgba(139,160,200,0.12)", padding:"3px 10px", borderRadius:999 }}>
             {selectedPlatforms.length} platforms
-          </div>
+          </span>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {selectedPlatforms.map(id => <PlatformBadge key={id} platformId={id} />)}
+        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+          {selectedPlatforms.map(id => {
+            const cfg = getPlatformCfg(id);
+            return (
+              <div key={id} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:"rgba(255,255,255,0.07)", color:"#fff" }}>
+                <PlatformSVG id={cfg.icon} size={10} />{cfg.label}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -286,7 +228,6 @@ export default function ProfileDisplay() {
   const navigate = useNavigate();
   const state = location.state || {};
 
-  // Detect mode: combined if brandName+urls present, single if user present
   const isCombined = !!(state.brandName && state.urls);
   const selectedPlatforms = isCombined
     ? Object.keys(state.urls || {}).filter(k => k !== "googleBusinessId").map(k => k.toLowerCase() === "x" || k.toLowerCase() === "twitter" ? "twitter" : k.toLowerCase())
@@ -297,18 +238,16 @@ export default function ProfileDisplay() {
     ? (state.brandName || "Report")
     : (state.user?.name || state.user?.screen_name || "Report");
 
-  // phase: idle | analyzing | preview | downloading | done
-  const [phase,          setPhase]          = useState("idle");
-  const [progress,       setProgress]       = useState(0);
-  const [activeStep,     setActiveStep]     = useState(0);
-  const [reportData,     setReportData]     = useState(null);
-  const [errorMessage,   setErrorMessage]   = useState("");
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [email,          setEmail]          = useState("");
-  const [capturedEmail,  setCapturedEmail]  = useState(() => localStorage.getItem("capturedEmail") || "");
-  const [modalError,     setModalError]     = useState("");
+  const [phase,           setPhase]          = useState("idle");
+  const [progress,        setProgress]       = useState(0);
+  const [activeStep,      setActiveStep]     = useState(0);
+  const [reportData,      setReportData]     = useState(null);
+  const [errorMessage,    setErrorMessage]   = useState("");
+  const [showEmailModal,  setShowEmailModal] = useState(false);
+  const [email,           setEmail]          = useState("");
+  const [capturedEmail,   setCapturedEmail]  = useState(() => localStorage.getItem("capturedEmail") || "");
+  const [modalError,      setModalError]     = useState("");
   const [upsellDismissed, setUpsellDismissed] = useState(false);
-  const [showBanner,     setShowBanner]     = useState(true);
 
   const tickerRef = useRef(null);
 
@@ -320,290 +259,223 @@ export default function ProfileDisplay() {
       setActiveStep(Math.max(0, STEPS.filter(s => s.threshold <= pct).length - 1));
     }, 400);
   };
+  const stopTicker = () => { if (tickerRef.current) { clearInterval(tickerRef.current); tickerRef.current = null; } };
 
-  const stopTicker = () => {
-    if (tickerRef.current) { clearInterval(tickerRef.current); tickerRef.current = null; }
-  };
-
-  // Redirect home if no state
-  useEffect(() => {
-    if (!analyzeUrl) { navigate("/"); }
-  }, []);
+  useEffect(() => { if (!analyzeUrl) { navigate("/"); } }, []);
 
   const handleGenerateReport = async () => {
     if (phase === "analyzing" || phase === "downloading") return;
     if (!analyzeUrl) { setErrorMessage("Missing profile data. Please search again."); return; }
-
-    setPhase("analyzing");
-    setProgress(0);
-    setActiveStep(0);
-    setErrorMessage("");
-    startTicker(170000);
-
+    setPhase("analyzing"); setProgress(0); setActiveStep(0); setErrorMessage(""); startTicker(170000);
     try {
       const res = await fetch(analyzeUrl);
       stopTicker();
       if (res.ok) {
         const data = await res.json();
-        setProgress(100);
-        setActiveStep(STEPS.length - 1);
-        setReportData(data);
+        setProgress(100); setActiveStep(STEPS.length - 1); setReportData(data);
         setTimeout(() => setPhase("preview"), 600);
       } else {
         let msg = "";
         try { const d = await res.json(); msg = d.message || d.error || ""; } catch { msg = res.statusText; }
-        // Treat "private" / "no posts" as a soft warning — still let user download
         if (msg.toLowerCase().includes("private") || msg.toLowerCase().includes("no accessible")) {
-          setReportData(null);
-          setPhase("preview");
+          setReportData(null); setPhase("preview");
         } else {
           setErrorMessage(`Unable to complete scan. Please try a different platform or search again. (${msg})`);
           setPhase("idle");
         }
       }
-    } catch (err) {
-      stopTicker();
-      setErrorMessage(`Network error — please check your connection and try again.`);
-      setPhase("idle");
-    }
+    } catch (err) { stopTicker(); setErrorMessage("Network error — please check your connection and try again."); setPhase("idle"); }
   };
 
   const handleUnlock = () => {
     const stored = localStorage.getItem("capturedEmail");
-    if (stored) {
-      // Already have email — go straight to download
-      setCapturedEmail(stored);
-      downloadPdf(stored);
-      return;
-    }
-    setModalError("");
-    setEmail("");
-    setShowEmailModal(true);
+    if (stored) { setCapturedEmail(stored); downloadPdf(stored); return; }
+    setModalError(""); setEmail(""); setShowEmailModal(true);
   };
 
   const handleEmailSubmit = (e) => {
     e.preventDefault();
     if (!email.includes("@")) { setModalError("Please enter a valid email."); return; }
     localStorage.setItem("capturedEmail", email);
-    setCapturedEmail(email);
-    setShowEmailModal(false);
-    downloadPdf(email);
+    setCapturedEmail(email); setShowEmailModal(false); downloadPdf(email);
   };
 
   const downloadPdf = async (userEmail) => {
     if (!pdfUrl) { setErrorMessage("No PDF URL available."); return; }
     const fullPdfUrl = `${pdfUrl}&email=${encodeURIComponent(userEmail)}`;
-
-    setPhase("downloading");
-    setProgress(0);
-    setErrorMessage("");
-    startTicker(170000);
-
+    setPhase("downloading"); setProgress(0); setErrorMessage(""); startTicker(170000);
     try {
       const res = await fetch(fullPdfUrl);
       stopTicker();
       if (res.ok) {
-        const blob = await res.blob();
-        setProgress(100);
+        const blob = await res.blob(); setProgress(100);
         const filename = `${displayName.replace(/\s+/g, "_")}_reputation_report.pdf`;
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none"; a.href = url; a.download = filename;
-        document.body.appendChild(a); a.click();
-        window.URL.revokeObjectURL(url); document.body.removeChild(a);
+        const a = document.createElement("a"); a.style.display="none"; a.href=url; a.download=filename;
+        document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url); document.body.removeChild(a);
         setPhase("done");
       } else {
-        let msg = "";
-        try { const d = await res.json(); msg = d.message || ""; } catch {}
-        setErrorMessage(`Download failed: ${msg}`);
-        setPhase("preview");
+        let msg = ""; try { const d = await res.json(); msg = d.message || ""; } catch {}
+        setErrorMessage(`Download failed: ${msg}`); setPhase("preview");
       }
-    } catch (err) {
-      stopTicker();
-      setErrorMessage(`Download failed: ${err.message}`);
-      setPhase("preview");
-    }
+    } catch (err) { stopTicker(); setErrorMessage(`Download failed: ${err.message}`); setPhase("preview"); }
   };
 
   const overall   = reportData?.sentimentAnalysis?.overall;
   const sentiment = overall?.sentiment || "neutral";
-  const sentColor = SENTIMENT_COLORS[sentiment] || SENTIMENT_COLORS.neutral;
+  const sentColors = { positive:{bg:"rgba(0,200,150,0.1)",text:"#00C896",dot:"#00C896"}, neutral:{bg:"rgba(245,166,35,0.1)",text:"#F5A623",dot:"#F5A623"}, negative:{bg:"rgba(255,71,87,0.1)",text:"#FF4757",dot:"#FF4757"} };
+  const sentColor = sentColors[sentiment] || sentColors.neutral;
 
   return (
-    <div style={{ fontFamily: "'Inter',sans-serif" }} className="min-h-screen bg-[#F4F6FB] flex flex-col">
-
-      {/* Top banner */}
-      {showBanner && (
-        <div className="text-white py-2.5 px-4 flex justify-between items-center"
-          style={{ background: "linear-gradient(90deg,#4F46E5,#7C3AED)" }}>
-          <p className="flex-1 text-center text-sm font-medium">
-            Want a report for your own business?{" "}
-            <a href="/" className="font-bold underline underline-offset-2 ml-1">Get Started →</a>
-          </p>
-          <button onClick={() => setShowBanner(false)} className="text-white/70 hover:text-white ml-3">
-            <IoMdClose size={18} />
-          </button>
-        </div>
-      )}
+    <div style={{ minHeight:"100vh", background:"var(--bg-dark)", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif", color:"var(--text-primary)" }}>
+      {/* Background */}
+      <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0, backgroundImage:"linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px)", backgroundSize:"60px 60px" }}/>
 
       {/* Error toast */}
       {errorMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-white border border-red-100 shadow-2xl rounded-2xl p-4 max-w-sm flex gap-3">
-          <span className="text-red-500 text-xl shrink-0">⚠️</span>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-800 text-sm">Error</p>
-            <p className="text-xs text-red-600 mt-0.5 break-words">{errorMessage}</p>
+        <div style={{ position:"fixed", top:16, right:16, zIndex:100, background:"var(--nav-bg)", border:"1px solid rgba(255,71,87,0.3)", borderRadius:14, padding:16, maxWidth:340, display:"flex", gap:12, boxShadow:"0 8px 30px rgba(0,0,0,0.3)" }}>
+          <span style={{ fontSize:18, flexShrink:0 }}>⚠️</span>
+          <div style={{ flex:1, minWidth:0 }}>
+            <p style={{ fontWeight:700, fontSize:13, margin:"0 0 3px", color:"#FF4757" }}>Error</p>
+            <p style={{ fontSize:12, color:"rgba(139,160,200,0.8)", margin:0, wordBreak:"break-word" }}>{errorMessage}</p>
           </div>
-          <button onClick={() => setErrorMessage("")} className="text-gray-400 hover:text-gray-600 shrink-0">
-            <IoMdClose size={16} />
-          </button>
+          <button onClick={() => setErrorMessage("")} style={{ background:"none", border:"none", color:"rgba(139,160,200,0.5)", cursor:"pointer", padding:2, flexShrink:0 }}>✕</button>
         </div>
       )}
 
-      <div className="max-w-lg mx-auto w-full px-4 py-8 space-y-4 pb-28">
+      <div style={{ position:"relative", zIndex:1, maxWidth:520, margin:"0 auto", padding:"32px 16px 80px", display:"flex", flexDirection:"column", gap:16 }}>
 
         {/* Profile header */}
         {isCombined
-          ? <CombinedProfileHeader brandName={state.brandName} selectedPlatforms={selectedPlatforms} mode={state.mode} avatar={state.avatar} />
-          : state.user && <SingleProfileHeader user={state.user} />
+          ? <CombinedProfileHeader brandName={state.brandName} selectedPlatforms={selectedPlatforms} mode={state.mode} avatar={state.avatar}/>
+          : state.user && <SingleProfileHeader user={state.user}/>
         }
 
         {/* ── IDLE ── */}
         {phase === "idle" && (
-          <div className="bg-white rounded-3xl shadow-md p-6">
-            <div className="flex items-start gap-4 mb-5">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-                style={{ background: "linear-gradient(135deg,#EEF2FF,#E0E7FF)" }}>📋</div>
+          <div style={card}>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:16, marginBottom:20 }}>
+              <div style={{ width:52, height:52, borderRadius:14, background:"rgba(0,212,255,0.1)", border:"1px solid rgba(0,212,255,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0 }}>📋</div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900 leading-tight" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                  AI Reputation Report
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {isCombined
-                    ? `Full scan across ${selectedPlatforms.length} platform${selectedPlatforms.length > 1 ? "s" : ""} — free for everyone.`
-                    : "Full social media scan — free for everyone."}
+                <h2 style={{ fontSize:19, fontWeight:800, margin:"0 0 4px", color:"#F0F4FF" }}>AI Reputation Report</h2>
+                <p style={{ fontSize:13, color:"rgba(139,160,200,0.8)", margin:0 }}>
+                  {isCombined ? `Full scan across ${selectedPlatforms.length} platform${selectedPlatforms.length>1?"s":""} — free for everyone.` : "Full social media scan — free for everyone."}
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:20 }}>
               {[
-                { emoji: "🔍", title: "Deep Scan",  sub: "100+ signals",     bg: "#FFF7ED", accent: "#EA580C" },
-                { emoji: "🧠", title: "GPT-4 AI",   sub: "Smart insights",   bg: "#F0FDF4", accent: "#16A34A" },
-                { emoji: "📊", title: "Full PDF",   sub: "Instant download", bg: "#EFF6FF", accent: "#2563EB" },
+                { emoji:"🔍", title:"Deep Scan",  sub:"100+ signals",     bg:"rgba(245,158,11,0.08)", accent:"#F5A623" },
+                { emoji:"🧠", title:"GPT-4 AI",   sub:"Smart insights",   bg:"rgba(0,200,150,0.08)", accent:"#00C896" },
+                { emoji:"📊", title:"Full PDF",   sub:"Instant download", bg:"rgba(0,212,255,0.08)", accent:"#00D4FF" },
               ].map(item => (
-                <div key={item.title} className="rounded-2xl p-3 text-center" style={{ background: item.bg }}>
-                  <div className="text-2xl mb-1">{item.emoji}</div>
-                  <p className="text-xs font-bold" style={{ color: item.accent }}>{item.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{item.sub}</p>
+                <div key={item.title} style={{ borderRadius:12, padding:"12px 10px", textAlign:"center", background:item.bg, border:`1px solid ${item.accent}22` }}>
+                  <div style={{ fontSize:22, marginBottom:5 }}>{item.emoji}</div>
+                  <p style={{ fontSize:11, fontWeight:700, color:item.accent, margin:"0 0 2px" }}>{item.title}</p>
+                  <p style={{ fontSize:10, color:"rgba(139,160,200,0.6)", margin:0 }}>{item.sub}</p>
                 </div>
               ))}
             </div>
-            <button
-              onClick={handleGenerateReport}
-              className="w-full text-white font-bold py-4 rounded-2xl shadow-lg transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 text-base"
-              style={{ fontFamily: "'Poppins',sans-serif", background: "linear-gradient(135deg,#4F46E5,#7C3AED)" }}
-            >
-              🔍 Generate Free Report
+            <button onClick={handleGenerateReport} style={{
+              width:"100%", padding:"15px 22px", borderRadius:14, fontSize:15, fontWeight:700, border:"none", cursor:"pointer",
+              background:"linear-gradient(135deg,#00D4FF 0%,#0090FF 100%)", color:"#051120",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:9,
+              boxShadow:"0 0 0 1px rgba(0,212,255,0.4) inset, 0 8px 30px rgba(0,212,255,0.25)",
+            }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              Generate Free Report
             </button>
-            <p className="text-center text-xs text-gray-400 mt-3">⏱ Takes 2–3 minutes · No credit card required</p>
+            <p style={{ textAlign:"center", fontSize:11, color:"rgba(139,160,200,0.5)", marginTop:10 }}>⏱ Takes 2–3 minutes · No credit card required</p>
           </div>
         )}
 
         {/* ── ANALYZING ── */}
         {phase === "analyzing" && (
-          <div className="bg-white rounded-3xl shadow-md p-6">
-            <div className="flex flex-col items-center mb-5">
-              <div className="relative w-24 h-24 flex items-center justify-center mb-4">
-                <div className="absolute inset-0 rounded-full" style={{ border: "4px solid #EEF2FF" }} />
-                <div className="absolute inset-0 rounded-full"
-                  style={{ border: "4px solid transparent", borderTopColor: "#6366F1", borderRightColor: "#6366F1", animation: "spin 1s linear infinite" }} />
-                <div className="absolute rounded-full"
-                  style={{ inset: 8, border: "3px solid transparent", borderTopColor: "#A78BFA", animation: "spin 1.8s linear infinite reverse" }} />
-                <span className="text-3xl">{STEPS[activeStep]?.emoji || "🔗"}</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                Analyzing reputation...
-              </h3>
-              <p className="text-sm text-gray-400 mt-1 text-center">{STEPS[activeStep]?.label}</p>
-            </div>
-            <div className="mb-4">
-              <div className="flex justify-between text-xs text-gray-400 mb-1.5">
-                <span className="font-medium">Progress</span>
-                <span className="font-bold" style={{ color: "#6366F1" }}>{Math.round(progress)}%</span>
-              </div>
-              <div className="w-full rounded-full h-3 overflow-hidden" style={{ background: "#EEF2FF" }}>
-                <div className="h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden"
-                  style={{ width: `${progress}%`, background: "linear-gradient(90deg,#6366F1,#8B5CF6,#A78BFA)" }}>
-                  <div className="absolute inset-0"
-                    style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)", animation: "shimmer 1.5s infinite" }} />
+          <div style={card}>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", marginBottom:20 }}>
+              {/* Radar spinner */}
+              <div style={{ position:"relative", width:88, height:88, marginBottom:14 }}>
+                <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:"rgba(0,212,255,0.05)", border:"2px solid rgba(0,212,255,0.15)" }}/>
+                <div style={{ position:"absolute", inset:0, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"#00D4FF", borderRightColor:"#00D4FF", animation:"spin 1s linear infinite" }}/>
+                <div style={{ position:"absolute", inset:8, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"rgba(0,212,255,0.4)", animation:"spin 1.8s linear infinite reverse" }}/>
+                <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>
+                  {STEPS[activeStep]?.emoji || "🔗"}
                 </div>
               </div>
+              <h3 style={{ fontSize:19, fontWeight:800, margin:"0 0 4px" }}>Analyzing reputation...</h3>
+              <p style={{ fontSize:13, color:"rgba(139,160,200,0.7)", margin:0 }}>{STEPS[activeStep]?.label}</p>
             </div>
-            <div className="space-y-1.5">
+
+            {/* Progress bar */}
+            <div style={{ marginBottom:16 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, marginBottom:6 }}>
+                <span style={{ color:"rgba(139,160,200,0.6)", fontWeight:600 }}>Progress</span>
+                <span style={{ color:"#00D4FF", fontWeight:700 }}>{Math.round(progress)}%</span>
+              </div>
+              <div style={{ height:6, background:"rgba(139,160,200,0.08)", borderRadius:999, overflow:"hidden" }}>
+                <div style={{ height:"100%", borderRadius:999, transition:"width .7s ease-out", width:`${progress}%`, background:"linear-gradient(90deg,#00D4FF,#0090FF)", boxShadow:"0 0 10px rgba(0,212,255,0.4)" }}/>
+              </div>
+            </div>
+
+            {/* Steps */}
+            <div style={{ display:"flex", flexDirection:"column", gap:3 }}>
               {STEPS.map((step, i) => {
                 const done   = i < activeStep;
                 const active = i === activeStep;
                 return (
-                  <div key={step.id}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300"
-                    style={{
-                      background: active ? "#EEF2FF" : "transparent",
-                      border: active ? "1px solid #C7D2FE" : "1px solid transparent",
-                      opacity: !done && !active ? 0.3 : 1,
+                  <div key={step.id} style={{
+                    display:"flex", alignItems:"center", gap:12, padding:"8px 10px", borderRadius:10,
+                    background: active ? "rgba(0,212,255,0.07)" : "transparent",
+                    border: active ? "1px solid rgba(0,212,255,0.25)" : "1px solid transparent",
+                    opacity: !done && !active ? 0.3 : 1,
+                    transition:"all .3s",
+                  }}>
+                    <div style={{
+                      width:24, height:24, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11,
+                      background: done ? "rgba(0,200,150,0.15)" : active ? "rgba(0,212,255,0.15)" : "rgba(139,160,200,0.05)",
+                      border:`1.5px solid ${done?"#00C896":active?"#00D4FF":"rgba(139,160,200,0.15)"}`,
                     }}>
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 font-bold"
-                      style={{ background: done ? "#DCFCE7" : active ? "#EEF2FF" : "#F3F4F6", color: done ? "#16A34A" : active ? "#6366F1" : "#9CA3AF" }}>
-                      {done ? "✓" : step.emoji}
+                      {done ? <span style={{ color:"#00C896", fontSize:10 }}>✓</span> : step.emoji}
                     </div>
-                    <span className="text-sm flex-1"
-                      style={{ fontWeight: active ? 600 : 400, color: done ? "#9CA3AF" : active ? "#4338CA" : "#6B7280", textDecoration: done ? "line-through" : "none" }}>
+                    <span style={{ fontSize:13, flex:1, fontWeight:active?600:400, color:done?"rgba(139,160,200,0.4)":active?"#00D4FF":"rgba(139,160,200,0.8)", textDecoration:done?"line-through":"none" }}>
                       {step.label}
                     </span>
                     {active && (
-                      <div className="flex gap-1">
-                        {[0, 150, 300].map(d => (
-                          <span key={d} className="w-1.5 h-1.5 rounded-full animate-bounce"
-                            style={{ background: "#6366F1", animationDelay: `${d}ms` }} />
-                        ))}
+                      <div style={{ display:"flex", gap:3 }}>
+                        {[0,150,300].map(d => <span key={d} style={{ width:5, height:5, borderRadius:"50%", background:"#00D4FF", display:"inline-block", animation:"bounce 1s infinite", animationDelay:`${d}ms` }}/>)}
                       </div>
                     )}
                   </div>
                 );
               })}
             </div>
-            <p className="text-center text-xs text-gray-400 mt-4">Please keep this tab open — usually 2–3 minutes</p>
+            <p style={{ textAlign:"center", fontSize:11, color:"rgba(139,160,200,0.4)", marginTop:14 }}>Please keep this tab open — usually 2–3 minutes</p>
           </div>
         )}
 
         {/* ── PREVIEW ── */}
         {(phase === "preview" || phase === "done") && reportData && (
           <>
-            {/* Reputation score — visible free */}
-            <div className="bg-white rounded-3xl shadow-md p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                  Reputation Score
-                </h2>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5"
-                  style={{ background: sentColor.bg, color: sentColor.text }}>
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: sentColor.dot }} />
-                  {sentiment.charAt(0).toUpperCase() + sentiment.slice(1)}
+            {/* Score card */}
+            <div style={card}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
+                <h2 style={{ fontSize:16, fontWeight:800, margin:0 }}>Reputation Score</h2>
+                <span style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"4px 10px", borderRadius:999, fontSize:11, fontWeight:700, background:sentColor.bg, color:sentColor.text }}>
+                  <span style={{ width:6, height:6, borderRadius:"50%", background:sentColor.dot, display:"inline-block" }}/>
+                  {sentiment.charAt(0).toUpperCase()+sentiment.slice(1)}
                 </span>
               </div>
-              <div className="flex items-center gap-5">
-                <div className="w-28 h-28 rounded-full flex flex-col items-center justify-center shrink-0"
-                  style={{ background: scoreBg(overall?.score), border: `4px solid ${scoreColor(overall?.score)}` }}>
-                  <span className="text-4xl font-black" style={{ color: scoreColor(overall?.score), fontFamily: "'Poppins',sans-serif" }}>
-                    {overall?.score ?? "—"}
-                  </span>
-                  <span className="text-xs text-gray-400 font-medium">/10</span>
+              <div style={{ display:"flex", alignItems:"center", gap:20 }}>
+                <div style={{ width:100, height:100, borderRadius:"50%", flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", background:scoreBg(overall?.score), border:`3px solid ${scoreColor(overall?.score)}` }}>
+                  <span style={{ fontSize:32, fontWeight:900, color:scoreColor(overall?.score), lineHeight:1 }}>{overall?.score ?? "—"}</span>
+                  <span style={{ fontSize:10, color:"rgba(139,160,200,0.6)", fontWeight:500 }}>/10</span>
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">Top Strengths</p>
-                  <ul className="space-y-1.5">
-                    {(overall?.key_positives || []).slice(0, 3).map((p, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                        <span className="text-green-500 shrink-0 mt-0.5">✓</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ fontSize:10, color:"rgba(139,160,200,0.5)", textTransform:"uppercase", letterSpacing:"0.14em", fontWeight:700, marginBottom:10 }}>Top Strengths</p>
+                  <ul style={{ listStyle:"none", margin:0, padding:0, display:"flex", flexDirection:"column", gap:6 }}>
+                    {(overall?.key_positives||[]).slice(0,3).map((p,i) => (
+                      <li key={i} style={{ display:"flex", alignItems:"flex-start", gap:8, fontSize:12, color:"rgba(139,160,200,0.85)" }}>
+                        <span style={{ color:"#00C896", flexShrink:0, marginTop:1 }}>✓</span>
                         <span>{p}</span>
                       </li>
                     ))}
@@ -613,80 +485,50 @@ export default function ProfileDisplay() {
             </div>
 
             {/* Unlock CTA */}
-            <div className="bg-white rounded-3xl shadow-md p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: "linear-gradient(135deg,#4F46E5,#7C3AED)" }}>
-                  <FaLock style={{ color: "#fff", fontSize: 14 }} />
+            <div style={card}>
+              <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:16 }}>
+                <div style={{ width:42, height:42, borderRadius:12, background:"rgba(0,212,255,0.1)", border:"1px solid rgba(0,212,255,0.25)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                  🔒
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900 text-base leading-tight" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                    Full report is ready
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Competitor analysis · Action plan · 12-month trends · PDF
-                  </p>
+                  <p style={{ fontWeight:800, fontSize:15, margin:"0 0 2px" }}>Full report is ready</p>
+                  <p style={{ fontSize:12, color:"rgba(139,160,200,0.6)", margin:0 }}>Competitor analysis · Action plan · 12-month trends · PDF</p>
                 </div>
               </div>
-              <button
-                onClick={handleUnlock}
-                className="w-full text-white font-bold py-4 rounded-2xl shadow-lg transition-all hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2 text-base"
-                style={{ fontFamily: "'Poppins',sans-serif", background: "linear-gradient(135deg,#4F46E5,#7C3AED)" }}
-              >
-                <FaEnvelope style={{ fontSize: 14 }} />
+              <button onClick={handleUnlock} style={{
+                width:"100%", padding:"15px 22px", borderRadius:14, fontSize:14, fontWeight:700, border:"none", cursor:"pointer",
+                background:"linear-gradient(135deg,#00D4FF 0%,#0090FF 100%)", color:"#051120",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:9,
+                boxShadow:"0 0 0 1px rgba(0,212,255,0.4) inset, 0 8px 30px rgba(0,212,255,0.25)",
+              }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 {capturedEmail ? "Download Full Report →" : "Get Full Report — Free →"}
               </button>
-              <div className="flex items-center justify-center gap-5 mt-3">
-                {["🔒 Private", "✅ No spam", "📄 Free PDF"].map(t => (
-                  <span key={t} className="text-xs text-gray-400">{t}</span>
+              <div style={{ display:"flex", justifyContent:"center", gap:20, marginTop:10 }}>
+                {["🔒 Private","✅ No spam","📄 Free PDF"].map(t => (
+                  <span key={t} style={{ fontSize:11, color:"rgba(139,160,200,0.4)" }}>{t}</span>
                 ))}
               </div>
             </div>
 
-            {/* Blurred locked content preview */}
-            <div className="relative overflow-hidden rounded-3xl" style={{ maxHeight: 220 }}>
-              <div className="space-y-4" style={{ filter: "blur(5px)", pointerEvents: "none", userSelect: "none" }}>
-                <div className="bg-white rounded-3xl shadow-md p-6">
-                  <h3 className="text-sm font-bold text-gray-700 mb-3">Key Weaknesses & More Strengths</h3>
-                  <div className="grid grid-cols-2 gap-4">
+            {/* Blurred preview */}
+            <div style={{ position:"relative", overflow:"hidden", borderRadius:20, maxHeight:200 }}>
+              <div style={{ display:"flex", flexDirection:"column", gap:12, filter:"blur(5px)", pointerEvents:"none", userSelect:"none" }}>
+                <div style={card}>
+                  <h3 style={{ fontSize:13, fontWeight:700, marginBottom:12, color:"rgba(139,160,200,0.7)" }}>Key Weaknesses & More Strengths</h3>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
                     <div>
-                      <p className="text-xs font-semibold text-green-600 mb-2">More Strengths</p>
-                      <ul className="space-y-1.5">
-                        {(overall?.key_positives || []).slice(3).map((p, i) => (
-                          <li key={i} className="text-xs text-gray-600 flex gap-1.5"><span className="text-green-500">✓</span>{p}</li>
-                        ))}
-                      </ul>
+                      <p style={{ fontSize:10, fontWeight:700, color:"#00C896", marginBottom:8 }}>More Strengths</p>
+                      {(overall?.key_positives||[]).slice(3).map((p,i) => <p key={i} style={{ fontSize:11, color:"rgba(139,160,200,0.7)", margin:"0 0 4px" }}>✓ {p}</p>)}
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-red-500 mb-2">Areas to Improve</p>
-                      <ul className="space-y-1.5">
-                        {(overall?.key_negatives || []).map((n, i) => (
-                          <li key={i} className="text-xs text-gray-600 flex gap-1.5"><span className="text-red-400">✗</span>{n}</li>
-                        ))}
-                      </ul>
+                      <p style={{ fontSize:10, fontWeight:700, color:"#FF4757", marginBottom:8 }}>Areas to Improve</p>
+                      {(overall?.key_negatives||[]).map((n,i) => <p key={i} style={{ fontSize:11, color:"rgba(139,160,200,0.7)", margin:"0 0 4px" }}>✗ {n}</p>)}
                     </div>
-                  </div>
-                </div>
-                <div className="bg-white rounded-3xl shadow-md p-6">
-                  <h3 className="text-sm font-bold text-gray-700 mb-3">Competitor Benchmarking</h3>
-                  <div className="space-y-3">
-                    {(reportData?.competitorsSentimentAnalysis || []).map((c, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-indigo-50 flex items-center justify-center text-sm font-bold text-indigo-600">
-                          {c.name?.[0]?.toUpperCase()}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-gray-800">{c.name}</p>
-                          <p className="text-xs text-gray-400 capitalize">{c.sentiment}</p>
-                        </div>
-                        <span className="text-sm font-bold" style={{ color: scoreColor(c.rating) }}>{c.rating}/10</span>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
-              <div className="absolute inset-x-0 bottom-0 h-24"
-                style={{ background: "linear-gradient(to bottom, rgba(244,246,251,0), rgba(244,246,251,1))" }} />
+              <div style={{ position:"absolute", inset:0, bottom:0, height:120, background:"linear-gradient(to bottom,transparent,var(--bg-dark))", pointerEvents:"none", top:"auto" }}/>
             </div>
           </>
         )}
@@ -694,61 +536,39 @@ export default function ProfileDisplay() {
         {/* ── DOWNLOADING ── */}
         {phase === "downloading" && (
           <>
-            <div className="bg-white rounded-3xl shadow-md p-6">
-              <div className="flex flex-col items-center mb-5">
-                <div className="relative w-24 h-24 flex items-center justify-center mb-4">
-                  <div className="absolute inset-0 rounded-full" style={{ border: "4px solid #EEF2FF" }} />
-                  <div className="absolute inset-0 rounded-full"
-                    style={{ border: "4px solid transparent", borderTopColor: "#6366F1", borderRightColor: "#6366F1", animation: "spin 1s linear infinite" }} />
-                  <span className="text-3xl">📄</span>
+            <div style={card}>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", marginBottom:20 }}>
+                <div style={{ position:"relative", width:88, height:88, marginBottom:14 }}>
+                  <div style={{ position:"absolute", inset:0, borderRadius:"50%", border:"2px solid rgba(0,212,255,0.15)" }}/>
+                  <div style={{ position:"absolute", inset:0, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"#00D4FF", borderRightColor:"#00D4FF", animation:"spin 1s linear infinite" }}/>
+                  <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:30 }}>📄</div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                  Building your PDF...
-                </h3>
-                <p className="text-sm text-gray-400 mt-1">Compiling all insights into your report</p>
+                <h3 style={{ fontSize:19, fontWeight:800, margin:"0 0 4px" }}>Building your PDF...</h3>
+                <p style={{ fontSize:13, color:"rgba(139,160,200,0.6)", margin:0 }}>Compiling all insights into your report</p>
               </div>
-              <div className="w-full rounded-full h-3 overflow-hidden mb-2" style={{ background: "#EEF2FF" }}>
-                <div className="h-full rounded-full transition-all duration-700 ease-out"
-                  style={{ width: `${progress}%`, background: "linear-gradient(90deg,#6366F1,#8B5CF6,#A78BFA)" }} />
+              <div style={{ height:6, background:"rgba(139,160,200,0.08)", borderRadius:999, overflow:"hidden", marginBottom:8 }}>
+                <div style={{ height:"100%", borderRadius:999, transition:"width .7s ease-out", width:`${progress}%`, background:"linear-gradient(90deg,#00D4FF,#0090FF)", boxShadow:"0 0 10px rgba(0,212,255,0.4)" }}/>
               </div>
-              <p className="text-center text-xs text-gray-400">{Math.round(progress)}% · Please keep this tab open</p>
+              <p style={{ textAlign:"center", fontSize:11, color:"rgba(139,160,200,0.4)" }}>{Math.round(progress)}% · Please keep this tab open</p>
             </div>
 
-            {/* Upsell while waiting */}
             {!upsellDismissed && (
-              <div className="rounded-3xl shadow-md overflow-hidden"
-                style={{ background: "linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%)" }}>
-                <div className="p-6 relative">
-                  <button onClick={() => setUpsellDismissed(true)}
-                    className="absolute top-4 right-4 text-white/40 hover:text-white/80">
-                    <IoMdClose size={18} />
-                  </button>
-                  <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-2">While you wait</p>
-                  <h3 className="text-xl font-bold text-white mb-1 pr-6" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                    Track {displayName}'s reputation over time
-                  </h3>
-                  <p className="text-sm text-indigo-200 mb-4 leading-relaxed">
-                    This is a one-time snapshot. Save it and re-run anytime to watch how reputation changes.
-                  </p>
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    {[
-                      { emoji: "📂", label: "Saved Reports",  sub: "All in one place" },
-                      { emoji: "🔄", label: "Re-run Anytime", sub: "Fresh data always" },
-                      { emoji: "📈", label: "Track Trends",   sub: "See changes over time" },
-                    ].map(item => (
-                      <div key={item.label} className="rounded-2xl p-3 text-center"
-                        style={{ background: "rgba(255,255,255,0.08)" }}>
-                        <div className="text-xl mb-1">{item.emoji}</div>
-                        <p className="text-xs font-bold text-white">{item.label}</p>
-                        <p className="text-[10px] text-indigo-300 mt-0.5">{item.sub}</p>
+              <div style={{ borderRadius:20, overflow:"hidden", background:"linear-gradient(135deg,#0F1F3D 0%,#1a3a6e 50%,#0F1F3D 100%)", border:"1px solid rgba(0,212,255,0.2)" }}>
+                <div style={{ padding:24, position:"relative" }}>
+                  <button onClick={() => setUpsellDismissed(true)} style={{ position:"absolute", top:14, right:14, background:"none", border:"none", color:"rgba(255,255,255,0.3)", cursor:"pointer", fontSize:16 }}>✕</button>
+                  <p style={{ fontSize:10, fontWeight:700, color:"#38BDF8", textTransform:"uppercase", letterSpacing:"0.14em", marginBottom:8 }}>While you wait</p>
+                  <h3 style={{ fontSize:18, fontWeight:800, color:"#fff", margin:"0 0 8px", paddingRight:24 }}>Track {displayName}'s reputation over time</h3>
+                  <p style={{ fontSize:13, color:"rgba(139,160,200,0.8)", marginBottom:18, lineHeight:1.5 }}>This is a one-time snapshot. Save it and re-run anytime to watch how reputation changes.</p>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:16 }}>
+                    {[{emoji:"📂",label:"Saved Reports",sub:"All in one place"},{emoji:"🔄",label:"Re-run Anytime",sub:"Fresh data always"},{emoji:"📈",label:"Track Trends",sub:"See changes"}].map(item => (
+                      <div key={item.label} style={{ borderRadius:12, padding:"10px 8px", textAlign:"center", background:"rgba(255,255,255,0.06)" }}>
+                        <div style={{ fontSize:18, marginBottom:4 }}>{item.emoji}</div>
+                        <p style={{ fontSize:11, fontWeight:700, color:"#fff", margin:"0 0 2px" }}>{item.label}</p>
+                        <p style={{ fontSize:10, color:"rgba(139,160,200,0.5)", margin:0 }}>{item.sub}</p>
                       </div>
                     ))}
                   </div>
-                  <button
-                    onClick={() => navigate("/signup", { state: { prefillEmail: capturedEmail } })}
-                    className="w-full font-bold py-3.5 rounded-2xl text-indigo-700 text-sm hover:opacity-90"
-                    style={{ fontFamily: "'Poppins',sans-serif", background: "#fff" }}
-                  >
+                  <button onClick={() => navigate("/signup", { state:{ prefillEmail:capturedEmail } })} style={{ width:"100%", padding:"12px", borderRadius:12, fontWeight:700, fontSize:13, background:"#fff", color:"#0F1F3D", border:"none", cursor:"pointer" }}>
                     Create Free Account →
                   </button>
                 </div>
@@ -760,89 +580,70 @@ export default function ProfileDisplay() {
         {/* ── DONE ── */}
         {phase === "done" && (
           <>
-            <div className="bg-white rounded-3xl shadow-md p-6 text-center">
-              <div className="text-5xl mb-3">✅</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-1" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                PDF Downloaded!
-              </h3>
-              <p className="text-sm text-gray-500">Your download started automatically.</p>
-              {capturedEmail && (
-                <p className="text-xs text-green-600 font-medium mt-2">✉️ Report also sent to {capturedEmail}</p>
-              )}
-              <button onClick={() => setPhase("preview")}
-                className="mt-4 text-indigo-600 text-sm font-semibold hover:underline">
+            <div style={{ ...card, textAlign:"center" }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>✅</div>
+              <h3 style={{ fontSize:19, fontWeight:800, margin:"0 0 6px" }}>PDF Downloaded!</h3>
+              <p style={{ fontSize:13, color:"rgba(139,160,200,0.7)", margin:0 }}>Your download started automatically.</p>
+              {capturedEmail && <p style={{ fontSize:12, color:"#00C896", fontWeight:600, marginTop:8 }}>✉️ Report also sent to {capturedEmail}</p>}
+              <button onClick={() => setPhase("preview")} style={{ marginTop:14, background:"none", border:"none", color:"#00D4FF", fontSize:13, fontWeight:600, cursor:"pointer" }}>
                 ← Back to preview
               </button>
             </div>
 
             {!upsellDismissed && (
-              <div className="bg-white rounded-3xl shadow-md p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 text-2xl"
-                  style={{ background: "linear-gradient(135deg,#EEF2FF,#E0E7FF)" }}>📂</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900">Save this report to your account</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Free · Takes 30 seconds</p>
+              <div style={{ ...card, display:"flex", alignItems:"center", gap:14 }}>
+                <div style={{ width:44, height:44, borderRadius:12, background:"rgba(0,212,255,0.1)", border:"1px solid rgba(0,212,255,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>📂</div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontSize:13, fontWeight:700, margin:"0 0 2px" }}>Save this report to your account</p>
+                  <p style={{ fontSize:11, color:"rgba(139,160,200,0.5)", margin:0 }}>Free · Takes 30 seconds</p>
                 </div>
-                <button
-                  onClick={() => navigate("/signup", { state: { prefillEmail: capturedEmail } })}
-                  className="text-white text-xs font-bold px-4 py-2 rounded-xl shrink-0 hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg,#4F46E5,#7C3AED)" }}
-                >
+                <button onClick={() => navigate("/signup", { state:{ prefillEmail:capturedEmail } })} style={{ padding:"9px 16px", borderRadius:10, fontWeight:700, fontSize:12, background:"linear-gradient(135deg,#00D4FF,#0090FF)", color:"#051120", border:"none", cursor:"pointer", flexShrink:0 }}>
                   Sign Up →
                 </button>
               </div>
             )}
           </>
         )}
-
       </div>
 
-      {/* Email modal */}
+      {/* ── Email modal ── */}
       {showEmailModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}>
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
-            <button onClick={() => setShowEmailModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-              <IoMdClose size={20} />
-            </button>
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ background: "linear-gradient(135deg,#EEF2FF,#E0E7FF)" }}>
-                <FaEnvelope style={{ color: "#6366F1", fontSize: 28 }} />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900" style={{ fontFamily: "'Poppins',sans-serif" }}>
-                Where should we send your report?
-              </h3>
-              <p className="text-sm text-gray-500 mt-2">
-                Enter your email to unlock the full PDF — competitor analysis, action plan + trends. 100% free.
+        <div style={{ position:"fixed", inset:0, zIndex:50, display:"flex", alignItems:"center", justifyContent:"center", padding:16, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(8px)" }}>
+          <div style={{ background:"#0F1729", border:"1px solid rgba(0,212,255,0.2)", borderRadius:22, padding:32, maxWidth:360, width:"100%", boxShadow:"0 24px 80px rgba(0,0,0,0.7)", position:"relative" }}>
+            <button onClick={() => setShowEmailModal(false)} style={{ position:"absolute", top:14, right:14, background:"none", border:"none", color:"rgba(139,160,200,0.4)", cursor:"pointer", fontSize:18 }}>✕</button>
+            <div style={{ textAlign:"center", marginBottom:24 }}>
+              <div style={{ width:56, height:56, borderRadius:16, background:"rgba(0,212,255,0.1)", border:"1px solid rgba(0,212,255,0.25)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px", fontSize:26 }}>📧</div>
+              <h3 style={{ fontSize:19, fontWeight:800, margin:"0 0 8px" }}>Where should we send your report?</h3>
+              <p style={{ fontSize:13, color:"rgba(139,160,200,0.7)", margin:0, lineHeight:1.5 }}>
+                Enter your email to unlock the full PDF — competitor analysis, action plan & trends. 100% free.
               </p>
             </div>
-            <form onSubmit={handleEmailSubmit} className="space-y-3">
+            <form onSubmit={handleEmailSubmit} style={{ display:"flex", flexDirection:"column", gap:12 }}>
               <input
                 type="email" required autoFocus
                 placeholder="name@company.com"
                 value={email}
                 onChange={e => { setEmail(e.target.value); setModalError(""); }}
-                className="w-full px-4 py-3.5 rounded-xl border text-sm outline-none transition-all"
-                style={{ borderColor: modalError ? "#EF4444" : "#E0E7FF" }}
-                onFocus={e => { e.target.style.borderColor = "#6366F1"; e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.15)"; }}
-                onBlur={e => { e.target.style.borderColor = modalError ? "#EF4444" : "#E0E7FF"; e.target.style.boxShadow = "none"; }}
+                style={{
+                  padding:"13px 16px", borderRadius:12, fontSize:14,
+                  background:"var(--input-bg)", border:`1px solid ${modalError?"#FF4757":"rgba(0,144,255,0.3)"}`,
+                  color:"var(--text-primary)", outline:"none",
+                }}
+                onFocus={e => { e.target.style.borderColor="#00D4FF"; e.target.style.boxShadow="0 0 0 3px rgba(0,212,255,0.15)"; }}
+                onBlur={e => { e.target.style.borderColor=modalError?"#FF4757":"rgba(0,212,255,0.3)"; e.target.style.boxShadow="none"; }}
               />
-              {modalError && (
-                <p className="text-xs text-red-500 font-medium flex items-center gap-1.5">⚠️ {modalError}</p>
-              )}
-              <button
-                type="submit"
-                className="w-full text-white font-bold py-3.5 rounded-xl transition-all hover:opacity-90"
-                style={{ fontFamily: "'Poppins',sans-serif", background: "linear-gradient(135deg,#4F46E5,#7C3AED)" }}
-              >
+              {modalError && <p style={{ fontSize:12, color:"#FF4757", margin:0, display:"flex", gap:5 }}>⚠️ {modalError}</p>}
+              <button type="submit" style={{
+                padding:"14px", borderRadius:12, fontWeight:700, fontSize:14, border:"none", cursor:"pointer",
+                background:"linear-gradient(135deg,#00D4FF 0%,#0090FF 100%)", color:"#051120",
+                boxShadow:"0 8px 30px rgba(0,212,255,0.25)",
+              }}>
                 Unlock Full Report →
               </button>
             </form>
-            <div className="flex items-center justify-center gap-4 mt-4">
-              {["🔒 Private", "✅ No spam", "📄 Free PDF"].map(t => (
-                <span key={t} className="text-xs text-gray-400">{t}</span>
+            <div style={{ display:"flex", justifyContent:"center", gap:16, marginTop:14 }}>
+              {["🔒 Private","✅ No spam","📄 Free PDF"].map(t => (
+                <span key={t} style={{ fontSize:11, color:"rgba(139,160,200,0.4)" }}>{t}</span>
               ))}
             </div>
           </div>
@@ -851,7 +652,10 @@ export default function ProfileDisplay() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
+        @keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);} }
+        @keyframes radar-sweep { to { transform: rotate(360deg); } }
+        @keyframes pulse-glow { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(.9);} }
+        @keyframes float { 0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);} }
       `}</style>
     </div>
   );

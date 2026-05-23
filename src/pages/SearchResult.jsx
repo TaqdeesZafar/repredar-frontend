@@ -1,57 +1,60 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { HiOutlineArrowRight, HiOutlineCheck, HiOutlinePencil } from "react-icons/hi";
 import { lookupProfiles } from "../api/apiClient";
 import twitterVerifiedBadge from "../assets/Twitter_Verified_Badge.svg.png";
 
+// CSS vars and animations come from theme.css (imported in main.jsx)
+const GLOBAL_CSS = `
+  .sr-card-hover:hover { border-color:rgba(0,144,255,0.35) !important; background:rgba(0,144,255,0.04) !important; }
+  .sr-btn-ghost:hover { border-color:var(--accent) !important; color:var(--accent) !important; }
+  .sr-alt-row:hover { background:rgba(0,144,255,0.06) !important; }
+  .sr-retry-row:hover { background:rgba(0,144,255,0.04) !important; }
+  .sr-footer-btn:hover { color:var(--accent) !important; background:rgba(0,144,255,0.06) !important; }
+  .sr-scroll::-webkit-scrollbar { width:4px; }
+  .sr-scroll::-webkit-scrollbar-track { background:transparent; }
+  .sr-scroll::-webkit-scrollbar-thumb { background:rgba(139,160,200,0.15); border-radius:2px; }
+`;
+
 // ─── Platform config ──────────────────────────────────────────────────────────
 const ALL_PLATFORMS = [
-  { id: "twitter",   label: "X / Twitter",   color: "bg-black",         textColor: "text-white" },
-  { id: "instagram", label: "Instagram",      color: "bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400", textColor: "text-white" },
-  { id: "tiktok",    label: "TikTok",         color: "bg-black",         textColor: "text-white" },
-  { id: "facebook",  label: "Facebook",       color: "bg-blue-600",      textColor: "text-white" },
-  { id: "linkedin",  label: "LinkedIn",       color: "bg-blue-700",      textColor: "text-white" },
-  { id: "google",    label: "Google Business", color: "bg-white border border-gray-200", textColor: "text-gray-700" },
+  { id: "twitter",   label: "X / Twitter",    bg: "#000",                                 tc: "#fff" },
+  { id: "instagram", label: "Instagram",       bg: "linear-gradient(135deg,#833AB4,#C13584,#F56040)", tc: "#fff" },
+  { id: "tiktok",    label: "TikTok",          bg: "#000",                                 tc: "#fff" },
+  { id: "facebook",  label: "Facebook",        bg: "#1877F2",                              tc: "#fff" },
+  { id: "linkedin",  label: "LinkedIn",        bg: "#0A66C2",                              tc: "#fff" },
+  { id: "google",    label: "Google Business", bg: "#fff",                                 tc: "#444" },
 ];
 
-const RING_COLORS = {
-  twitter:   "ring-gray-900",
-  instagram: "ring-pink-500",
-  tiktok:    "ring-gray-900",
-  facebook:  "ring-blue-600",
-  linkedin:  "ring-blue-700",
-  google:    "ring-green-500",
-};
-
 // ─── Icons ────────────────────────────────────────────────────────────────────
-function PlatformIcon({ id, className = "w-4 h-4" }) {
+function PlatformIcon({ id, size = 14 }) {
+  const s = { width: size, height: size, flexShrink: 0 };
   if (id === "twitter") return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg style={s} viewBox="0 0 24 24" fill="currentColor">
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   );
   if (id === "linkedin") return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg style={s} viewBox="0 0 24 24" fill="currentColor">
       <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
     </svg>
   );
   if (id === "tiktok") return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg style={s} viewBox="0 0 24 24" fill="currentColor">
       <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" />
     </svg>
   );
   if (id === "facebook") return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg style={s} viewBox="0 0 24 24" fill="currentColor">
       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
     </svg>
   );
   if (id === "instagram") return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg style={s} viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162S8.597 18.163 12 18.163s6.162-2.759 6.162-6.162S15.403 5.838 12 5.838zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
     </svg>
   );
   if (id === "google") return (
-    <svg className={className} viewBox="0 0 24 24">
+    <svg style={s} viewBox="0 0 24 24">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -62,18 +65,21 @@ function PlatformIcon({ id, className = "w-4 h-4" }) {
 }
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
-function Avatar({ src, name, size = 52 }) {
+function Avatar({ src, name, size = 46 }) {
   const [failed, setFailed] = useState(false);
   const initials = (name || "?").split(" ").filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <div style={{ width: size, height: size }} className="relative flex-shrink-0">
-      <div style={{ width: size, height: size }}
-        className="rounded-full bg-blue-600 flex items-center justify-center absolute inset-0 select-none">
-        <span className="text-white font-bold" style={{ fontSize: size * 0.28 }}>{initials}</span>
-      </div>
+    <div style={{ width: size, height: size, position: "relative", flexShrink: 0 }}>
+      <div style={{
+        width: size, height: size, borderRadius: "50%",
+        background: "linear-gradient(135deg,#00D4FF,#0090FF)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        position: "absolute", inset: 0,
+        fontWeight: 700, color: "#051120", fontSize: size * 0.3,
+        userSelect: "none",
+      }}>{initials}</div>
       {src && !failed && (
-        <img src={src} alt="" style={{ width: size, height: size }}
-          className="rounded-full object-cover absolute inset-0"
+        <img src={src} alt="" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", position: "absolute", inset: 0 }}
           onError={() => setFailed(true)} />
       )}
     </div>
@@ -92,29 +98,25 @@ function StarRating({ rating }) {
   const full = Math.floor(rating);
   const half = rating - full >= 0.5;
   return (
-    <div className="flex items-center gap-1 mt-0.5">
-      <div className="flex">
+    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+      <div style={{ display: "flex" }}>
         {[1,2,3,4,5].map(i => (
-          <svg key={i} className={`w-3.5 h-3.5 ${i <= full ? "text-yellow-400" : i === full+1 && half ? "text-yellow-300" : "text-gray-200"}`}
+          <svg key={i} style={{ width: 12, height: 12, color: i <= full ? "#F5A623" : i === full+1 && half ? "#F5C842" : "rgba(139,160,200,0.2)" }}
             fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
         ))}
       </div>
-      <span className="text-xs font-semibold text-gray-700">{rating.toFixed(1)}</span>
+      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--gold)" }}>{rating.toFixed(1)}</span>
     </div>
   );
 }
 
 // ─── Normalise raw API response ───────────────────────────────────────────────
-// Backend now returns { best, alternatives } — we normalise best into display profile
-// and carry alternatives for the "wrong account?" switcher
 function normaliseProfile(platformId, data) {
   if (!data) return null;
-  // Support both old shape (flat object) and new shape ({ best, alternatives })
   const raw = data.best ?? data;
   const alternatives = data.alternatives ?? [];
-
   let profile = null;
 
   if (platformId === "twitter") {
@@ -145,8 +147,6 @@ function normaliseProfile(platformId, data) {
   }
 
   if (!profile) return null;
-
-  // Normalise alternatives into same mini shape
   profile.alternatives = alternatives.map(a => {
     if (!a) return null;
     const name = a.name || a.full_name || a.nickname || '';
@@ -173,12 +173,12 @@ function buildUrl(platformId, profile) {
 
 // ─── Result card ──────────────────────────────────────────────────────────────
 function ResultCard({ platformId, label, profile, selected, onToggle, onOverride, onRetry, onSwapAlternative }) {
-  const [editing, setEditing]       = useState(false);
-  const [overrideVal, setOverride]  = useState("");
-  const [retryVal, setRetryVal]     = useState("");
-  const [retrying, setRetrying]     = useState(false);
-  const inputRef                    = useRef(null);
-  const retryRef                    = useRef(null);
+  const [editing, setEditing]      = useState(false);
+  const [overrideVal, setOverride] = useState("");
+  const [retryVal, setRetryVal]    = useState("");
+  const [retrying, setRetrying]    = useState(false);
+  const inputRef  = useRef(null);
+  const retryRef  = useRef(null);
   useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
   useEffect(() => { if (retrying) retryRef.current?.focus(); }, [retrying]);
 
@@ -189,76 +189,108 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
   const canSelect  = isFound || isOverride;
   const isGoogle   = platformId === "google";
   const alternatives = profile?.alternatives || [];
-
   const pl = ALL_PLATFORMS.find(p => p.id === platformId);
+
+  const card = {
+    background: selected
+      ? "linear-gradient(180deg,rgba(0,144,255,0.06),rgba(0,144,255,0.02))"
+      : "var(--card-bg)",
+    border: selected ? "1px solid rgba(0,212,255,0.4)" : "1px solid rgba(139,160,200,0.10)",
+    borderRadius: 16,
+    backdropFilter: "blur(18px)",
+    boxShadow: selected ? "0 0 30px rgba(0,212,255,0.08)" : "none",
+    position: "relative",
+    cursor: canSelect && !editing && !retrying ? "pointer" : "default",
+    transition: "all 0.2s",
+    overflow: "hidden",
+  };
 
   return (
     <div
+      style={card}
+      className={canSelect && !editing && !retrying ? "sr-card-hover" : ""}
       onClick={() => { if (canSelect && !editing && !retrying) onToggle(); }}
-      className={`relative bg-white rounded-2xl border-2 transition-all
-        ${canSelect && !editing && !retrying ? "cursor-pointer hover:shadow-md hover:border-blue-300" : ""}
-        ${selected ? `border-transparent ring-2 ${RING_COLORS[platformId]} shadow-md` : "border-gray-100 shadow-sm"}
-      `}
     >
       {/* Selected tick */}
       {selected && (
-        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center z-10">
-          <HiOutlineCheck className="w-3 h-3 text-white" />
+        <div style={{
+          position: "absolute", top: 12, right: 12,
+          width: 20, height: 20, borderRadius: "50%",
+          background: "var(--accent)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 0 12px rgba(0,212,255,0.6)", zIndex: 10,
+        }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#051120" strokeWidth="3.5">
+            <path d="M5 12l5 5L20 7"/>
+          </svg>
         </div>
       )}
 
-      {/* ── Platform header ── */}
-      <div className={`flex items-center gap-2 px-4 pt-4 pb-2`}>
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${pl?.color} ${pl?.textColor}`}>
-          <PlatformIcon id={platformId} className="w-3.5 h-3.5" />
+      {/* Platform header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 16px 10px" }}>
+        <div style={{
+          width: 26, height: 26, borderRadius: 7,
+          background: pl?.bg, color: pl?.tc,
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <PlatformIcon id={platformId} size={12} />
         </div>
-        <span className="text-sm font-bold text-gray-800">{label}</span>
-        <div className="ml-auto flex-shrink-0">
-          {isLoading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-400 border-t-transparent" />}
-          {isFound && <span className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full">Found ✓</span>}
-          {isNotFound && <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">Not found</span>}
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
+        <div style={{ marginLeft: "auto" }}>
+          {isLoading && (
+            <div style={{ width: 16, height: 16, border: "2px solid rgba(0,212,255,0.3)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          )}
+          {isFound && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--positive)", background: "rgba(0,200,150,0.1)", border: "1px solid rgba(0,200,150,0.25)", padding: "2px 8px", borderRadius: 999, fontFamily: "monospace" }}>
+              FOUND
+            </span>
+          )}
+          {isNotFound && (
+            <span style={{ fontSize: 10, color: "var(--text-muted)", background: "rgba(139,160,200,0.06)", border: "1px solid var(--border-soft)", padding: "2px 8px", borderRadius: 999, fontFamily: "monospace" }}>
+              NOT FOUND
+            </span>
+          )}
         </div>
       </div>
 
-      {/* ── Skeleton ── */}
+      {/* Skeleton */}
       {isLoading && (
-        <div className="px-4 pb-4 flex items-center gap-3 animate-pulse">
-          <div className="w-14 h-14 rounded-full bg-gray-100 flex-shrink-0" />
-          <div className="flex-1 space-y-2">
-            <div className="h-3 bg-gray-100 rounded w-3/4" />
-            <div className="h-3 bg-gray-100 rounded w-1/2" />
-            <div className="h-3 bg-gray-100 rounded w-1/3" />
+        <div style={{ padding: "4px 16px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "linear-gradient(90deg,#0F1729 25%,#1E2D4A 50%,#0F1729 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", flexShrink: 0 }} />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg,#0F1729 25%,#1E2D4A 50%,#0F1729 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "70%" }} />
+            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg,#0F1729 25%,#1E2D4A 50%,#0F1729 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "45%" }} />
           </div>
         </div>
       )}
 
-      {/* ── Found: social profile ── */}
+      {/* Found: social profile */}
       {isFound && !isGoogle && (
-        <div className="px-4 pb-3">
-          <div className="flex items-center gap-3">
-            <Avatar src={profile.avatar} name={profile.name} size={52} />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1 flex-wrap">
-                <p className="font-bold text-gray-900 text-sm truncate">{profile.name}</p>
+        <div style={{ padding: "4px 16px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Avatar src={profile.avatar} name={profile.name} size={46} />
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.name}</span>
                 {profile.verified && (
                   platformId === "twitter"
-                    ? <img src={twitterVerifiedBadge} alt="verified" className="w-4 h-4 flex-shrink-0" />
-                    : <span className="text-blue-500 text-xs flex-shrink-0">✓</span>
+                    ? <img src={twitterVerifiedBadge} alt="verified" style={{ width: 14, height: 14, flexShrink: 0 }} />
+                    : <span style={{ color: "var(--accent)", fontSize: 12 }}>✓</span>
                 )}
               </div>
               {profile.username && (
-                <p className="text-xs text-gray-400 truncate">@{profile.username}</p>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{profile.username}</div>
               )}
               {profile.bio && (
-                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">{profile.bio}</p>
+                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.5 }}>{profile.bio}</div>
               )}
-              {/* Followers — prominent */}
               {profile.followers > 0 && (
-                <div className="mt-1.5 inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", padding: "3px 10px", borderRadius: 999 }}>
+                  <svg style={{ width: 11, height: 11, color: "var(--accent)" }} fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
-                  {formatNum(profile.followers)} followers
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", fontFamily: "monospace" }}>{formatNum(profile.followers)}</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>followers</span>
                 </div>
               )}
             </div>
@@ -266,99 +298,95 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
         </div>
       )}
 
-      {/* ── Found: Google Business ── */}
+      {/* Found: Google Business */}
       {isFound && isGoogle && (
-        <div className="px-4 pb-3">
-          <div className="flex items-start gap-3">
+        <div style={{ padding: "4px 16px 14px" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
             {profile.avatar
-              ? <img src={profile.avatar} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" onError={e => { e.target.style.display='none'; }} />
-              : <div className="w-14 h-14 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0 border border-green-100">
-                  <PlatformIcon id="google" className="w-6 h-6" />
+              ? <img src={profile.avatar} alt="" style={{ width: 46, height: 46, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />
+              : <div style={{ width: 46, height: 46, borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(139,160,200,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <PlatformIcon id="google" size={20} />
                 </div>
             }
-            <div className="min-w-0 flex-1">
-              <p className="font-bold text-gray-900 text-sm">{profile.name}</p>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{profile.name}</div>
               <StarRating rating={profile.rating} />
               {profile.reviewCount > 0 && (
-                <div className="mt-1 inline-flex items-center gap-1 bg-yellow-50 text-yellow-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                  {formatNum(profile.reviewCount)} reviews
+                <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(245,166,35,0.08)", border: "1px solid rgba(245,166,35,0.25)", padding: "3px 10px", borderRadius: 999 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--gold)", fontFamily: "monospace" }}>{formatNum(profile.reviewCount)}</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>reviews</span>
                 </div>
               )}
-              {profile.username && <p className="text-xs text-gray-400 truncate mt-0.5">{profile.username}</p>}
-              {profile.type && <p className="text-xs text-gray-400">{profile.type}</p>}
+              {profile.username && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>{profile.username}</div>}
+              {profile.type && <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{profile.type}</div>}
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Override display ── */}
+      {/* Override display */}
       {isOverride && !isFound && (
-        <div className="px-4 pb-3 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-purple-600 text-lg">🔗</span>
+        <div style={{ padding: "4px 16px 14px", display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>
+            🔗
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-bold text-gray-900 text-sm">Custom URL</p>
-            <p className="text-xs text-gray-400 truncate">{profile.overrideUrl}</p>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>Custom URL</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.overrideUrl}</div>
           </div>
         </div>
       )}
 
-      {/* ── AI alternatives ── */}
+      {/* AI alternatives */}
       {isFound && alternatives.length > 0 && !editing && !retrying && (
-        <div className="mx-4 mb-3 rounded-xl overflow-hidden border-2 border-orange-100 bg-orange-50/40" onClick={e => e.stopPropagation()}>
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-orange-100">
-            <span className="text-orange-500 text-sm">⚠️</span>
-            <p className="text-xs font-semibold text-orange-700">Not the right account?</p>
-            <p className="text-xs text-orange-500 ml-auto">Tap to swap</p>
+        <div style={{ margin: "0 12px 12px", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(245,166,35,0.2)", background: "rgba(245,166,35,0.04)" }} onClick={e => e.stopPropagation()}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderBottom: "1px solid rgba(245,166,35,0.15)" }}>
+            <span style={{ fontSize: 13 }}>⚠️</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--gold)" }}>Not the right account?</span>
+            <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>Tap to swap</span>
           </div>
           {alternatives.map((alt, i) => (
-            <button
-              key={i}
-              onClick={() => onSwapAlternative(alt.raw)}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-orange-50 transition-colors border-b border-orange-100/50 last:border-0 text-left"
-            >
-              <Avatar src={alt.avatar} name={alt.name} size={30} />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-gray-800 truncate">{alt.name}</p>
-                {alt.username && <p className="text-xs text-gray-500">@{alt.username}</p>}
+            <button key={i} onClick={() => onSwapAlternative(alt.raw)}
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "transparent", border: "none", borderBottom: i < alternatives.length - 1 ? "1px solid rgba(245,166,35,0.1)" : "none", cursor: "pointer", textAlign: "left", transition: "background 0.15s" }}
+              className="sr-alt-row">
+              <Avatar src={alt.avatar} name={alt.name} size={28} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{alt.name}</div>
+                {alt.username && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>@{alt.username}</div>}
               </div>
-              {alt.followers > 0 && (
-                <span className="text-xs text-gray-500 flex-shrink-0">{formatNum(alt.followers)}</span>
-              )}
-              <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full flex-shrink-0 font-semibold">Use</span>
+              {alt.followers > 0 && <span style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0, fontFamily: "monospace" }}>{formatNum(alt.followers)}</span>}
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#051120", background: "var(--accent)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>Use</span>
             </button>
           ))}
         </div>
       )}
 
-      {/* ── Not found state ── */}
+      {/* Not found state */}
       {isNotFound && !editing && !retrying && (
-        <div className="px-4 pb-4 space-y-3" onClick={e => e.stopPropagation()}>
-          <div className="flex items-start gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
-            <span className="text-lg mt-0.5">🔍</span>
-            <p className="text-xs text-gray-600 leading-relaxed">
+        <div style={{ padding: "0 14px 14px" }} onClick={e => e.stopPropagation()}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(139,160,200,0.04)", border: "1px solid var(--border-soft)", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
+            <span style={{ fontSize: 16, marginTop: 1 }}>🔍</span>
+            <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, margin: 0 }}>
               {isGoogle
                 ? "No Google Business listing found. Try including the city (e.g. \"Nike New York\")."
                 : "Couldn't find this account automatically. Enter their exact username or paste a profile URL below."}
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={e => { e.stopPropagation(); setRetrying(true); }}
-              className="py-2 text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 rounded-xl transition-colors flex items-center justify-center gap-1.5"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <button onClick={e => { e.stopPropagation(); setRetrying(true); }}
+              style={{ padding: "9px 12px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#051120", border: "none", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "opacity 0.2s" }}
+              onMouseOver={e => e.currentTarget.style.opacity = "0.85"}
+              onMouseOut={e => e.currentTarget.style.opacity = "1"}>
+              <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7" strokeWidth="2"/><path d="M21 21l-4.3-4.3" strokeWidth="2"/>
               </svg>
               {isGoogle ? "Add city" : "Try username"}
             </button>
-            <button
-              onClick={e => { e.stopPropagation(); setEditing(true); }}
-              className="py-2 text-xs font-bold bg-white text-gray-700 border-2 border-gray-200 hover:border-blue-400 hover:text-blue-600 rounded-xl transition-colors flex items-center justify-center gap-1.5"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            <button onClick={e => { e.stopPropagation(); setEditing(true); }}
+              style={{ padding: "9px 12px", fontSize: 12, fontWeight: 600, background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}
+              className="sr-btn-ghost">
+              <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               Paste URL
             </button>
@@ -366,82 +394,76 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
         </div>
       )}
 
-      {/* ── Retry / username input ── */}
+      {/* Retry / username input */}
       {retrying && (
-        <div className="px-4 pb-4 space-y-2.5 border-t-2 border-blue-100 pt-3" onClick={e => e.stopPropagation()}>
-          <p className="text-xs font-bold text-gray-700">
-            {isGoogle ? "Enter business name + city:" : `Enter their exact ${label} username:`}
+        <div style={{ padding: "0 14px 14px", borderTop: "1px solid rgba(0,212,255,0.15)" }} onClick={e => e.stopPropagation()}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", margin: "10px 0 8px" }}>
+            {isGoogle ? "Enter business name + city:" : `Enter exact ${label} username:`}
           </p>
-          <input
-            ref={retryRef}
-            type="text"
-            value={retryVal}
-            onChange={e => setRetryVal(e.target.value)}
+          <input ref={retryRef} type="text" value={retryVal} onChange={e => setRetryVal(e.target.value)}
             placeholder={isGoogle ? "e.g. Nike New York" : "e.g. @donaldtrump"}
-            className="w-full text-sm px-3.5 py-2.5 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 bg-blue-50/30"
+            style={{ width: "100%", padding: "9px 12px", background: "var(--input-bg)", border: "1px solid rgba(0,144,255,0.25)", borderRadius: 10, color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
             onKeyDown={e => {
               if (e.key === "Enter" && retryVal.trim()) { onRetry(retryVal.trim()); setRetrying(false); setRetryVal(""); }
               if (e.key === "Escape") { setRetrying(false); setRetryVal(""); }
-            }}
-          />
-          <div className="flex gap-2">
-            <button
-              disabled={!retryVal.trim()}
+            }} />
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <button disabled={!retryVal.trim()}
               onClick={() => { if (retryVal.trim()) { onRetry(retryVal.trim()); setRetrying(false); setRetryVal(""); } }}
-              className="flex-1 py-2 bg-blue-600 text-white text-xs rounded-xl hover:bg-blue-700 disabled:opacity-40 font-bold"
-            >Search</button>
+              style={{ flex: 1, padding: "8px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#051120", border: "none", borderRadius: 9, cursor: "pointer", opacity: retryVal.trim() ? 1 : 0.4 }}>
+              Search
+            </button>
             <button onClick={() => { setRetrying(false); setRetryVal(""); }}
-              className="px-4 py-2 border-2 border-gray-200 text-gray-500 text-xs rounded-xl hover:bg-gray-50 font-semibold">Cancel</button>
+              style={{ padding: "8px 14px", fontSize: 12, fontWeight: 500, background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-subtle)", borderRadius: 9, cursor: "pointer" }}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
 
-      {/* ── Wrong result — visible button always shown when found ── */}
+      {/* Wrong result row — shown when found/override */}
       {(isFound || isOverride) && !editing && !retrying && (
-        <div className="border-t-2 border-gray-100 flex" onClick={e => e.stopPropagation()}>
-          <button
-            onClick={e => { e.stopPropagation(); setRetrying(true); }}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-bl-2xl border-r border-gray-100"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <div style={{ borderTop: "1px solid rgba(139,160,200,0.08)", display: "flex" }} onClick={e => e.stopPropagation()}>
+          <button onClick={e => { e.stopPropagation(); setRetrying(true); }}
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", fontSize: 11, fontWeight: 500, color: "var(--text-muted)", background: "transparent", border: "none", borderRight: "1px solid rgba(139,160,200,0.08)", cursor: "pointer", borderRadius: "0 0 0 16px", transition: "all 0.15s" }}
+            className="sr-footer-btn">
+            <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" strokeWidth="2"/><path d="M21 21l-4.3-4.3" strokeWidth="2"/>
             </svg>
             Try username
           </button>
-          <button
-            onClick={e => { e.stopPropagation(); setEditing(true); }}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-br-2xl"
-          >
-            <HiOutlinePencil className="w-3.5 h-3.5" />
+          <button onClick={e => { e.stopPropagation(); setEditing(true); }}
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", fontSize: 11, fontWeight: 500, color: "var(--text-muted)", background: "transparent", border: "none", cursor: "pointer", borderRadius: "0 0 16px 0", transition: "all 0.15s" }}
+            className="sr-footer-btn">
+            <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
             Paste URL
           </button>
         </div>
       )}
 
-      {/* ── Paste URL input ── */}
+      {/* Paste URL input */}
       {editing && (
-        <div className="px-4 pb-4 pt-3 space-y-2.5 border-t-2 border-blue-100" onClick={e => e.stopPropagation()}>
-          <p className="text-xs font-bold text-gray-700">Paste the correct profile URL:</p>
-          <input
-            ref={inputRef}
-            type="text"
-            value={overrideVal}
-            onChange={e => setOverride(e.target.value)}
+        <div style={{ padding: "0 14px 14px", borderTop: "1px solid rgba(0,212,255,0.15)" }} onClick={e => e.stopPropagation()}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", margin: "10px 0 8px" }}>Paste the correct profile URL:</p>
+          <input ref={inputRef} type="text" value={overrideVal} onChange={e => setOverride(e.target.value)}
             placeholder="https://twitter.com/username"
-            className="w-full text-sm px-3.5 py-2.5 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 bg-blue-50/30"
+            style={{ width: "100%", padding: "9px 12px", background: "var(--input-bg)", border: "1px solid rgba(0,144,255,0.25)", borderRadius: 10, color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
             onKeyDown={e => {
               if (e.key === "Enter" && overrideVal.trim()) { onOverride(overrideVal.trim()); setEditing(false); }
               if (e.key === "Escape") setEditing(false);
-            }}
-          />
-          <div className="flex gap-2">
-            <button
-              disabled={!overrideVal.trim()}
+            }} />
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <button disabled={!overrideVal.trim()}
               onClick={() => { if (overrideVal.trim()) { onOverride(overrideVal.trim()); setEditing(false); } }}
-              className="flex-1 py-2 bg-blue-600 text-white text-xs rounded-xl hover:bg-blue-700 disabled:opacity-40 font-bold"
-            >Use this URL</button>
+              style={{ flex: 1, padding: "8px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#051120", border: "none", borderRadius: 9, cursor: "pointer", opacity: overrideVal.trim() ? 1 : 0.4 }}>
+              Use this URL
+            </button>
             <button onClick={() => setEditing(false)}
-              className="px-4 py-2 border-2 border-gray-200 text-gray-500 text-xs rounded-xl hover:bg-gray-50 font-semibold">Cancel</button>
+              style={{ padding: "8px 14px", fontSize: 12, fontWeight: 500, background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-subtle)", borderRadius: 9, cursor: "pointer" }}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -465,10 +487,9 @@ export default function SearchResult() {
   const [profiles, setProfiles] = useState(
     () => Object.fromEntries(platforms.map(p => [p, undefined]))
   );
-  const [selected, setSelected] = useState(new Set());
+  const [selected, setSelected]           = useState(new Set());
   const [showPlatformPicker, setShowPlatformPicker] = useState(false);
 
-  // Freeze the search params on mount so re-renders never re-fire lookups
   const searchRef = useRef(null);
   if (!searchRef.current && username) {
     searchRef.current = { username, platforms: [...platforms], handles: { ...handles }, mode, googleLocation };
@@ -488,7 +509,7 @@ export default function SearchResult() {
         })
         .catch(() => setProfiles(prev => ({ ...prev, [platformId]: null })));
     });
-  }, []); // empty deps — run exactly once on mount
+  }, []);
 
   const handleOverride = (platformId, url) => {
     setProfiles(prev => ({
@@ -511,7 +532,6 @@ export default function SearchResult() {
       .catch(() => setProfiles(prev => ({ ...prev, [platformId]: null })));
   };
 
-  // User taps "Use →" on an alternative — swap it in as the main result
   const handleSwapAlternative = (platformId, altRaw) => {
     const profile = normaliseProfile(platformId, { best: altRaw, alternatives: [] });
     if (!profile) return;
@@ -527,7 +547,6 @@ export default function SearchResult() {
     });
   };
 
-  // Build a user object from a platform id + its profile raw data
   const buildUserForPlatform = (platformId, p) => {
     const raw = p?.raw;
     if (!raw) return null;
@@ -550,15 +569,11 @@ export default function SearchResult() {
         urls[id] = buildUrl(id, profiles[id]);
         if (id === "google" && profiles[id]?.businessId) urls["googleBusinessId"] = profiles[id].businessId;
       });
-      // Pick first available avatar from any selected platform
-      const avatar = selectedArr
-        .map(id => profiles[id]?.avatar)
-        .find(a => a && typeof a === "string" && a.startsWith("http")) || null;
+      const avatar = selectedArr.map(id => profiles[id]?.avatar).find(a => a && typeof a === "string" && a.startsWith("http")) || null;
       navigate("/profile", { state: { brandName: username, urls, toggles, mode, avatar } });
       return;
     }
 
-    // Individual — if multiple selected and no platform forced, show picker
     if (reportType === "individual" && selectedArr.length > 1 && !forcePlatformId) {
       setShowPlatformPicker(true);
       return;
@@ -577,55 +592,101 @@ export default function SearchResult() {
   if (!username) { navigate("/"); return null; }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div style={{ minHeight: "100vh", background: "var(--bg-dark)", color: "var(--text-primary)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" }}>
+      <style>{GLOBAL_CSS}</style>
 
-      {/* ── Sticky top bar ── */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-20">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-4">
+      {/* Grid background */}
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
+        backgroundImage: "linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px)",
+        backgroundSize: "60px 60px",
+      }} />
+
+      {/* Sticky top bar */}
+      <div style={{
+        position: "sticky", top: 0, zIndex: 20,
+        background: "var(--nav-bg)", backdropFilter: "blur(20px)",
+        borderBottom: "1px solid var(--border-soft)",
+      }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16 }}>
           <button onClick={() => navigate("/")}
-            className="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 flex-shrink-0">
-            ← Back
+            style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, transition: "color 0.15s" }}
+            onMouseOver={e => e.currentTarget.style.color = "var(--text-secondary)"}
+            onMouseOut={e => e.currentTarget.style.color = "var(--text-muted)"}>
+            <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M19 12H5M12 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Back
           </button>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="font-bold text-gray-900 truncate">{username}</p>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${
-                mode === "company" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
-              }`}>
-                {mode === "company" ? "🏢 Business" : "👤 Person"}
-              </span>
-            </div>
-            <p className="text-xs text-gray-400">
-              {anyLoading ? "Searching platforms…" : `${foundCount} of ${platforms.length} found`}
-            </p>
+
+          <div style={{
+            flex: 1, maxWidth: 520, display: "flex", alignItems: "center", gap: 10,
+            padding: "9px 16px", borderRadius: 12,
+            background: "var(--bg-surface)", border: "1px solid rgba(0,144,255,0.2)",
+            backdropFilter: "blur(12px)",
+          }}>
+            <svg style={{ width: 14, height: 14, color: "var(--accent)", flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" strokeWidth="2"/><path d="M21 21l-4.3-4.3" strokeWidth="2"/>
+            </svg>
+            <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{username}</span>
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: mode === "company" ? "var(--accent)" : "var(--gold)",
+              background: mode === "company" ? "rgba(0,212,255,0.08)" : "rgba(245,166,35,0.08)",
+              border: `1px solid ${mode === "company" ? "rgba(0,212,255,0.25)" : "rgba(245,166,35,0.25)"}`,
+              padding: "2px 8px", borderRadius: 999, flexShrink: 0,
+            }}>
+              {mode === "company" ? "🏢 Business" : "👤 Person"}
+            </span>
+          </div>
+
+          <div style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)", flexShrink: 0 }}>
+            {anyLoading
+              ? <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)", animation: "pulse-dot 1.2s ease-in-out infinite" }} />
+                  Searching…
+                </span>
+              : <><span style={{ color: "var(--positive)", fontFamily: "monospace", fontWeight: 600 }}>{foundCount}</span> of {platforms.length} found</>
+            }
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px 140px", position: "relative", zIndex: 1 }}>
+
         {/* Instruction banner */}
-        <div className="mb-5 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3.5 flex gap-3">
-          <span className="text-xl flex-shrink-0 mt-0.5">🤖</span>
-          <div className="space-y-1.5">
-            <p className="text-sm font-bold text-blue-900">AI picked the best match on each platform</p>
-            <div className="flex flex-col gap-1 text-xs text-blue-700">
-              <span className="flex items-center gap-1.5">
-                <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</span>
-                Review each card — check the name, photo and follower count
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</span>
-                Wrong account? Use <strong>"Try username"</strong> or <strong>"Paste URL"</strong> at the bottom of each card
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</span>
-                Select the platforms you want, then tap Generate Report
-              </span>
+        <div style={{
+          display: "flex", gap: 14, padding: "16px 18px", marginBottom: 24,
+          background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.2)",
+          borderRadius: 14, backdropFilter: "blur(12px)",
+        }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+            background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15,
+          }}>🤖</div>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 8px" }}>AI picked the best match on each platform</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              {[
+                ["1", "Review each card — check the name, photo and follower count"],
+                ["2", <>Wrong account? Use <strong style={{ color: "var(--accent)" }}>Try username</strong> or <strong style={{ color: "var(--accent)" }}>Paste URL</strong> at the bottom of each card</>],
+                ["3", "Select the platforms you want, then tap Generate Report"],
+              ].map(([n, text]) => (
+                <div key={n} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#051120", flexShrink: 0, marginTop: 1 }}>{n}</div>
+                  <span style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>{text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-28">
+        {/* Results grid */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+          gap: 14,
+        }}>
           {platforms.map(platformId => {
             const pl = ALL_PLATFORMS.find(p => p.id === platformId);
             return (
@@ -645,36 +706,54 @@ export default function SearchResult() {
         </div>
       </div>
 
-      {/* ── Sticky generate bar ── */}
+      {/* Sticky generate bar */}
       {selectedArr.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 px-4 pb-6 pt-2">
-          <div className="max-w-2xl mx-auto bg-gray-900 rounded-2xl shadow-2xl px-5 py-4 flex items-center justify-between gap-4">
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 30, padding: "0 20px 24px" }}>
+          <div style={{
+            maxWidth: 900, margin: "0 auto",
+            background: "var(--nav-bg)",
+            border: "1px solid rgba(0,212,255,0.2)",
+            borderRadius: 18, backdropFilter: "blur(24px)",
+            boxShadow: "0 -4px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,255,0.08) inset",
+            padding: "16px 20px",
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
+          }}>
             <div>
-              <p className="font-bold text-white text-sm">
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>
                 {selectedArr.length} platform{selectedArr.length > 1 ? "s" : ""} selected
               </p>
-              <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[180px]">
+              <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "3px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 220 }}>
                 {selectedArr.map(id => ALL_PLATFORMS.find(p => p.id === id)?.label).join(", ")}
               </p>
             </div>
-            <div className="flex gap-2 flex-shrink-0">
+
+            <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
               {selectedArr.length === 1 ? (
-                <button
-                  onClick={() => handleGenerateReport("individual")}
-                  className="px-4 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors"
-                >
-                  Generate Report <HiOutlineArrowRight className="w-4 h-4" />
+                <button onClick={() => handleGenerateReport("individual")}
+                  style={{ padding: "11px 22px", fontSize: 13, fontWeight: 600, background: "linear-gradient(135deg,#00D4FF,#0090FF)", color: "#051120", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 0 20px rgba(0,212,255,0.3)", transition: "all 0.2s" }}
+                  onMouseOver={e => e.currentTarget.style.boxShadow = "0 0 32px rgba(0,212,255,0.55)"}
+                  onMouseOut={e => e.currentTarget.style.boxShadow = "0 0 20px rgba(0,212,255,0.3)"}>
+                  Generate Report
+                  <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M5 12h14M13 5l7 7-7 7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
               ) : (
                 <>
-                  <button
-                    onClick={() => handleGenerateReport("individual")}
-                    className="px-4 py-2.5 border border-gray-600 text-gray-300 text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors"
-                  >Individual</button>
-                  <button
-                    onClick={() => handleGenerateReport("combined")}
-                    className="px-4 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors"
-                  >Combined <HiOutlineArrowRight className="w-4 h-4" /></button>
+                  <button onClick={() => handleGenerateReport("individual")}
+                    style={{ padding: "11px 18px", fontSize: 13, fontWeight: 500, background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)", borderRadius: 12, cursor: "pointer", transition: "all 0.2s" }}
+                    className="sr-btn-ghost">
+                    Individual
+                  </button>
+                  <button onClick={() => handleGenerateReport("combined")}
+                    style={{ padding: "11px 22px", fontSize: 13, fontWeight: 600, background: "linear-gradient(135deg,#00D4FF,#0090FF)", color: "#051120", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 0 20px rgba(0,212,255,0.3)", transition: "all 0.2s" }}
+                    onMouseOver={e => e.currentTarget.style.boxShadow = "0 0 32px rgba(0,212,255,0.55)"}
+                    onMouseOut={e => e.currentTarget.style.boxShadow = "0 0 20px rgba(0,212,255,0.3)"}>
+                    Combined
+                    <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M5 12h14M13 5l7 7-7 7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
                 </>
               )}
             </div>
@@ -682,66 +761,66 @@ export default function SearchResult() {
         </div>
       )}
 
-      {/* ── Platform picker bottom sheet (Individual with multiple selected) ── */}
+      {/* Platform picker bottom sheet */}
       {showPlatformPicker && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center"
-          style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
           onClick={() => setShowPlatformPicker(false)}>
-          <div className="w-full max-w-2xl bg-white rounded-t-3xl shadow-2xl pb-safe"
-            onClick={e => e.stopPropagation()}>
+          <div style={{
+            width: "100%", maxWidth: 580,
+            background: "var(--nav-bg)",
+            border: "1px solid rgba(0,212,255,0.15)",
+            borderRadius: "24px 24px 0 0",
+            backdropFilter: "blur(24px)",
+            boxShadow: "0 -20px 60px rgba(0,0,0,0.5)",
+          }} onClick={e => e.stopPropagation()}>
             {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-gray-200" />
+            <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+              <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(139,160,200,0.2)" }} />
             </div>
-            <div className="px-5 pt-2 pb-6">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-bold text-gray-900">Pick a platform for individual report</h3>
-                <button onClick={() => setShowPlatformPicker(false)} className="text-gray-400 hover:text-gray-600 p-1">
-                  <HiOutlineArrowRight className="w-4 h-4 rotate-[-90deg]" />
-                </button>
+            <div style={{ padding: "8px 24px 32px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: "var(--text-primary)" }}>Pick platform for individual report</h3>
+                <button onClick={() => setShowPlatformPicker(false)}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 18, lineHeight: 1, padding: "4px" }}>×</button>
               </div>
-              <p className="text-xs text-gray-400 mb-4">Each platform gives a focused report on that channel only.</p>
-              <div className="space-y-2">
+              <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 16px" }}>Each platform gives a focused report on that channel only.</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {selectedArr.map(platformId => {
                   const pl = ALL_PLATFORMS.find(p => p.id === platformId);
                   const prof = profiles[platformId];
                   const followers = prof?.followers;
                   const fmtFollowers = followers >= 1_000_000 ? `${(followers/1_000_000).toFixed(1)}M` : followers >= 1000 ? `${(followers/1000).toFixed(1)}K` : followers ? String(followers) : null;
                   return (
-                    <button
-                      key={platformId}
+                    <button key={platformId}
                       onClick={() => { setShowPlatformPicker(false); handleGenerateReport("individual", platformId); }}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border-2 border-transparent hover:border-blue-200 hover:bg-blue-50 transition-all text-left group"
-                    >
-                      {/* Platform icon */}
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${pl?.color} ${pl?.textColor}`}>
-                        <PlatformIcon id={platformId} className="w-4 h-4" />
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, background: "rgba(139,160,200,0.04)", border: "1px solid rgba(139,160,200,0.08)", cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}
+                      onMouseOver={e => { e.currentTarget.style.background = "rgba(0,212,255,0.06)"; e.currentTarget.style.borderColor = "rgba(0,212,255,0.25)"; }}
+                      onMouseOut={e => { e.currentTarget.style.background = "rgba(139,160,200,0.04)"; e.currentTarget.style.borderColor = "rgba(139,160,200,0.08)"; }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: pl?.bg, color: pl?.tc, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <PlatformIcon id={platformId} size={16} />
                       </div>
-                      {/* Avatar + name */}
                       {prof?.avatar && (
-                        <img src={prof.avatar} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0 border-2 border-white shadow"
+                        <img src={prof.avatar} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid rgba(0,212,255,0.2)" }}
                           onError={e => { e.target.style.display = "none"; }} />
                       )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-900 text-sm truncate">{prof?.name || pl?.label}</p>
-                        <p className="text-xs text-gray-400 truncate">
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prof?.name || pl?.label}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
                           {prof?.username ? `@${prof.username}` : pl?.label}
                           {fmtFollowers ? ` · ${fmtFollowers} followers` : ""}
-                        </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                          Select →
-                        </span>
-                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", padding: "4px 12px", borderRadius: 999, flexShrink: 0 }}>
+                        Select →
+                      </span>
                     </button>
                   );
                 })}
               </div>
-              <p className="text-center text-xs text-gray-400 mt-4">
+              <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)", marginTop: 16 }}>
                 Want all platforms in one report?{" "}
                 <button onClick={() => { setShowPlatformPicker(false); handleGenerateReport("combined"); }}
-                  className="text-blue-600 font-semibold hover:underline">
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", fontWeight: 600, fontSize: 12, padding: 0 }}>
                   Use Combined →
                 </button>
               </p>
