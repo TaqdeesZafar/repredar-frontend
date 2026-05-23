@@ -113,11 +113,23 @@ body {
 /* ─── Theme transition (smooth swap) ─── */
 body, body * {
   transition:
+    border-color 0.22s ease,
+    color 0.18s ease,
+    box-shadow 0.22s ease;
+}
+/* Background-color transition only on elements that need it (not gradient text spans) */
+body,
+header, nav, footer,
+.theme-bg-transition {
+  transition:
     background-color 0.22s ease,
     border-color 0.22s ease,
     color 0.18s ease,
-    box-shadow 0.22s ease,
-    fill 0.18s ease;
+    box-shadow 0.22s ease;
+}
+/* Gradient text spans must never transition background — it breaks webkit-background-clip:text */
+.gradient-text {
+  transition: none !important;
 }
 /* Never transition animation properties */
 @media (prefers-reduced-motion: no-preference) {

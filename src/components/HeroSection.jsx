@@ -351,6 +351,7 @@ const Hero = () => {
   const headlineGradient = isDark
     ? "linear-gradient(135deg,#00D4FF 0%,#7CE3FF 50%,#F5A623 120%)"
     : "linear-gradient(135deg,#1B6EF3 0%,#0050D8 50%,#7C3AED 100%)";
+  // backgroundImage (not background shorthand) so CSS transition never touches it — prevents solid-box artifact
   const topGlow = isDark
     ? "radial-gradient(circle,rgba(0,212,255,0.15),transparent 60%)"
     : "radial-gradient(circle,rgba(27,110,243,0.12),transparent 60%)";
@@ -395,7 +396,7 @@ const Hero = () => {
             <h1 style={{ fontSize:"clamp(36px,4.5vw,60px)", fontWeight:900, lineHeight:0.98, letterSpacing:"-0.035em", marginBottom:16, color:"var(--text-primary)" }}>
               What is the internet
               <br/>
-              <span style={{ background:headlineGradient, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}>
+              <span className="gradient-text" style={{ backgroundImage:headlineGradient, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text", color:"transparent", display:"inline-block" }}>
                 saying about you?
               </span>
             </h1>
