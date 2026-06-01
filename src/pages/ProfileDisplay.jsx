@@ -13,7 +13,8 @@ const PLATFORM_CFG = {
 };
 const getPlatformCfg = (k) => PLATFORM_CFG[k?.toLowerCase()] || PLATFORM_CFG.twitter;
 
-// Steps
+// Steps — these cover the ANALYSIS phase only (fetching + GPT).
+// PDF generation is a separate step triggered after email capture.
 const STEPS = [
   { id:1, label:"Connecting to networks",       emoji:"🔗", threshold:0  },
   { id:2, label:"Scanning posts & mentions",    emoji:"🔍", threshold:12 },
@@ -22,7 +23,7 @@ const STEPS = [
   { id:5, label:"Identifying key trends",       emoji:"📊", threshold:55 },
   { id:6, label:"Benchmarking competitors",     emoji:"🏆", threshold:68 },
   { id:7, label:"Composing AI insights",        emoji:"✨", threshold:80 },
-  { id:8, label:"Building your PDF report",     emoji:"📄", threshold:91 },
+  { id:8, label:"Finalizing your report data",  emoji:"✅", threshold:91 },
 ];
 
 const scoreColor = (s) => s >= 7 ? "var(--green)" : s >= 5 ? "var(--amber)" : "var(--red)";
@@ -573,9 +574,39 @@ export default function ProfileDisplay() {
                   <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid transparent", borderTopColor: "var(--accent)", borderRightColor: "var(--accent)", animation: "spin 1s linear infinite" }}/>
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30 }}>📄</div>
                 </div>
-                <h3 style={{ fontSize: 19, fontWeight: 800, margin: "0 0 4px", color: "var(--text-1)" }}>Building your PDF...</h3>
-                <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0 }}>Compiling all insights into your report</p>
+                <h3 style={{ fontSize: 19, fontWeight: 800, margin: "0 0 4px", color: "var(--text-1)" }}>Generating your PDF...</h3>
+                <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0 }}>Laying out charts, scores and action plan</p>
               </div>
+
+              {/* PDF-specific progress steps */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
+                {[
+                  { label: "Formatting reputation score & gauge",  done: progress > 20  },
+                  { label: "Rendering sentiment charts",           done: progress > 45  },
+                  { label: "Compiling competitor analysis",        done: progress > 65  },
+                  { label: "Writing 30/60/90-day action plan",     done: progress > 80  },
+                  { label: "Finalising & packaging PDF",           done: progress >= 99 },
+                ].map((s, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10,
+                      background: s.done ? "var(--green-dim)" : "var(--bg-elevated)",
+                      border: `1.5px solid ${s.done ? "var(--green)" : "var(--border)"}`,
+                      transition: "all 0.4s",
+                    }}>
+                      {s.done
+                        ? <span style={{ color: "var(--green)", fontSize: 10 }}>✓</span>
+                        : <span style={{ color: "var(--text-3)", fontSize: 9 }}>{i + 1}</span>
+                      }
+                    </div>
+                    <span style={{ fontSize: 12, color: s.done ? "var(--text-3)" : "var(--text-2)", textDecoration: s.done ? "line-through" : "none", transition: "all 0.4s" }}>
+                      {s.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
               <div style={{ height: 6, background: "var(--bg-elevated)", borderRadius: 999, overflow: "hidden", marginBottom: 8 }}>
                 <div style={{ height: "100%", borderRadius: 999, width: `${progress}%`, background: "var(--accent)", boxShadow: "0 0 10px rgba(37,99,235,0.3)", transition: "width .7s ease-out" }}/>
               </div>
