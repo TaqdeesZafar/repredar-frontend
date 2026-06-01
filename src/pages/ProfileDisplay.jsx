@@ -140,42 +140,44 @@ function SingleProfileHeader({ user }) {
 
   return (
     <div style={{ ...card, overflow:"hidden", padding:0 }}>
-      {/* Cover */}
-      <div style={{ height:100, position:"relative", overflow:"hidden", background:"linear-gradient(135deg, #0C1322, #111827)" }}>
-        {avatar && <img src={avatar} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"blur(16px) brightness(0.3)", transform:"scale(1.1)" }}/>}
-        {/* Grid overlay */}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(37,99,235,0.05) 1px, transparent 1px)", backgroundSize:"20px 20px" }}/>
+      {/* Cover — always dark, text must be hardcoded white */}
+      <div style={{ height:110, position:"relative", overflow:"hidden", background:"linear-gradient(135deg, #0F1F3D 0%, #1a3a6e 100%)" }}>
+        {avatar && <img src={avatar} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"blur(18px) brightness(0.25)", transform:"scale(1.15)" }}/>}
+        {/* Subtle overlay for text legibility */}
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)" }}/>
         {/* Platform watermark */}
-        <div style={{ position:"absolute", top:10, right:16, opacity:0.1, color:"#fff" }}>
-          <PlatformSVG id={cfg.icon} size={48} />
+        <div style={{ position:"absolute", top:10, right:14, opacity:0.12, color:"#fff" }}>
+          <PlatformSVG id={cfg.icon} size={52} />
         </div>
-        <div style={{ position:"absolute", bottom:12, left:90, right:12 }}>
-          <h1 style={{ color:"var(--text-1)", fontWeight:800, fontSize:18, margin:0, lineHeight:1.2 }}>{name}</h1>
-          {handle && <p style={{ color:"var(--text-3)", fontSize:12, margin:"2px 0 0" }}>{handle}</p>}
+        <div style={{ position:"absolute", bottom:14, left:20, right:12 }}>
+          <h1 style={{ color:"#fff", fontWeight:800, fontSize:18, margin:0, lineHeight:1.2, textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>{name}</h1>
+          {handle && <p style={{ color:"rgba(255,255,255,0.65)", fontSize:12, margin:"3px 0 0", fontWeight:500 }}>{handle}</p>}
         </div>
       </div>
       {/* Body */}
-      <div style={{ padding:"0 20px 20px" }}>
-        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginTop:-28, marginBottom:14, position:"relative", zIndex:2 }}>
-          <div style={{ width:56, height:56, borderRadius:"50%", border:"3px solid var(--bg-page)", overflow:"hidden", background:typeof cfg.bg==="string"&&!cfg.bg.includes("gradient")?cfg.bg:"#312e81" }}>
-            {avatar
-              ? <img src={avatar} alt={name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none";}}/>
-              : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <span style={{ color:"#fff", fontWeight:800, fontSize:20 }}>{name[0]?.toUpperCase()}</span>
-                </div>
-            }
+      <div style={{ padding:"14px 20px 18px" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: bio || followers > 0 ? 12 : 0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ width:48, height:48, borderRadius:"50%", border:"2px solid var(--border)", overflow:"hidden", background:typeof cfg.bg==="string"&&!cfg.bg.includes("gradient")?cfg.bg:"#312e81", flexShrink:0 }}>
+              {avatar
+                ? <img src={avatar} alt={name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none";}}/>
+                : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <span style={{ color:"#fff", fontWeight:800, fontSize:18 }}>{name[0]?.toUpperCase()}</span>
+                  </div>
+              }
+            </div>
+            {followers > 0 && (
+              <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"4px 10px", borderRadius:999, background:"var(--accent-dim)", border:"1px solid var(--accent-border)", fontSize:11, color:"var(--accent)", fontWeight:600 }}>
+                <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+                {fmtNum(followers)} followers
+              </div>
+            )}
           </div>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:cfg.textDark?"#fff":"rgba(15,23,42,0.5)", color:cfg.textDark?"#000":"#fff" }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:"var(--bg-elevated)", border:"1px solid var(--border)", color:"var(--text-2)" }}>
             <PlatformSVG id={cfg.icon} size={10} />{cfg.label}
           </div>
         </div>
-        {bio && <p style={{ fontSize:12, color:"var(--text-2)", lineHeight:1.5, margin:"0 0 12px", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>{bio}</p>}
-        {followers > 0 && (
-          <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"5px 10px", borderRadius:999, background:"var(--accent-dim)", border:"1px solid var(--accent-border)", fontSize:11, color:"var(--accent)", fontWeight:600 }}>
-            <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
-            {fmtNum(followers)} followers
-          </div>
-        )}
+        {bio && <p style={{ fontSize:12, color:"var(--text-2)", lineHeight:1.55, margin:0, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>{bio}</p>}
       </div>
     </div>
   );
@@ -186,33 +188,38 @@ function CombinedProfileHeader({ brandName, selectedPlatforms, mode, avatar }) {
   const initial = (brandName || "?")[0].toUpperCase();
   return (
     <div style={{ ...card, overflow:"hidden", padding:0 }}>
-      <div style={{ height:100, position:"relative", overflow:"hidden", background:"linear-gradient(135deg, #0C1322, #111827)" }}>
-        {avatar && <img src={avatar} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"blur(16px) brightness(0.25)", transform:"scale(1.1)" }}/>}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(37,99,235,0.05) 1px, transparent 1px)", backgroundSize:"20px 20px" }}/>
-        <div style={{ position:"absolute", top:10, right:14, display:"flex", gap:8, opacity:0.15 }}>
-          {selectedPlatforms.slice(0,4).map(id => <PlatformSVG key={id} id={id==="x"?"twitter":id} size={18} />)}
+      {/* Cover — always dark, text hardcoded white */}
+      <div style={{ height:110, position:"relative", overflow:"hidden", background:"linear-gradient(135deg, #0F1F3D 0%, #1a3a6e 100%)" }}>
+        {avatar && <img src={avatar} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"blur(18px) brightness(0.22)", transform:"scale(1.15)" }}/>}
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 60%)" }}/>
+        {/* Platform icons watermark */}
+        <div style={{ position:"absolute", top:12, right:14, display:"flex", gap:6, opacity:0.12, color:"#fff" }}>
+          {selectedPlatforms.slice(0,4).map(id => <PlatformSVG key={id} id={id==="x"?"twitter":id} size={20} />)}
         </div>
-        <div style={{ position:"absolute", bottom:12, left:90, right:12 }}>
-          <span style={{ fontSize:10, padding:"2px 8px", borderRadius:999, fontWeight:700, background:"var(--accent-dim)", color:"var(--accent)", border:"1px solid var(--accent-border)" }}>
+        <div style={{ position:"absolute", bottom:14, left:20, right:12 }}>
+          <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:10, padding:"2px 8px", borderRadius:999, fontWeight:700, background:"rgba(37,99,235,0.35)", color:"#93C5FD", border:"1px solid rgba(37,99,235,0.4)", marginBottom:6 }}>
             {mode==="company"?"🏢 Business":"👤 Person"}
           </span>
-          <h1 style={{ color:"var(--text-1)", fontWeight:800, fontSize:18, margin:"4px 0 0", lineHeight:1.2 }}>{brandName}</h1>
-          <p style={{ color:"var(--text-3)", fontSize:11, margin:"2px 0 0" }}>Multi-platform analysis</p>
+          <h1 style={{ color:"#fff", fontWeight:800, fontSize:18, margin:0, lineHeight:1.2, textShadow:"0 1px 4px rgba(0,0,0,0.5)" }}>{brandName}</h1>
+          <p style={{ color:"rgba(255,255,255,0.6)", fontSize:11, margin:"3px 0 0", fontWeight:500 }}>Multi-platform analysis</p>
         </div>
       </div>
-      <div style={{ padding:"0 20px 20px" }}>
-        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginTop:-28, marginBottom:14, position:"relative", zIndex:2 }}>
-          <div style={{ width:56, height:56, borderRadius:"50%", border:"3px solid var(--bg-page)", overflow:"hidden", background:"var(--accent)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            {avatar
-              ? <img src={avatar} alt={brandName} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none";}}/>
-              : <span style={{ color:"#fff", fontWeight:800, fontSize:22 }}>{initial}</span>
-            }
+      {/* Body */}
+      <div style={{ padding:"14px 20px 18px" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ width:44, height:44, borderRadius:"50%", border:"2px solid var(--border)", overflow:"hidden", background:"var(--accent)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              {avatar
+                ? <img src={avatar} alt={brandName} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none";}}/>
+                : <span style={{ color:"#fff", fontWeight:800, fontSize:18 }}>{initial}</span>
+              }
+            </div>
+            <span style={{ fontSize:11, color:"var(--text-3)", background:"var(--bg-elevated)", border:"1px solid var(--border)", padding:"3px 10px", borderRadius:999 }}>
+              {selectedPlatforms.length} platform{selectedPlatforms.length > 1 ? "s" : ""}
+            </span>
           </div>
-          <span style={{ fontSize:11, color:"var(--text-3)", background:"var(--bg-elevated)", border:"1px solid var(--border)", padding:"3px 10px", borderRadius:999 }}>
-            {selectedPlatforms.length} platforms
-          </span>
         </div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
           {selectedPlatforms.map(id => {
             const cfg = getPlatformCfg(id);
             return (
