@@ -247,6 +247,7 @@ export default function ProfileDisplay() {
   const [progress,        setProgress]       = useState(0);
   const [activeStep,      setActiveStep]     = useState(0);
   const [reportData,      setReportData]     = useState(null);
+  const [webData,         setWebData]        = useState(null);
   const [errorMessage,    setErrorMessage]   = useState("");
   const [showEmailModal,  setShowEmailModal] = useState(false);
   const [email,           setEmail]          = useState("");
@@ -272,6 +273,17 @@ export default function ProfileDisplay() {
     if (phase === "analyzing" || phase === "downloading") return;
     if (!analyzeUrl) { setErrorMessage("Missing profile data. Please search again."); return; }
     setPhase("analyzing"); setProgress(0); setActiveStep(0); setErrorMessage(""); startTicker(170000);
+
+    // Fetch web intelligence in parallel — fire-and-forget, never blocks main report
+    const webQuery = encodeURIComponent(
+      isCombined ? (state.brandName || "") : (state.user?.name || state.user?.screen_name || "")
+    );
+    const webUrl = `${import.meta.env.VITE_BACKEND_URL}/web/search?query=${webQuery}`;
+    fetch(webUrl)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setWebData(d); })
+      .catch(() => {}); // silent — web intelligence is additive, not critical
+
     try {
       const res = await fetch(analyzeUrl);
       stopTicker();
@@ -541,6 +553,79 @@ export default function ProfileDisplay() {
                 ))}
               </div>
             </div>
+
+            {/* Web Intelligence preview card */}
+            {webData && webData.totalFound > 0 && (
+              <div style={{ ...card, padding: 0, overflow: "hidden" }}>
+                {/* Header */}
+                <div style={{ padding: "14px 20px 10px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 9, background: "var(--accent-dim)", border: "1px solid var(--accent-border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🔍</div>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 800, margin: 0, color: "var(--text-1)" }}>Web Search Intelligence</p>
+                      <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>{webData.totalFound} results · news, reviews &amp; web</p>
+                    </div>
+                  </div>
+                  {webData.gptAnalysis?.search_presence_score != null && (
+                    <div style={{
+                      padding: "4px 10px", borderRadius: 999, fontSize: 12, fontWeight: 800,
+                      background: webData.gptAnalysis.search_presence_score >= 7 ? "var(--green-dim)" : webData.gptAnalysis.search_presence_score >= 5 ? "var(--amber-dim)" : "var(--red-dim)",
+                      color: webData.gptAnalysis.search_presence_score >= 7 ? "var(--green)" : webData.gptAnalysis.search_presence_score >= 5 ? "var(--amber)" : "var(--red)",
+                      border: `1px solid ${webData.gptAnalysis.search_presence_score >= 7 ? "rgba(5,150,105,0.2)" : webData.gptAnalysis.search_presence_score >= 5 ? "rgba(217,119,6,0.2)" : "rgba(220,38,38,0.2)"}`,
+                    }}>
+                      {webData.gptAnalysis.search_presence_score}/10
+                    </div>
+                  )}
+                </div>
+
+                {/* GPT summary */}
+                {webData.gptAnalysis?.press_summary && (
+                  <div style={{ padding: "10px 20px", borderBottom: "1px solid var(--border)", background: "var(--bg-elevated)" }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 4px" }}>Press Coverage</p>
+                    <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0, lineHeight: 1.5 }}>{webData.gptAnalysis.press_summary}</p>
+                  </div>
+                )}
+
+                {/* Crisis flags */}
+                {webData.gptAnalysis?.crisis_flags?.length > 0 && (
+                  <div style={{ padding: "10px 20px", borderBottom: "1px solid var(--border)", background: "rgba(220,38,38,0.03)" }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: "var(--red)", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 6px" }}>⚠ Risk Flags</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      {webData.gptAnalysis.crisis_flags.slice(0, 2).map((f, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 11, color: "var(--text-2)" }}>
+                          <span style={{ color: "var(--red)", flexShrink: 0 }}>•</span>{f}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Top news results */}
+                {webData.newsResults?.slice(0, 3).map((r, i) => (
+                  <div key={i} style={{ padding: "9px 20px", borderBottom: i < 2 && webData.newsResults.length > 1 ? "1px solid var(--border)" : "none", display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <div style={{ flexShrink: 0, fontSize: 9, fontWeight: 700, color: "var(--text-3)", background: "var(--bg-elevated)", padding: "2px 6px", borderRadius: 4, marginTop: 2, maxWidth: 50, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {(r.domain || "").replace("www.", "").split(".")[0].toUpperCase().slice(0, 8)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-1)", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</p>
+                      <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.snippet}</p>
+                    </div>
+                    <span style={{
+                      flexShrink: 0, fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 6,
+                      background: r.sentiment === "negative" ? "var(--red-dim)" : r.sentiment === "positive" ? "var(--green-dim)" : "var(--bg-elevated)",
+                      color: r.sentiment === "negative" ? "var(--red)" : r.sentiment === "positive" ? "var(--green)" : "var(--text-3)",
+                    }}>
+                      {(r.sentiment || "neutral").toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+
+                <div style={{ padding: "10px 20px", background: "var(--bg-elevated)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>Full web intelligence report included in your PDF</p>
+                </div>
+              </div>
+            )}
 
             {/* Blurred preview */}
             <div style={{ position: "relative", overflow: "hidden", borderRadius: 20, maxHeight: 200 }}>
