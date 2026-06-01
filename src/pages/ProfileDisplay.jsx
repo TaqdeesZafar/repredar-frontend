@@ -786,8 +786,8 @@ export default function ProfileDisplay() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => navigate("/signup", { state: { prefillEmail: capturedEmail } })}
-                    style={{ width: "100%", padding: "12px", borderRadius: 12, fontWeight: 700, fontSize: 13, background: "var(--accent)", color: "#050911", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                  <button onClick={() => window.open("/signup", "_blank", "noopener")}
+                    style={{ width: "100%", padding: "12px", borderRadius: 12, fontWeight: 700, fontSize: 13, background: "var(--accent)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                     Create Free Account →
                   </button>
                 </div>
@@ -816,7 +816,7 @@ export default function ProfileDisplay() {
                   <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 2px", color: "var(--text-1)" }}>Save this report to your account</p>
                   <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>Free · Takes 30 seconds</p>
                 </div>
-                <button onClick={() => navigate("/signup", { state: { prefillEmail: capturedEmail } })}
+                <button onClick={() => window.open("/signup", "_blank", "noopener")}
                   style={{ padding: "9px 16px", borderRadius: 10, fontWeight: 700, fontSize: 12, background: "var(--accent)", color: "#fff", border: "none", cursor: "pointer", flexShrink: 0, fontFamily: "inherit" }}>
                   Sign Up →
                 </button>
