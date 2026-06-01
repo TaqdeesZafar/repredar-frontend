@@ -81,7 +81,7 @@ function HeroSearchForm() {
     e.preventDefault();
     if (!username.trim() || activePlatforms.size === 0) return;
     if (isBlocked(username.trim())) {
-      setBlockedError("This search is not available.");
+      setBlockedError("This query cannot be processed.");
       return;
     }
     setBlockedError("");
