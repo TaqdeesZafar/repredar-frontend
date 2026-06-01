@@ -1,8 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../context/ThemeContext";
-
-// animations and CSS vars come from theme.css (imported in main.jsx)
 
 // ─── Platform definitions ─────────────────────────────────────────────────────
 const PLATFORMS = [
@@ -25,68 +22,22 @@ function PlatformSVG({ id, size = 16 }) {
   return null;
 }
 
-// ─── Radar animation ──────────────────────────────────────────────────────────
-function RadarViz({ size = 260 }) {
-  const dots = [
-    { x: 38, y: 30 }, { x: 62, y: 55 }, { x: 25, y: 65 },
-    { x: 70, y: 25 }, { x: 45, y: 75 }, { x: 80, y: 60 },
-  ];
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%",
-      background: "radial-gradient(circle, var(--radar-sweep-a) 0%, transparent 70%), var(--radar-bg)",
-      border: "1px solid var(--radar-ring)",
-      position: "relative", overflow: "hidden", flexShrink: 0,
-    }}>
-      {/* Rings */}
-      {[0.3,0.55,0.78].map((r,i) => (
-        <div key={i} style={{
-          position:"absolute", borderRadius:"50%",
-          border:"1px solid var(--radar-ring)",
-          width:`${r*100}%`, height:`${r*100}%`,
-          top:"50%", left:"50%", transform:"translate(-50%,-50%)",
-        }}/>
-      ))}
-      {/* Cross */}
-      <div style={{position:"absolute",inset:0,pointerEvents:"none"}}>
-        <div style={{position:"absolute",left:"50%",top:0,bottom:0,width:1,background:"var(--grid-line)",transform:"translateX(-50%)"}}/>
-        <div style={{position:"absolute",top:"50%",left:0,right:0,height:1,background:"var(--grid-line)",transform:"translateY(-50%)"}}/>
-      </div>
-      {/* Sweep */}
-      <div style={{
-        position:"absolute",inset:0,borderRadius:"50%",
-        background:"conic-gradient(from 0deg,transparent 0deg,transparent 280deg,var(--radar-sweep-a) 280deg,var(--radar-sweep-b) 355deg,var(--radar-sweep-c) 360deg)",
-        animation:"radar-sweep 3.5s linear infinite",
-      }}/>
-      {/* Blips */}
-      {dots.map((d,i) => (
-        <div key={i} style={{
-          position:"absolute", left:`${d.x}%`, top:`${d.y}%`,
-          width:5, height:5, borderRadius:"50%",
-          background:"var(--accent)", boxShadow:"0 0 6px var(--accent)",
-          transform:"translate(-50%,-50%)", opacity:0.8,
-        }}/>
-      ))}
-    </div>
-  );
-}
-
 // ─── The hero search form (all original logic preserved) ──────────────────────
 function HeroSearchForm() {
   const navigate = useNavigate();
   const inputRef = useRef(null);
 
-  const [username,      setUsername]     = useState("");
-  const [mode,          setMode]         = useState("company");
-  const [activePlatforms, setActive]     = useState(new Set(PLATFORMS.map(p => p.id)));
-  const [location,      setLocation]     = useState("");
-  const [showAdvanced,  setShowAdv]      = useState(false);
-  const [perPlatform,   setPerPlatform]  = useState({});
-  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [username,        setUsername]      = useState("");
+  const [mode,            setMode]          = useState("company");
+  const [activePlatforms, setActive]        = useState(new Set(PLATFORMS.map(p => p.id)));
+  const [location,        setLocation]      = useState("");
+  const [showAdvanced,    setShowAdv]       = useState(false);
+  const [perPlatform,     setPerPlatform]   = useState({});
+  const [placeholderIdx,  setPlaceholderIdx] = useState(0);
 
   const placeholders = ["Try 'Elon Musk'", "Try 'Nike'", "Try 'your business name'", "Try 'Tesla'"];
   useEffect(() => {
-    const i = setInterval(() => setPlaceholderIdx(p => (p+1) % placeholders.length), 2400);
+    const i = setInterval(() => setPlaceholderIdx(p => (p + 1) % placeholders.length), 2400);
     return () => clearInterval(i);
   }, []);
 
@@ -120,24 +71,23 @@ function HeroSearchForm() {
   };
 
   const pill = (active) => ({
-    display:"inline-flex", alignItems:"center", gap:6, padding:"6px 12px",
-    borderRadius:999, fontSize:12, fontWeight:600, cursor:"pointer", border:"1px solid",
-    transition:"all .2s",
-    background: active ? "var(--chip-accent-bg)" : "var(--bg-elev)",
-    borderColor: active ? "var(--chip-accent-border)" : "var(--border-subtle)",
-    color: active ? "var(--chip-accent-text)" : "var(--text-secondary)",
+    display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px",
+    borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer", border: "1px solid",
+    background: active ? "var(--accent-dim)" : "var(--bg-elevated)",
+    borderColor: active ? "var(--accent-border)" : "var(--border)",
+    color: active ? "var(--accent)" : "var(--text-2)",
+    fontFamily: "inherit",
   });
 
   return (
-    <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:14 }}>
+    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
       {/* Name input */}
-      <div style={{ position:"relative" }}>
-        <div style={{
-          position:"absolute", left:16, top:"50%", transform:"translateY(-50%)",
-          color:"var(--text-muted)", pointerEvents:"none",
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <div style={{ position: "relative" }}>
+        <div style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", pointerEvents: "none" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+          </svg>
         </div>
         <input
           ref={inputRef}
@@ -146,36 +96,37 @@ function HeroSearchForm() {
           onChange={e => setUsername(e.target.value)}
           placeholder={placeholders[placeholderIdx]}
           style={{
-            width:"100%", padding:"14px 44px", borderRadius:14,
-            background:"var(--input-bg)", border:"1px solid var(--border-subtle)",
-            color:"var(--text-primary)", fontSize:15, outline:"none",
-            transition:"all .2s", boxSizing:"border-box",
+            width: "100%", padding: "14px 44px", borderRadius: 14,
+            background: "var(--bg-elevated)", border: "1px solid var(--border)",
+            color: "var(--text-1)", fontSize: 15, outline: "none",
+            boxSizing: "border-box", fontFamily: "inherit",
           }}
-          onFocus={e => { e.target.style.borderColor="var(--accent)"; e.target.style.boxShadow="0 0 0 3px var(--accent-glow)"; }}
-          onBlur={e => { e.target.style.borderColor="var(--border-subtle)"; e.target.style.boxShadow="none"; }}
+          onFocus={e => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px var(--accent-dim)"; }}
+          onBlur={e => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
         />
         {username && (
           <button type="button" onClick={() => setUsername("")}
-            style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", color:"var(--text-muted)", background:"none", border:"none", cursor:"pointer", padding:4 }}>
+            style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", padding: 4 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         )}
       </div>
 
       {/* Account type toggle */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         {[
-          { id:"company", emoji:"🏢", label:"Business / Brand" },
-          { id:"person",  emoji:"👤", label:"Person / Influencer" },
+          { id: "company", emoji: "🏢", label: "Business / Brand" },
+          { id: "person",  emoji: "👤", label: "Person / Influencer" },
         ].map(opt => (
           <button key={opt.id} type="button" onClick={() => handleModeChange(opt.id)}
             style={{
-              padding:"10px 12px", borderRadius:12, fontSize:13, fontWeight:600,
-              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-              cursor:"pointer", transition:"all .2s", border:"1px solid",
-              background: mode===opt.id ? "rgba(0,144,255,0.10)" : "var(--bg-surface)",
-              borderColor: mode===opt.id ? "var(--chip-accent-border)" : "var(--border-subtle)",
-              color: mode===opt.id ? "var(--accent)" : "var(--text-secondary)",
+              padding: "10px 12px", borderRadius: 12, fontSize: 13, fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+              cursor: "pointer", border: "1px solid",
+              background: mode === opt.id ? "var(--accent-dim)" : "var(--bg-elevated)",
+              borderColor: mode === opt.id ? "var(--accent-border)" : "var(--border)",
+              color: mode === opt.id ? "var(--accent)" : "var(--text-2)",
+              fontFamily: "inherit",
             }}>
             <span>{opt.emoji}</span>{opt.label}
           </button>
@@ -184,15 +135,15 @@ function HeroSearchForm() {
 
       {/* Platform chips */}
       <div>
-        <p style={{ fontSize:10, fontWeight:700, color:"var(--text-muted)", letterSpacing:"0.14em", textTransform:"uppercase", marginBottom:8 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8, marginTop: 0 }}>
           Platforms to scan
         </p>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
           {PLATFORMS.map(p => {
             const active = activePlatforms.has(p.id);
             return (
               <button key={p.id} type="button" onClick={() => togglePlatform(p.id)}
-                style={{ ...pill(active), position:"relative" }}>
+                style={{ ...pill(active), position: "relative" }}>
                 <span style={{ color: active && p.id !== "google" ? "var(--accent)" : "inherit" }}>
                   <PlatformSVG id={p.id} size={13} />
                 </span>
@@ -207,55 +158,60 @@ function HeroSearchForm() {
       {/* Google location */}
       {googleActive && (
         <div style={{
-          display:"flex", alignItems:"center", gap:10, padding:"10px 14px", borderRadius:12,
-          background:"rgba(0,200,150,0.06)", border:"1px solid rgba(0,200,150,0.25)",
+          display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12,
+          background: "var(--green-dim)", border: "1px solid rgba(52,211,153,0.25)",
         }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00C896" strokeWidth="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2">
+            <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
           <input
             type="text" value={location} onChange={e => setLocation(e.target.value)}
             placeholder="City or location for Google Business (e.g. New York)"
-            style={{ flex:1, background:"transparent", border:"none", color:"var(--text-secondary)", fontSize:13, outline:"none" }}
+            style={{ flex: 1, background: "transparent", border: "none", color: "var(--text-2)", fontSize: 13, outline: "none", fontFamily: "inherit" }}
           />
         </div>
       )}
 
       {/* Per-platform usernames */}
-      <div style={{ border:"1px solid var(--border-subtle)", borderRadius:12, overflow:"hidden" }}>
+      <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
         <button type="button" onClick={() => setShowAdv(v => !v)}
           style={{
-            width:"100%", display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
-            background:"var(--bg-surface)", cursor:"pointer", border:"none", color:"inherit", textAlign:"left",
+            width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 14px",
+            background: "var(--bg-elevated)", cursor: "pointer", border: "none", color: "inherit", textAlign: "left", fontFamily: "inherit",
           }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-          <div style={{ flex:1 }}>
-            <p style={{ fontSize:12, fontWeight:600, color:"var(--text-secondary)", margin:0 }}>Different username on some platforms?</p>
-            <p style={{ fontSize:11, color:"var(--text-muted)", margin:0 }}>e.g. @nike on Instagram but Nike Inc on LinkedIn</p>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
+            <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", margin: 0 }}>Different username on some platforms?</p>
+            <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>e.g. @nike on Instagram but Nike Inc on LinkedIn</p>
           </div>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2"
-            style={{ transform: showAdvanced ? "rotate(180deg)" : "none", transition:"transform .2s" }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2"
+            style={{ transform: showAdvanced ? "rotate(180deg)" : "none" }}>
             <path d="M19 9l-7 7-7-7"/>
           </svg>
         </button>
         {showAdvanced && (
-          <div style={{ padding:"12px 14px", background:"var(--bg-darker)", borderTop:"1px solid var(--border-subtle)", display:"flex", flexDirection:"column", gap:8 }}>
-            <p style={{ fontSize:11, color:"var(--text-muted)", margin:0 }}>Leave blank to use the name above.</p>
+          <div style={{ padding: "12px 14px", background: "var(--bg-surface)", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 8 }}>
+            <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>Leave blank to use the name above.</p>
             {[...activePlatforms].filter(id => id !== "google").map(id => {
               const pl = PLATFORMS.find(p => p.id === id);
               return (
-                <div key={id} style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <div style={{ width:26, height:26, borderRadius:8, background:pl?.bg||"#000", display:"flex", alignItems:"center", justifyContent:"center", color:pl?.textDark?"#000":"#fff", flexShrink:0 }}>
+                <div key={id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, background: pl?.bg || "#000", display: "flex", alignItems: "center", justifyContent: "center", color: pl?.textDark ? "#000" : "#fff", flexShrink: 0 }}>
                     <PlatformSVG id={id} size={12} />
                   </div>
-                  <span style={{ fontSize:11, fontWeight:600, color:"var(--text-muted)", width:72, flexShrink:0 }}>{pl?.label}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-3)", width: 72, flexShrink: 0 }}>{pl?.label}</span>
                   <input
                     type="text"
                     value={perPlatform[id] || ""}
                     onChange={e => setPerPlatform(prev => ({ ...prev, [id]: e.target.value }))}
                     placeholder={username || "username or @handle"}
                     style={{
-                      flex:1, padding:"7px 10px", borderRadius:9, fontSize:12,
-                      background:"var(--input-bg)", border:"1px solid var(--border-subtle)",
-                      color:"var(--text-primary)", outline:"none",
+                      flex: 1, padding: "7px 10px", borderRadius: 9, fontSize: 12,
+                      background: "var(--bg-elevated)", border: "1px solid var(--border)",
+                      color: "var(--text-1)", outline: "none", fontFamily: "inherit",
                     }}
                   />
                 </div>
@@ -270,13 +226,14 @@ function HeroSearchForm() {
         type="submit"
         disabled={!username.trim() || activePlatforms.size === 0}
         style={{
-          width:"100%", padding:"15px 22px", borderRadius:14, fontSize:15, fontWeight:700,
-          background:"linear-gradient(135deg,#00D4FF 0%,#0090FF 100%)",
-          color:"#051120", border:"none", cursor: (!username.trim() || activePlatforms.size===0) ? "not-allowed" : "pointer",
-          opacity: (!username.trim() || activePlatforms.size===0) ? 0.4 : 1,
-          display:"flex", alignItems:"center", justifyContent:"center", gap:9,
-          boxShadow:"var(--shadow-btn)",
-          transition:"all .2s",
+          width: "100%", padding: "15px 22px", borderRadius: 14, fontSize: 15, fontWeight: 700,
+          background: "linear-gradient(135deg, #38BDF8 0%, #818CF8 100%)",
+          color: "#050911", border: "none",
+          cursor: (!username.trim() || activePlatforms.size === 0) ? "not-allowed" : "pointer",
+          opacity: (!username.trim() || activePlatforms.size === 0) ? 0.4 : 1,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
+          boxShadow: "var(--shadow-btn)",
+          fontFamily: "inherit",
         }}>
         Find Accounts & Check Reputation
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
@@ -285,37 +242,104 @@ function HeroSearchForm() {
   );
 }
 
-// ─── How it works ─────────────────────────────────────────────────────────────
+// ─── Section 2: Social proof strip ───────────────────────────────────────────
+function StatsStrip() {
+  return (
+    <section style={{
+      background: "var(--bg-surface)",
+      borderTop: "1px solid var(--border)",
+      borderBottom: "1px solid var(--border)",
+      padding: "28px 24px",
+    }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .stats-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+      `}</style>
+      <div
+        className="stats-grid"
+        style={{
+          maxWidth: 900,
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 24,
+          textAlign: "center",
+        }}
+      >
+        {[
+          { v: "50K+",  l: "Reports Generated" },
+          { v: "6",     l: "Platforms" },
+          { v: "< 60s", l: "Generation Time" },
+          { v: "100%",  l: "Free" },
+        ].map(s => (
+          <div key={s.l}>
+            <p style={{ fontSize: 28, fontWeight: 800, color: "var(--accent)", margin: 0, fontFamily: "monospace" }}>{s.v}</p>
+            <p style={{ fontSize: 12, color: "var(--text-3)", margin: "4px 0 0", fontWeight: 500 }}>{s.l}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ─── Section 3: How it works ─────────────────────────────────────────────────
 function HowItWorks() {
   const steps = [
-    { n:"01", title:"Enter a name", body:"Type any business, brand, influencer, or public figure. Select the platforms you want scanned." },
-    { n:"02", title:"Confirm accounts", body:"We find exact profiles across every platform. Confirm or swap any wrong result in one click." },
-    { n:"03", title:"Get your report", body:"AI analyses posts, sentiment & engagement. Download a full PDF reputation report instantly." },
+    { n: "01", title: "Enter a name", body: "Type any business, brand, or person. Select the platforms you want scanned." },
+    { n: "02", title: "Confirm profiles", body: "AI picks the best match on each platform — swap if wrong." },
+    { n: "03", title: "Get your report", body: "AI analyses sentiment, scores competitors, builds a full PDF." },
   ];
   return (
-    <section style={{ padding:"80px 24px", background:"var(--bg-darker)" }}>
-      <div style={{ maxWidth:900, margin:"0 auto" }}>
-        <div style={{ textAlign:"center", marginBottom:52 }}>
-          <span style={{
-            display:"inline-flex", alignItems:"center", gap:6, padding:"5px 12px", borderRadius:999,
-            fontSize:11, fontWeight:600, background:"var(--chip-accent-bg)", border:"1px solid var(--chip-accent-border)", color:"var(--chip-accent-text)", marginBottom:14,
-          }}>How it works</span>
-          <h2 style={{ fontSize:36, fontWeight:700, color:"var(--text-primary)", letterSpacing:"-0.02em", margin:0 }}>
-            From a name to a full report in 30 seconds.
+    <section style={{ background: "var(--bg-page)", padding: "100px 24px" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .how-grid { grid-template-columns: 1fr !important; }
+          .how-card-mid { transform: none !important; }
+        }
+      `}</style>
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 52 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 12px" }}>
+            HOW IT WORKS
+          </p>
+          <h2 style={{ fontSize: 36, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.02em", margin: 0 }}>
+            From name to report in 60 seconds
           </h2>
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20 }}>
+        <div
+          className="how-grid"
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}
+        >
           {steps.map((s, i) => (
-            <div key={s.n} style={{
-              padding:28, borderRadius:20,
-              background:"var(--card-bg)", border:"1px solid var(--card-border)",
-              backdropFilter:"blur(18px)",
-              boxShadow:"var(--shadow-card)",
-              transform: i === 1 ? "translateY(20px)" : "none",
-            }}>
-              <div style={{ fontSize:48, fontWeight:300, color:"transparent", WebkitTextStroke:"1px var(--accent)", lineHeight:1, marginBottom:20, fontFamily:"monospace" }}>{s.n}</div>
-              <h3 style={{ fontSize:17, fontWeight:700, color:"var(--text-primary)", marginBottom:8 }}>{s.title}</h3>
-              <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.6, margin:0 }}>{s.body}</p>
+            <div
+              key={s.n}
+              className={i === 1 ? "how-card-mid" : ""}
+              style={{
+                padding: 28, borderRadius: 16,
+                background: "var(--bg-surface)", border: "1px solid var(--border)",
+                position: "relative", overflow: "hidden",
+                transform: i === 1 ? "translateY(24px)" : "none",
+              }}
+            >
+              <div style={{
+                position: "absolute", top: 12, right: 16,
+                fontSize: 56, fontWeight: 800, color: "var(--accent)",
+                fontFamily: "monospace", opacity: 0.10, lineHeight: 1,
+                userSelect: "none", pointerEvents: "none",
+              }}>
+                {s.n}
+              </div>
+              <div style={{ marginBottom: 16, position: "relative" }}>
+                <span style={{
+                  fontSize: 56, fontWeight: 800, fontFamily: "monospace",
+                  color: "var(--accent)", opacity: 0.15, lineHeight: 1, display: "block",
+                }}>
+                  {s.n}
+                </span>
+              </div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: "var(--text-1)", marginBottom: 8, marginTop: 0 }}>{s.title}</h3>
+              <p style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.65, margin: 0 }}>{s.body}</p>
             </div>
           ))}
         </div>
@@ -324,22 +348,106 @@ function HowItWorks() {
   );
 }
 
-// ─── Stats strip ──────────────────────────────────────────────────────────────
-function StatsStrip() {
+// ─── Section 4: What's in the report ─────────────────────────────────────────
+function ReportFeatures() {
+  const features = [
+    { icon: "📊", title: "Reputation Score", body: "AI score 1-10 based on real social signals across every platform." },
+    { icon: "🧠", title: "Sentiment Analysis", body: "Positive/neutral/negative breakdown of how people talk about you." },
+    { icon: "📈", title: "12-Month Trends", body: "How your reputation moved over the past year — with charts." },
+    { icon: "🏆", title: "Competitor Benchmarking", body: "How you compare to top competitors in your space." },
+    { icon: "🗺️", title: "30/60/90-Day Action Plan", body: "Concrete steps to protect and grow your reputation." },
+    { icon: "📄", title: "Full PDF Report", body: "Instant download, shareable, yours to keep. No account needed." },
+  ];
+
   return (
-    <section style={{ padding:"48px 24px", borderTop:"1px solid var(--border-soft)" }}>
-      <div style={{ maxWidth:900, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:20, textAlign:"center" }}>
-        {[
-          { v:"50K+",  l:"Reports generated" },
-          { v:"6",     l:"Platforms covered" },
-          { v:"< 60s", l:"Report generation" },
-          { v:"100%",  l:"Free forever" },
-        ].map(s => (
-          <div key={s.l}>
-            <p style={{ fontSize:28, fontWeight:800, color:"var(--accent)", margin:0, fontFamily:"monospace" }}>{s.v}</p>
-            <p style={{ fontSize:12, color:"var(--text-muted)", margin:"4px 0 0", fontWeight:500 }}>{s.l}</p>
-          </div>
-        ))}
+    <section style={{
+      background: "var(--bg-surface)",
+      borderTop: "1px solid var(--border)",
+      padding: "80px 24px",
+    }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .features-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <h2 style={{ fontSize: 32, fontWeight: 800, color: "var(--text-1)", marginBottom: 12, marginTop: 0 }}>
+            Everything in your free report
+          </h2>
+          <p style={{ fontSize: 15, color: "var(--text-2)", margin: 0 }}>
+            No upsells. No paywalls. The full analysis, free.
+          </p>
+        </div>
+        <div
+          className="features-grid"
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}
+        >
+          {features.map((f) => (
+            <div
+              key={f.title}
+              style={{
+                display: "flex",
+                gap: 16,
+                padding: "20px 22px",
+                borderRadius: 16,
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <div style={{
+                width: 44, height: 44, borderRadius: "50%",
+                background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 20, flexShrink: 0,
+              }}>
+                {f.icon}
+              </div>
+              <div>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-1)", margin: "0 0 4px" }}>{f.title}</h3>
+                <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0, lineHeight: 1.55 }}>{f.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Section 5: Final CTA ─────────────────────────────────────────────────────
+function FinalCTA() {
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  return (
+    <section style={{ background: "var(--bg-page)", padding: "100px 24px", textAlign: "center" }}>
+      <div style={{ maxWidth: 600, margin: "0 auto" }}>
+        <h2 style={{ fontSize: 40, fontWeight: 800, color: "var(--text-1)", marginBottom: 12, marginTop: 0, letterSpacing: "-0.03em" }}>
+          Ready to see your reputation?
+        </h2>
+        <p style={{ fontSize: 16, color: "var(--text-2)", marginBottom: 36 }}>
+          It takes 30 seconds. No account needed.
+        </p>
+        <button
+          onClick={handleScrollToTop}
+          style={{
+            background: "var(--accent)",
+            color: "#050911",
+            padding: "18px 48px",
+            borderRadius: 14,
+            fontSize: 16,
+            fontWeight: 700,
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "var(--shadow-btn)",
+            fontFamily: "inherit",
+          }}
+          onMouseOver={e => e.currentTarget.style.opacity = "0.9"}
+          onMouseOut={e => e.currentTarget.style.opacity = "1"}
+        >
+          Check Your Reputation — Free →
+        </button>
       </div>
     </section>
   );
@@ -347,141 +455,240 @@ function StatsStrip() {
 
 // ─── Main Hero export ─────────────────────────────────────────────────────────
 const Hero = () => {
-  const { isDark } = useTheme();
-  const headlineGradient = isDark
-    ? "linear-gradient(135deg,#00D4FF 0%,#7CE3FF 50%,#F5A623 120%)"
-    : "linear-gradient(135deg,#1B6EF3 0%,#0050D8 50%,#7C3AED 100%)";
-  // backgroundImage (not background shorthand) so CSS transition never touches it — prevents solid-box artifact
-  const topGlow = isDark
-    ? "radial-gradient(circle,rgba(0,212,255,0.15),transparent 60%)"
-    : "radial-gradient(circle,rgba(27,110,243,0.12),transparent 60%)";
-
   return (
     <>
-      {/* ── Hero section ── */}
-      <section style={{
-        minHeight:"100vh", background:"var(--bg-dark)", display:"flex", flexDirection:"column",
-        alignItems:"center", justifyContent:"center", padding:"72px 24px 60px", position:"relative", overflow:"hidden",
-      }}>
-        {/* Background mesh */}
-        <div style={{
-          position:"absolute", inset:0, pointerEvents:"none",
-          background:"radial-gradient(ellipse 80% 50% at 50% -10%,var(--hero-mesh-a),transparent 70%), radial-gradient(ellipse 60% 50% at 100% 50%,var(--hero-mesh-b),transparent 70%)",
-        }}/>
-        {/* Grid */}
-        <div style={{
-          position:"absolute", inset:0, pointerEvents:"none", opacity:0.5,
-          backgroundImage:"linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px)",
-          backgroundSize:"60px 60px",
-        }}/>
-        {/* Top glow */}
-        <div style={{ position:"absolute", top:-100, left:"50%", transform:"translateX(-50%)", width:600, height:600, background:topGlow, pointerEvents:"none" }}/>
+      <style>{`
+        @media (max-width: 640px) {
+          .hero-grid { grid-template-columns: 1fr !important; }
+          .hero-right { display: none !important; }
+          .hero-section { padding: 60px 20px 48px !important; min-height: auto !important; }
+          .hero-headline { font-size: clamp(36px, 10vw, 52px) !important; }
+        }
+      `}</style>
 
-        <div style={{ position:"relative", zIndex:2, width:"100%", maxWidth:1100, display:"grid", gridTemplateColumns:"1.1fr 0.9fr", gap:60, alignItems:"center" }}>
+      {/* ── Section 1: Hero ── */}
+      <section
+        className="hero-section"
+        style={{
+          minHeight: "100vh",
+          background: "var(--bg-page)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "72px 24px 60px",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Radial glow */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(56,189,248,0.08), transparent 70%)",
+        }}/>
+        {/* Fine grid */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          backgroundImage: "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+          opacity: 0.6,
+        }}/>
 
-          {/* LEFT — form */}
+        <div
+          className="hero-grid"
+          style={{
+            position: "relative", zIndex: 2, width: "100%", maxWidth: 1100,
+            display: "grid", gridTemplateColumns: "1.15fr 0.85fr",
+            gap: 60, alignItems: "center",
+          }}
+        >
+          {/* LEFT */}
           <div>
-            {/* Badge */}
-            <div style={{ marginBottom:20 }}>
+            {/* Top badge */}
+            <div style={{ marginBottom: 24 }}>
               <span style={{
-                display:"inline-flex", alignItems:"center", gap:8, padding:"6px 14px", borderRadius:999,
-                fontSize:11, fontWeight:700, background:"var(--chip-accent-bg)", border:"1px solid var(--chip-accent-border)", color:"var(--chip-accent-text)",
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "6px 14px", borderRadius: 999,
+                fontSize: 10, fontWeight: 700,
+                background: "var(--accent-dim)", border: "1px solid var(--accent-border)", color: "var(--accent)",
+                letterSpacing: "0.12em",
               }}>
-                <span style={{ width:6, height:6, borderRadius:"50%", background:"var(--accent)", boxShadow:"0 0 8px var(--accent)", display:"inline-block" }}/>
-                Free AI Reputation Report · No signup required
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", boxShadow: "0 0 8px var(--accent)", display: "inline-block" }}/>
+                AI-POWERED · REPUTATION INTELLIGENCE
               </span>
             </div>
 
             {/* Headline */}
-            <h1 style={{ fontSize:"clamp(36px,4.5vw,60px)", fontWeight:900, lineHeight:0.98, letterSpacing:"-0.035em", marginBottom:16, color:"var(--text-primary)" }}>
-              What is the internet
-              <br/>
-              <span className="gradient-text" style={{ backgroundImage:headlineGradient, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text", color:"transparent", display:"inline-block" }}>
-                saying about you?
+            <h1
+              className="hero-headline"
+              style={{
+                fontSize: "clamp(44px, 5.5vw, 72px)",
+                fontWeight: 800,
+                lineHeight: 1.05,
+                letterSpacing: "-0.04em",
+                marginBottom: 20,
+                marginTop: 0,
+              }}
+            >
+              <span style={{ color: "var(--text-1)", display: "block" }}>See what the internet</span>
+              <span
+                style={{
+                  backgroundImage: "linear-gradient(135deg, #38BDF8, #818CF8)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  display: "inline-block",
+                  transition: "none",
+                }}
+              >
+                says about anyone.
               </span>
             </h1>
-            <p style={{ fontSize:16, color:"var(--text-secondary)", lineHeight:1.6, marginBottom:28, maxWidth:480 }}>
-              Scan 6+ platforms in seconds. Get an AI-powered reputation report with sentiment, competitor analysis, and a full PDF — completely free.
+
+            {/* Subheadline */}
+            <p style={{ fontSize: 17, color: "var(--text-2)", lineHeight: 1.6, marginBottom: 32, maxWidth: 480, marginTop: 0 }}>
+              Scan X, Instagram, TikTok, Facebook, LinkedIn & Google in seconds. Get an AI reputation score, competitor analysis, and a full PDF report — free.
             </p>
 
-            {/* Form card */}
+            {/* Search card */}
             <div style={{
-              background:"var(--card-bg)",
-              border:"1px solid var(--card-border)", borderRadius:22, padding:24,
-              backdropFilter:"blur(22px)", boxShadow:"var(--shadow-card)",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border)",
+              borderRadius: 20,
+              padding: 28,
+              boxShadow: "var(--shadow-glow)",
             }}>
               <HeroSearchForm />
             </div>
 
-            {/* Trust row */}
-            <div style={{ marginTop:20, display:"flex", alignItems:"center", gap:20, flexWrap:"wrap" }}>
-              <span style={{ fontSize:12, color:"var(--text-muted)", display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ color:"var(--positive)", fontSize:14 }}>●</span> Free · No credit card · 30-second results
-              </span>
-              <span style={{ fontSize:12, color:"var(--text-muted)" }}>
-                <span style={{ color:"var(--accent)", fontWeight:700 }}>50K+</span> reports generated
-              </span>
+            {/* Trust signals */}
+            <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+              {[
+                "No signup required",
+                "6 platforms",
+                "Results in 60s",
+              ].map(t => (
+                <span key={t} style={{ fontSize: 12, color: "var(--text-3)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--green)", display: "inline-block", flexShrink: 0 }}/>
+                  {t}
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* RIGHT — radar */}
-          <div style={{ display:"flex", justifyContent:"center", alignItems:"center", position:"relative" }}>
-            <div style={{ position:"absolute", inset:-40, background:topGlow, pointerEvents:"none" }}/>
-            <div style={{ position:"relative" }}>
-              <RadarViz size={340} />
-              {/* Live scan chip */}
-              <div style={{
-                position:"absolute", top:-10, left:"50%", transform:"translateX(-50%)",
-                padding:"5px 12px", borderRadius:999, fontSize:10, fontWeight:700,
-                background:"var(--card-bg)", border:"1px solid rgba(0,144,255,0.3)",
-                color:"var(--accent)", display:"flex", alignItems:"center", gap:7, whiteSpace:"nowrap",
-                backdropFilter:"blur(12px)",
-              }}>
-                <span style={{ width:6, height:6, borderRadius:"50%", background:"var(--accent)", animation:"pulse-glow 1.2s ease-in-out infinite" }}/>
-                LIVE · SCANNING
+          {/* RIGHT — decorative visual */}
+          <div
+            className="hero-right"
+            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
+          >
+            {/* Outer glow */}
+            <div style={{
+              position: "absolute", inset: -60,
+              background: "radial-gradient(circle, rgba(56,189,248,0.08), transparent 70%)",
+              pointerEvents: "none",
+            }}/>
+
+            {/* Radar circle */}
+            <div style={{
+              width: 320, height: 320, borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(56,189,248,0.04) 0%, transparent 70%), var(--bg-surface)",
+              border: "1px solid var(--accent-border)",
+              position: "relative", overflow: "hidden", flexShrink: 0,
+            }}>
+              {/* Rings */}
+              {[0.3, 0.55, 0.78].map((r, i) => (
+                <div key={i} style={{
+                  position: "absolute", borderRadius: "50%",
+                  border: "1px solid var(--accent-border)",
+                  width: `${r * 100}%`, height: `${r * 100}%`,
+                  top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+                  opacity: 0.5,
+                }}/>
+              ))}
+              {/* Cross */}
+              <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 1, background: "var(--border)", transform: "translateX(-50%)" }}/>
+                <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 1, background: "var(--border)", transform: "translateY(-50%)" }}/>
               </div>
-              {/* Signal card */}
+              {/* Sweep */}
               <div style={{
-                position:"absolute", bottom:-36, right:-36,
-                padding:14, borderRadius:14, minWidth:180,
-                background:"var(--card-bg)", border:"1px solid var(--card-border)",
-                backdropFilter:"blur(18px)", animation:"float 3s ease-in-out infinite",
-                boxShadow:"var(--shadow-card)",
-              }}>
-                <div style={{ fontSize:9, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:5 }}>Live signal</div>
-                <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
-                  <span style={{ fontSize:22, fontWeight:700, color:"var(--text-primary)", fontFamily:"monospace" }}>+128</span>
-                  <span style={{ fontSize:11, color:"var(--positive)" }}>↑ 24% sentiment</span>
-                </div>
-                <div style={{ marginTop:8, display:"flex", gap:3 }}>
-                  {[3,6,4,8,5,9,7,11,9,12].map((h,i) => (
-                    <div key={i} style={{ width:5, height:h*2, background:"var(--accent)", opacity:0.3+i*0.06, borderRadius:2 }}/>
-                  ))}
-                </div>
+                position: "absolute", inset: 0, borderRadius: "50%",
+                background: "conic-gradient(from 0deg, transparent 0deg, transparent 280deg, rgba(56,189,248,0) 280deg, rgba(56,189,248,0.45) 355deg, rgba(56,189,248,0.9) 360deg)",
+                animation: "radar-sweep 3.5s linear infinite",
+              }}/>
+              {/* Blips */}
+              {[
+                { x: 38, y: 30 }, { x: 62, y: 55 }, { x: 25, y: 65 },
+                { x: 70, y: 25 }, { x: 45, y: 75 }, { x: 80, y: 60 },
+              ].map((d, i) => (
+                <div key={i} style={{
+                  position: "absolute", left: `${d.x}%`, top: `${d.y}%`,
+                  width: 5, height: 5, borderRadius: "50%",
+                  background: "var(--accent)", boxShadow: "0 0 8px var(--accent)",
+                  transform: "translate(-50%,-50%)", opacity: 0.85,
+                }}/>
+              ))}
+            </div>
+
+            {/* Live scan chip */}
+            <div style={{
+              position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
+              padding: "5px 12px", borderRadius: 999, fontSize: 10, fontWeight: 700,
+              background: "var(--bg-elevated)", border: "1px solid var(--accent-border)",
+              color: "var(--accent)", display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap",
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", animation: "pulse-dot 1.2s ease-in-out infinite" }}/>
+              LIVE · SCANNING
+            </div>
+
+            {/* Floating stat card */}
+            <div style={{
+              position: "absolute", bottom: -24, right: -24,
+              padding: 14, borderRadius: 14, minWidth: 180,
+              background: "var(--bg-surface)", border: "1px solid var(--border)",
+              animation: "float 3s ease-in-out infinite",
+              boxShadow: "var(--shadow-md)",
+            }}>
+              <div style={{ fontSize: 9, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 }}>Live signal</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-1)", fontFamily: "monospace" }}>+128</span>
+                <span style={{ fontSize: 11, color: "var(--green)" }}>↑ 24% sentiment</span>
               </div>
-              {/* Platform icons */}
-              <div style={{
-                position:"absolute", top:16, left:-46, padding:12, borderRadius:12,
-                background:"var(--card-bg)", border:"1px solid var(--card-border)",
-                backdropFilter:"blur(18px)", display:"flex", flexDirection:"column", gap:6,
-                boxShadow:"var(--shadow-card)",
-              }}>
-                {PLATFORMS.slice(0,3).map(p => (
-                  <div key={p.id} style={{ width:22, height:22, borderRadius:6, background:p.bg, display:"flex", alignItems:"center", justifyContent:"center", color:p.textDark?"#000":"#fff" }}>
-                    <PlatformSVG id={p.id} size={11} />
-                  </div>
+              <div style={{ marginTop: 8, display: "flex", gap: 3 }}>
+                {[3, 6, 4, 8, 5, 9, 7, 11, 9, 12].map((h, i) => (
+                  <div key={i} style={{ width: 5, height: h * 2, background: "var(--accent)", opacity: 0.3 + i * 0.06, borderRadius: 2 }}/>
                 ))}
               </div>
+            </div>
+
+            {/* Platform icons card */}
+            <div style={{
+              position: "absolute", top: 16, left: -40, padding: 12, borderRadius: 12,
+              background: "var(--bg-surface)", border: "1px solid var(--border)",
+              display: "flex", flexDirection: "column", gap: 6,
+              boxShadow: "var(--shadow-md)",
+            }}>
+              {PLATFORMS.slice(0, 3).map(p => (
+                <div key={p.id} style={{ width: 22, height: 22, borderRadius: 6, background: p.bg, display: "flex", alignItems: "center", justifyContent: "center", color: p.textDark ? "#000" : "#fff" }}>
+                  <PlatformSVG id={p.id} size={11} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── How it works ── */}
+      {/* ── Section 2: Social proof ── */}
+      <StatsStrip />
+
+      {/* ── Section 3: How it works ── */}
       <HowItWorks />
 
-      {/* ── Stats ── */}
-      <StatsStrip />
+      {/* ── Section 4: What's in the report ── */}
+      <ReportFeatures />
+
+      {/* ── Section 5: Final CTA ── */}
+      <FinalCTA />
     </>
   );
 };

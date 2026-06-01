@@ -5,24 +5,30 @@ import twitterVerifiedBadge from "../assets/Twitter_Verified_Badge.svg.png";
 
 // CSS vars and animations come from theme.css (imported in main.jsx)
 const GLOBAL_CSS = `
-  .sr-card-hover:hover { border-color:rgba(0,144,255,0.35) !important; background:rgba(0,144,255,0.04) !important; }
-  .sr-btn-ghost:hover { border-color:var(--accent) !important; color:var(--accent) !important; }
-  .sr-alt-row:hover { background:rgba(0,144,255,0.06) !important; }
-  .sr-retry-row:hover { background:rgba(0,144,255,0.04) !important; }
-  .sr-footer-btn:hover { color:var(--accent) !important; background:rgba(0,144,255,0.06) !important; }
-  .sr-scroll::-webkit-scrollbar { width:4px; }
-  .sr-scroll::-webkit-scrollbar-track { background:transparent; }
-  .sr-scroll::-webkit-scrollbar-thumb { background:rgba(139,160,200,0.15); border-radius:2px; }
+  .sr-card-hover:hover {
+    border-color: var(--accent-border) !important;
+    background: rgba(56,189,248,0.04) !important;
+  }
+  .sr-btn-ghost:hover {
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+  }
+  .sr-alt-row:hover { background: rgba(56,189,248,0.06) !important; }
+  .sr-retry-row:hover { background: rgba(56,189,248,0.04) !important; }
+  .sr-footer-btn:hover { color: var(--accent) !important; background: rgba(56,189,248,0.06) !important; }
+  .sr-scroll::-webkit-scrollbar { width: 4px; }
+  .sr-scroll::-webkit-scrollbar-track { background: transparent; }
+  .sr-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 `;
 
 // ─── Platform config ──────────────────────────────────────────────────────────
 const ALL_PLATFORMS = [
-  { id: "twitter",   label: "X / Twitter",    bg: "#000",                                 tc: "#fff" },
+  { id: "twitter",   label: "X / Twitter",    bg: "#000",                                         tc: "#fff" },
   { id: "instagram", label: "Instagram",       bg: "linear-gradient(135deg,#833AB4,#C13584,#F56040)", tc: "#fff" },
-  { id: "tiktok",    label: "TikTok",          bg: "#000",                                 tc: "#fff" },
-  { id: "facebook",  label: "Facebook",        bg: "#1877F2",                              tc: "#fff" },
-  { id: "linkedin",  label: "LinkedIn",        bg: "#0A66C2",                              tc: "#fff" },
-  { id: "google",    label: "Google Business", bg: "#fff",                                 tc: "#444" },
+  { id: "tiktok",    label: "TikTok",          bg: "#000",                                         tc: "#fff" },
+  { id: "facebook",  label: "Facebook",        bg: "#1877F2",                                      tc: "#fff" },
+  { id: "linkedin",  label: "LinkedIn",        bg: "#0A66C2",                                      tc: "#fff" },
+  { id: "google",    label: "Google Business", bg: "#fff",                                         tc: "#444" },
 ];
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -72,10 +78,10 @@ function Avatar({ src, name, size = 46 }) {
     <div style={{ width: size, height: size, position: "relative", flexShrink: 0 }}>
       <div style={{
         width: size, height: size, borderRadius: "50%",
-        background: "linear-gradient(135deg,#00D4FF,#0090FF)",
+        background: "linear-gradient(135deg, #38BDF8, #818CF8)",
         display: "flex", alignItems: "center", justifyContent: "center",
         position: "absolute", inset: 0,
-        fontWeight: 700, color: "#051120", fontSize: size * 0.3,
+        fontWeight: 700, color: "#050911", fontSize: size * 0.3,
         userSelect: "none",
       }}>{initials}</div>
       {src && !failed && (
@@ -101,13 +107,13 @@ function StarRating({ rating }) {
     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
       <div style={{ display: "flex" }}>
         {[1,2,3,4,5].map(i => (
-          <svg key={i} style={{ width: 12, height: 12, color: i <= full ? "#F5A623" : i === full+1 && half ? "#F5C842" : "rgba(139,160,200,0.2)" }}
+          <svg key={i} style={{ width: 12, height: 12, color: i <= full ? "var(--amber)" : i === full+1 && half ? "var(--amber)" : "rgba(255,255,255,0.1)" }}
             fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
         ))}
       </div>
-      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--gold)" }}>{rating.toFixed(1)}</span>
+      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--amber)" }}>{rating.toFixed(1)}</span>
     </div>
   );
 }
@@ -193,15 +199,12 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
 
   const card = {
     background: selected
-      ? "linear-gradient(180deg,rgba(0,144,255,0.06),rgba(0,144,255,0.02))"
-      : "var(--card-bg)",
-    border: selected ? "1px solid var(--chip-accent-border)" : "1px solid var(--card-border)",
+      ? "rgba(56,189,248,0.06)"
+      : "var(--bg-surface)",
+    border: selected ? "1px solid var(--accent-border)" : "1px solid var(--border)",
     borderRadius: 16,
-    backdropFilter: "blur(18px)",
-    boxShadow: selected ? "var(--shadow-card)" : "var(--shadow-card)",
     position: "relative",
     cursor: canSelect && !editing && !retrying ? "pointer" : "default",
-    transition: "all 0.2s",
     overflow: "hidden",
   };
 
@@ -220,7 +223,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "var(--shadow-btn)", zIndex: 10,
         }}>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#051120" strokeWidth="3.5">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#050911" strokeWidth="3.5">
             <path d="M5 12l5 5L20 7"/>
           </svg>
         </div>
@@ -235,18 +238,18 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
         }}>
           <PlatformIcon id={platformId} size={12} />
         </div>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)" }}>{label}</span>
         <div style={{ marginLeft: "auto" }}>
           {isLoading && (
-            <div style={{ width: 16, height: 16, border: "2px solid var(--chip-accent-bg)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            <div style={{ width: 16, height: 16, border: "2px solid var(--accent-dim)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
           )}
           {isFound && (
-            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--found-text)", background: "var(--found-bg)", border: "1px solid var(--found-border)", padding: "2px 8px", borderRadius: 999, fontFamily: "monospace" }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--green)", background: "var(--green-dim)", border: "1px solid rgba(52,211,153,0.3)", padding: "2px 8px", borderRadius: 999, fontFamily: "monospace" }}>
               FOUND
             </span>
           )}
           {isNotFound && (
-            <span style={{ fontSize: 10, color: "var(--text-muted)", background: "rgba(139,160,200,0.06)", border: "1px solid var(--border-soft)", padding: "2px 8px", borderRadius: 999, fontFamily: "monospace" }}>
+            <span style={{ fontSize: 10, color: "var(--text-3)", background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", padding: "2px 8px", borderRadius: 999, fontFamily: "monospace" }}>
               NOT FOUND
             </span>
           )}
@@ -256,10 +259,10 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
       {/* Skeleton */}
       {isLoading && (
         <div style={{ padding: "4px 16px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "linear-gradient(90deg,var(--shimmer-a) 25%,var(--shimmer-b) 50%,var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", flexShrink: 0 }} />
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "linear-gradient(90deg, var(--shimmer-a) 25%, var(--shimmer-b) 50%, var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", flexShrink: 0 }} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg,var(--shimmer-a) 25%,var(--shimmer-b) 50%,var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "70%" }} />
-            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg,var(--shimmer-a) 25%,var(--shimmer-b) 50%,var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "45%" }} />
+            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg, var(--shimmer-a) 25%, var(--shimmer-b) 50%, var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "70%" }} />
+            <div style={{ height: 10, borderRadius: 6, background: "linear-gradient(90deg, var(--shimmer-a) 25%, var(--shimmer-b) 50%, var(--shimmer-a) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s infinite", width: "45%" }} />
           </div>
         </div>
       )}
@@ -271,7 +274,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
             <Avatar src={profile.avatar} name={profile.name} size={46} />
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.name}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.name}</span>
                 {profile.verified && (
                   platformId === "twitter"
                     ? <img src={twitterVerifiedBadge} alt="verified" style={{ width: 14, height: 14, flexShrink: 0 }} />
@@ -279,18 +282,18 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
                 )}
               </div>
               {profile.username && (
-                <div style={{ fontSize: 12, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{profile.username}</div>
+                <div style={{ fontSize: 12, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{profile.username}</div>
               )}
               {profile.bio && (
-                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.5 }}>{profile.bio}</div>
+                <div style={{ fontSize: 12, color: "var(--text-2)", marginTop: 4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: 1.5 }}>{profile.bio}</div>
               )}
               {profile.followers > 0 && (
-                <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)", padding: "3px 10px", borderRadius: 999 }}>
+                <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, background: "var(--accent-dim)", border: "1px solid var(--accent-border)", padding: "3px 10px", borderRadius: 999 }}>
                   <svg style={{ width: 11, height: 11, color: "var(--accent)" }} fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
                   <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", fontFamily: "monospace" }}>{formatNum(profile.followers)}</span>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>followers</span>
+                  <span style={{ fontSize: 11, color: "var(--text-3)" }}>followers</span>
                 </div>
               )}
             </div>
@@ -304,21 +307,21 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
           <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
             {profile.avatar
               ? <img src={profile.avatar} alt="" style={{ width: 46, height: 46, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />
-              : <div style={{ width: 46, height: 46, borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(139,160,200,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              : <div style={{ width: 46, height: 46, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <PlatformIcon id="google" size={20} />
                 </div>
             }
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{profile.name}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)" }}>{profile.name}</div>
               <StarRating rating={profile.rating} />
               {profile.reviewCount > 0 && (
-                <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(245,166,35,0.08)", border: "1px solid rgba(245,166,35,0.25)", padding: "3px 10px", borderRadius: 999 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--gold)", fontFamily: "monospace" }}>{formatNum(profile.reviewCount)}</span>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>reviews</span>
+                <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 5, background: "var(--amber-dim)", border: "1px solid rgba(251,191,36,0.25)", padding: "3px 10px", borderRadius: 999 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--amber)", fontFamily: "monospace" }}>{formatNum(profile.reviewCount)}</span>
+                  <span style={{ fontSize: 11, color: "var(--text-3)" }}>reviews</span>
                 </div>
               )}
-              {profile.username && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>{profile.username}</div>}
-              {profile.type && <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{profile.type}</div>}
+              {profile.username && <div style={{ fontSize: 12, color: "var(--text-3)", marginTop: 4 }}>{profile.username}</div>}
+              {profile.type && <div style={{ fontSize: 12, color: "var(--text-3)" }}>{profile.type}</div>}
             </div>
           </div>
         </div>
@@ -327,35 +330,35 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
       {/* Override display */}
       {isOverride && !isFound && (
         <div style={{ padding: "4px 16px 14px", display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>
+          <div style={{ width: 46, height: 46, borderRadius: "50%", background: "var(--accent-dim)", border: "1px solid var(--accent-border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>
             🔗
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>Custom URL</div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.overrideUrl}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)" }}>Custom URL</div>
+            <div style={{ fontSize: 12, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.overrideUrl}</div>
           </div>
         </div>
       )}
 
       {/* AI alternatives */}
       {isFound && alternatives.length > 0 && !editing && !retrying && (
-        <div style={{ margin: "0 12px 12px", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(245,166,35,0.2)", background: "rgba(245,166,35,0.04)" }} onClick={e => e.stopPropagation()}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderBottom: "1px solid rgba(245,166,35,0.15)" }}>
+        <div style={{ margin: "0 12px 12px", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(251,191,36,0.2)", background: "var(--amber-dim)" }} onClick={e => e.stopPropagation()}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderBottom: "1px solid rgba(251,191,36,0.15)" }}>
             <span style={{ fontSize: 13 }}>⚠️</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--gold)" }}>Not the right account?</span>
-            <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>Tap to swap</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--amber)" }}>Not the right account?</span>
+            <span style={{ fontSize: 11, color: "var(--text-3)", marginLeft: "auto" }}>Tap to swap</span>
           </div>
           {alternatives.map((alt, i) => (
             <button key={i} onClick={() => onSwapAlternative(alt.raw)}
-              style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "transparent", border: "none", borderBottom: i < alternatives.length - 1 ? "1px solid rgba(245,166,35,0.1)" : "none", cursor: "pointer", textAlign: "left", transition: "background 0.15s" }}
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "transparent", border: "none", borderBottom: i < alternatives.length - 1 ? "1px solid rgba(251,191,36,0.1)" : "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
               className="sr-alt-row">
               <Avatar src={alt.avatar} name={alt.name} size={28} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{alt.name}</div>
-                {alt.username && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>@{alt.username}</div>}
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{alt.name}</div>
+                {alt.username && <div style={{ fontSize: 11, color: "var(--text-3)" }}>@{alt.username}</div>}
               </div>
-              {alt.followers > 0 && <span style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0, fontFamily: "monospace" }}>{formatNum(alt.followers)}</span>}
-              <span style={{ fontSize: 11, fontWeight: 600, color: "#051120", background: "var(--accent)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>Use</span>
+              {alt.followers > 0 && <span style={{ fontSize: 11, color: "var(--text-3)", flexShrink: 0, fontFamily: "monospace" }}>{formatNum(alt.followers)}</span>}
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#050911", background: "var(--accent)", padding: "2px 8px", borderRadius: 999, flexShrink: 0 }}>Use</span>
             </button>
           ))}
         </div>
@@ -364,9 +367,9 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
       {/* Not found state */}
       {isNotFound && !editing && !retrying && (
         <div style={{ padding: "0 14px 14px" }} onClick={e => e.stopPropagation()}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(139,160,200,0.04)", border: "1px solid var(--border-soft)", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
             <span style={{ fontSize: 16, marginTop: 1 }}>🔍</span>
-            <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, margin: 0 }}>
+            <p style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.5, margin: 0 }}>
               {isGoogle
                 ? "No Google Business listing found. Try including the city (e.g. \"Nike New York\")."
                 : "Couldn't find this account automatically. Enter their exact username or paste a profile URL below."}
@@ -374,7 +377,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <button onClick={e => { e.stopPropagation(); setRetrying(true); }}
-              style={{ padding: "9px 12px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#051120", border: "none", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "opacity 0.2s" }}
+              style={{ padding: "9px 12px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#050911", border: "none", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit" }}
               onMouseOver={e => e.currentTarget.style.opacity = "0.85"}
               onMouseOut={e => e.currentTarget.style.opacity = "1"}>
               <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,7 +386,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
               {isGoogle ? "Add city" : "Try username"}
             </button>
             <button onClick={e => { e.stopPropagation(); setEditing(true); }}
-              style={{ padding: "9px 12px", fontSize: 12, fontWeight: 600, background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.2s" }}
+              style={{ padding: "9px 12px", fontSize: 12, fontWeight: 600, background: "transparent", color: "var(--text-2)", border: "1px solid var(--border)", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit" }}
               className="sr-btn-ghost">
               <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" strokeWidth="2" strokeLinecap="round"/>
@@ -396,13 +399,13 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
 
       {/* Retry / username input */}
       {retrying && (
-        <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border-subtle)" }} onClick={e => e.stopPropagation()}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", margin: "10px 0 8px" }}>
+        <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", margin: "10px 0 8px" }}>
             {isGoogle ? "Enter business name + city:" : `Enter exact ${label} username:`}
           </p>
           <input ref={retryRef} type="text" value={retryVal} onChange={e => setRetryVal(e.target.value)}
             placeholder={isGoogle ? "e.g. Nike New York" : "e.g. @donaldtrump"}
-            style={{ width: "100%", padding: "9px 12px", background: "var(--input-bg)", border: "1px solid rgba(0,144,255,0.25)", borderRadius: 10, color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+            style={{ width: "100%", padding: "9px 12px", background: "var(--bg-elevated)", border: "1px solid var(--accent-border)", borderRadius: 10, color: "var(--text-1)", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
             onKeyDown={e => {
               if (e.key === "Enter" && retryVal.trim()) { onRetry(retryVal.trim()); setRetrying(false); setRetryVal(""); }
               if (e.key === "Escape") { setRetrying(false); setRetryVal(""); }
@@ -410,22 +413,22 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <button disabled={!retryVal.trim()}
               onClick={() => { if (retryVal.trim()) { onRetry(retryVal.trim()); setRetrying(false); setRetryVal(""); } }}
-              style={{ flex: 1, padding: "8px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#051120", border: "none", borderRadius: 9, cursor: "pointer", opacity: retryVal.trim() ? 1 : 0.4 }}>
+              style={{ flex: 1, padding: "8px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#050911", border: "none", borderRadius: 9, cursor: "pointer", opacity: retryVal.trim() ? 1 : 0.4, fontFamily: "inherit" }}>
               Search
             </button>
             <button onClick={() => { setRetrying(false); setRetryVal(""); }}
-              style={{ padding: "8px 14px", fontSize: 12, fontWeight: 500, background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-subtle)", borderRadius: 9, cursor: "pointer" }}>
+              style={{ padding: "8px 14px", fontSize: 12, fontWeight: 500, background: "transparent", color: "var(--text-3)", border: "1px solid var(--border)", borderRadius: 9, cursor: "pointer", fontFamily: "inherit" }}>
               Cancel
             </button>
           </div>
         </div>
       )}
 
-      {/* Wrong result row — shown when found/override */}
+      {/* Wrong result row */}
       {(isFound || isOverride) && !editing && !retrying && (
-        <div style={{ borderTop: "1px solid rgba(139,160,200,0.08)", display: "flex" }} onClick={e => e.stopPropagation()}>
+        <div style={{ borderTop: "1px solid var(--border)", display: "flex" }} onClick={e => e.stopPropagation()}>
           <button onClick={e => { e.stopPropagation(); setRetrying(true); }}
-            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", fontSize: 11, fontWeight: 500, color: "var(--text-muted)", background: "transparent", border: "none", borderRight: "1px solid rgba(139,160,200,0.08)", cursor: "pointer", borderRadius: "0 0 0 16px", transition: "all 0.15s" }}
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", fontSize: 11, fontWeight: 500, color: "var(--text-3)", background: "transparent", border: "none", borderRight: "1px solid var(--border)", cursor: "pointer", borderRadius: "0 0 0 16px", fontFamily: "inherit" }}
             className="sr-footer-btn">
             <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="7" strokeWidth="2"/><path d="M21 21l-4.3-4.3" strokeWidth="2"/>
@@ -433,7 +436,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
             Try username
           </button>
           <button onClick={e => { e.stopPropagation(); setEditing(true); }}
-            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", fontSize: 11, fontWeight: 500, color: "var(--text-muted)", background: "transparent", border: "none", cursor: "pointer", borderRadius: "0 0 16px 0", transition: "all 0.15s" }}
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 0", fontSize: 11, fontWeight: 500, color: "var(--text-3)", background: "transparent", border: "none", cursor: "pointer", borderRadius: "0 0 16px 0", fontFamily: "inherit" }}
             className="sr-footer-btn">
             <svg style={{ width: 12, height: 12 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" strokeWidth="2" strokeLinecap="round"/>
@@ -445,11 +448,11 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
 
       {/* Paste URL input */}
       {editing && (
-        <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border-subtle)" }} onClick={e => e.stopPropagation()}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", margin: "10px 0 8px" }}>Paste the correct profile URL:</p>
+        <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", margin: "10px 0 8px" }}>Paste the correct profile URL:</p>
           <input ref={inputRef} type="text" value={overrideVal} onChange={e => setOverride(e.target.value)}
             placeholder="https://twitter.com/username"
-            style={{ width: "100%", padding: "9px 12px", background: "var(--input-bg)", border: "1px solid rgba(0,144,255,0.25)", borderRadius: 10, color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+            style={{ width: "100%", padding: "9px 12px", background: "var(--bg-elevated)", border: "1px solid var(--accent-border)", borderRadius: 10, color: "var(--text-1)", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
             onKeyDown={e => {
               if (e.key === "Enter" && overrideVal.trim()) { onOverride(overrideVal.trim()); setEditing(false); }
               if (e.key === "Escape") setEditing(false);
@@ -457,11 +460,11 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <button disabled={!overrideVal.trim()}
               onClick={() => { if (overrideVal.trim()) { onOverride(overrideVal.trim()); setEditing(false); } }}
-              style={{ flex: 1, padding: "8px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#051120", border: "none", borderRadius: 9, cursor: "pointer", opacity: overrideVal.trim() ? 1 : 0.4 }}>
+              style={{ flex: 1, padding: "8px", fontSize: 12, fontWeight: 600, background: "var(--accent)", color: "#050911", border: "none", borderRadius: 9, cursor: "pointer", opacity: overrideVal.trim() ? 1 : 0.4, fontFamily: "inherit" }}>
               Use this URL
             </button>
             <button onClick={() => setEditing(false)}
-              style={{ padding: "8px 14px", fontSize: 12, fontWeight: 500, background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-subtle)", borderRadius: 9, cursor: "pointer" }}>
+              style={{ padding: "8px 14px", fontSize: 12, fontWeight: 500, background: "transparent", color: "var(--text-3)", border: "1px solid var(--border)", borderRadius: 9, cursor: "pointer", fontFamily: "inherit" }}>
               Cancel
             </button>
           </div>
@@ -487,7 +490,7 @@ export default function SearchResult() {
   const [profiles, setProfiles] = useState(
     () => Object.fromEntries(platforms.map(p => [p, undefined]))
   );
-  const [selected, setSelected]           = useState(new Set());
+  const [selected, setSelected]                   = useState(new Set());
   const [showPlatformPicker, setShowPlatformPicker] = useState(false);
 
   const searchRef = useRef(null);
@@ -592,27 +595,34 @@ export default function SearchResult() {
   if (!username) { navigate("/"); return null; }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-dark)", color: "var(--text-primary)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "var(--bg-page)",
+      color: "var(--text-1)",
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    }}>
       <style>{GLOBAL_CSS}</style>
 
       {/* Grid background */}
       <div style={{
         position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-        backgroundImage: "linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px)",
-        backgroundSize: "60px 60px",
+        backgroundImage: "linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)",
+        backgroundSize: "64px 64px",
       }} />
 
       {/* Sticky top bar */}
       <div style={{
         position: "sticky", top: 0, zIndex: 20,
-        background: "var(--nav-bg)", backdropFilter: "blur(20px)",
-        borderBottom: "1px solid var(--border-soft)",
+        height: 60,
+        background: "rgba(5,9,17,0.95)",
+        backdropFilter: "blur(20px)",
+        borderBottom: "1px solid var(--border)",
       }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 16px", display: "flex", alignItems: "center", gap: 16, height: "100%" }}>
           <button onClick={() => navigate("/")}
-            style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, transition: "color 0.15s" }}
-            onMouseOver={e => e.currentTarget.style.color = "var(--text-secondary)"}
-            onMouseOut={e => e.currentTarget.style.color = "var(--text-muted)"}>
+            style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, fontFamily: "inherit" }}
+            onMouseOver={e => e.currentTarget.style.color = "var(--text-2)"}
+            onMouseOut={e => e.currentTarget.style.color = "var(--text-3)"}>
             <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M19 12H5M12 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -622,50 +632,50 @@ export default function SearchResult() {
           <div style={{
             flex: 1, maxWidth: 520, display: "flex", alignItems: "center", gap: 10,
             padding: "9px 16px", borderRadius: 12,
-            background: "var(--bg-surface)", border: "1px solid rgba(0,144,255,0.2)",
-            backdropFilter: "blur(12px)",
+            background: "var(--bg-surface)", border: "1px solid var(--accent-border)",
           }}>
             <svg style={{ width: 14, height: 14, color: "var(--accent)", flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="7" strokeWidth="2"/><path d="M21 21l-4.3-4.3" strokeWidth="2"/>
             </svg>
-            <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{username}</span>
+            <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{username}</span>
             <span style={{
-              fontSize: 11, fontWeight: 600, color: mode === "company" ? "var(--accent)" : "var(--gold)",
-              background: mode === "company" ? "var(--chip-accent-bg)" : "rgba(180,83,9,0.08)",
-              border: `1px solid ${mode === "company" ? "var(--chip-accent-border)" : "rgba(180,83,9,0.25)"}`,
+              fontSize: 11, fontWeight: 600,
+              color: mode === "company" ? "var(--accent)" : "var(--amber)",
+              background: mode === "company" ? "var(--accent-dim)" : "var(--amber-dim)",
+              border: `1px solid ${mode === "company" ? "var(--accent-border)" : "rgba(251,191,36,0.25)"}`,
               padding: "2px 8px", borderRadius: 999, flexShrink: 0,
             }}>
               {mode === "company" ? "🏢 Business" : "👤 Person"}
             </span>
           </div>
 
-          <div style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)", flexShrink: 0 }}>
+          <div style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-3)", flexShrink: 0 }}>
             {anyLoading
               ? <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)", animation: "pulse-dot 1.2s ease-in-out infinite" }} />
                   Searching…
                 </span>
-              : <><span style={{ color: "var(--positive)", fontFamily: "monospace", fontWeight: 600 }}>{foundCount}</span> of {platforms.length} found</>
+              : <><span style={{ color: "var(--green)", fontFamily: "monospace", fontWeight: 600 }}>{foundCount}</span> of {platforms.length} found</>
             }
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px 140px", position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 16px 160px", position: "relative", zIndex: 1 }}>
 
         {/* Instruction banner */}
         <div style={{
           display: "flex", gap: 14, padding: "16px 18px", marginBottom: 24,
-          background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)",
-          borderRadius: 14, backdropFilter: "blur(12px)",
+          background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
+          borderRadius: 14,
         }}>
           <div style={{
             width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-            background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)",
+            background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
             display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15,
           }}>🤖</div>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 8px" }}>AI picked the best match on each platform</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)", margin: "0 0 8px" }}>AI picked the best match on each platform</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
               {[
                 ["1", "Review each card — check the name, photo and follower count"],
@@ -673,8 +683,8 @@ export default function SearchResult() {
                 ["3", "Select the platforms you want, then tap Generate Report"],
               ].map(([n, text]) => (
                 <div key={n} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#051120", flexShrink: 0, marginTop: 1 }}>{n}</div>
-                  <span style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>{text}</span>
+                  <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#050911", flexShrink: 0, marginTop: 1 }}>{n}</div>
+                  <span style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.5 }}>{text}</span>
                 </div>
               ))}
             </div>
@@ -684,7 +694,7 @@ export default function SearchResult() {
         {/* Results grid */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 310px), 1fr))",
           gap: 14,
         }}>
           {platforms.map(platformId => {
@@ -708,21 +718,25 @@ export default function SearchResult() {
 
       {/* Sticky generate bar */}
       {selectedArr.length > 0 && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 30, padding: "0 20px 24px" }}>
+        <div style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 30,
+          padding: "0 16px",
+          paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))",
+        }}>
           <div style={{
             maxWidth: 900, margin: "0 auto",
-            background: "var(--nav-bg)",
-            border: "1px solid var(--border-soft)",
+            background: "rgba(5,9,17,0.97)",
+            border: "1px solid var(--border)",
             borderRadius: 18, backdropFilter: "blur(24px)",
-            boxShadow: "0 -4px 40px rgba(0,0,0,0.15), var(--shadow-card)",
+            boxShadow: "0 -4px 40px rgba(0,0,0,0.4), var(--shadow-glow)",
             padding: "16px 20px",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
           }}>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", margin: 0 }}>
                 {selectedArr.length} platform{selectedArr.length > 1 ? "s" : ""} selected
               </p>
-              <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "3px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 220 }}>
+              <p style={{ fontSize: 11, color: "var(--text-3)", margin: "3px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 220 }}>
                 {selectedArr.map(id => ALL_PLATFORMS.find(p => p.id === id)?.label).join(", ")}
               </p>
             </div>
@@ -730,7 +744,7 @@ export default function SearchResult() {
             <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
               {selectedArr.length === 1 ? (
                 <button onClick={() => handleGenerateReport("individual")}
-                  style={{ padding: "11px 22px", fontSize: 13, fontWeight: 600, background: "linear-gradient(135deg,var(--accent),var(--accent-2))", color: "#fff", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "var(--shadow-btn)", transition: "all 0.2s" }}
+                  style={{ padding: "11px 22px", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg, #38BDF8, #818CF8)", color: "#050911", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "var(--shadow-btn)", fontFamily: "inherit" }}
                   onMouseOver={e => e.currentTarget.style.opacity = "0.9"}
                   onMouseOut={e => e.currentTarget.style.opacity = "1"}>
                   Generate Report
@@ -741,14 +755,14 @@ export default function SearchResult() {
               ) : (
                 <>
                   <button onClick={() => handleGenerateReport("individual")}
-                    style={{ padding: "11px 18px", fontSize: 13, fontWeight: 500, background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border-subtle)", borderRadius: 12, cursor: "pointer", transition: "all 0.2s" }}
+                    style={{ padding: "11px 18px", fontSize: 13, fontWeight: 500, background: "transparent", color: "var(--text-2)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontFamily: "inherit" }}
                     className="sr-btn-ghost">
                     Individual
                   </button>
                   <button onClick={() => handleGenerateReport("combined")}
-                    style={{ padding: "11px 22px", fontSize: 13, fontWeight: 600, background: "linear-gradient(135deg,#00D4FF,#0090FF)", color: "#051120", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 0 20px rgba(0,212,255,0.3)", transition: "all 0.2s" }}
-                    onMouseOver={e => e.currentTarget.style.boxShadow = "0 0 32px rgba(0,212,255,0.55)"}
-                    onMouseOut={e => e.currentTarget.style.boxShadow = "0 0 20px rgba(0,212,255,0.3)"}>
+                    style={{ padding: "11px 22px", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg, #38BDF8, #818CF8)", color: "#050911", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "var(--shadow-btn)", fontFamily: "inherit" }}
+                    onMouseOver={e => e.currentTarget.style.opacity = "0.9"}
+                    onMouseOut={e => e.currentTarget.style.opacity = "1"}>
                     Combined
                     <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M5 12h14M13 5l7 7-7 7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -763,27 +777,27 @@ export default function SearchResult() {
 
       {/* Platform picker bottom sheet */}
       {showPlatformPicker && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
           onClick={() => setShowPlatformPicker(false)}>
           <div style={{
             width: "100%", maxWidth: 580,
-            background: "var(--nav-bg)",
-            border: "1px solid var(--border-soft)",
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
             borderRadius: "24px 24px 0 0",
             backdropFilter: "blur(24px)",
-            boxShadow: "0 -20px 60px rgba(0,0,0,0.5)",
+            boxShadow: "0 -20px 60px rgba(0,0,0,0.6)",
           }} onClick={e => e.stopPropagation()}>
             {/* Handle */}
             <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
-              <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(139,160,200,0.2)" }} />
+              <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.1)" }} />
             </div>
             <div style={{ padding: "8px 24px 32px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: "var(--text-primary)" }}>Pick platform for individual report</h3>
+                <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: "var(--text-1)" }}>Pick platform for individual report</h3>
                 <button onClick={() => setShowPlatformPicker(false)}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 18, lineHeight: 1, padding: "4px" }}>×</button>
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-3)", fontSize: 18, lineHeight: 1, padding: "4px", fontFamily: "inherit" }}>×</button>
               </div>
-              <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 16px" }}>Each platform gives a focused report on that channel only.</p>
+              <p style={{ fontSize: 12, color: "var(--text-3)", margin: "0 0 16px" }}>Each platform gives a focused report on that channel only.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {selectedArr.map(platformId => {
                   const pl = ALL_PLATFORMS.find(p => p.id === platformId);
@@ -793,34 +807,34 @@ export default function SearchResult() {
                   return (
                     <button key={platformId}
                       onClick={() => { setShowPlatformPicker(false); handleGenerateReport("individual", platformId); }}
-                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, background: "var(--bg-elev)", border: "1px solid var(--border-soft)", cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}
-                      onMouseOver={e => { e.currentTarget.style.background = "var(--chip-accent-bg)"; e.currentTarget.style.borderColor = "var(--chip-accent-border)"; }}
-                      onMouseOut={e => { e.currentTarget.style.background = "var(--bg-elev)"; e.currentTarget.style.borderColor = "var(--border-soft)"; }}>
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, background: "var(--bg-elevated)", border: "1px solid var(--border)", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+                      onMouseOver={e => { e.currentTarget.style.background = "var(--accent-dim)"; e.currentTarget.style.borderColor = "var(--accent-border)"; }}
+                      onMouseOut={e => { e.currentTarget.style.background = "var(--bg-elevated)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: pl?.bg, color: pl?.tc, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <PlatformIcon id={platformId} size={16} />
                       </div>
                       {prof?.avatar && (
-                        <img src={prof.avatar} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid var(--chip-accent-border)" }}
+                        <img src={prof.avatar} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid var(--accent-border)" }}
                           onError={e => { e.target.style.display = "none"; }} />
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prof?.name || pl?.label}</div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prof?.name || pl?.label}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-3)" }}>
                           {prof?.username ? `@${prof.username}` : pl?.label}
                           {fmtFollowers ? ` · ${fmtFollowers} followers` : ""}
                         </div>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--chip-accent-text)", background: "var(--chip-accent-bg)", border: "1px solid var(--chip-accent-border)", padding: "4px 12px", borderRadius: 999, flexShrink: 0 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)", background: "var(--accent-dim)", border: "1px solid var(--accent-border)", padding: "4px 12px", borderRadius: 999, flexShrink: 0 }}>
                         Select →
                       </span>
                     </button>
                   );
                 })}
               </div>
-              <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)", marginTop: 16 }}>
+              <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-3)", marginTop: 16 }}>
                 Want all platforms in one report?{" "}
                 <button onClick={() => { setShowPlatformPicker(false); handleGenerateReport("combined"); }}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", fontWeight: 600, fontSize: 12, padding: 0 }}>
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", fontWeight: 600, fontSize: 12, padding: 0, fontFamily: "inherit" }}>
                   Use Combined →
                 </button>
               </p>
