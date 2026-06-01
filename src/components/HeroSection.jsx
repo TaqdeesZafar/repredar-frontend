@@ -34,6 +34,24 @@ function HeroSearchForm() {
   const [perPlatform,     setPerPlatform]   = useState({});
   const [placeholderIdx,  setPlaceholderIdx] = useState(0);
 
+  const [blockedError, setBlockedError] = useState("");
+
+  const BLOCKED_TERMS = [
+    "john ellis", "john s ellis", "john spencer ellis",
+    "dr john spencer ellis", "dr john ellis",
+    "johnellis", "johnspencerellis", "drjohnspencerellis",
+    "jspencerellis", "johnsellis",
+    "reputation return", "reputationreturn", "reputation-return",
+  ];
+
+  function isBlocked(q) {
+    const norm = q.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+    return BLOCKED_TERMS.some(t => {
+      const tn = t.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+      return norm === tn || norm.includes(tn);
+    });
+  }
+
   const placeholders = ["Try 'Elon Musk'", "Try 'Nike'", "Try 'your business name'", "Try 'Tesla'"];
   useEffect(() => {
     const i = setInterval(() => setPlaceholderIdx(p => (p + 1) % placeholders.length), 2600);
@@ -62,6 +80,11 @@ function HeroSearchForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!username.trim() || activePlatforms.size === 0) return;
+    if (isBlocked(username.trim())) {
+      setBlockedError("This search is not available.");
+      return;
+    }
+    setBlockedError("");
     const handles = {};
     for (const p of activePlatforms) {
       handles[p] = (perPlatform[p]?.trim()) || username.trim();
@@ -83,7 +106,7 @@ function HeroSearchForm() {
           ref={inputRef}
           type="text"
           value={username}
-          onChange={e => setUsername(e.target.value)}
+          onChange={e => { setUsername(e.target.value); setBlockedError(""); }}
           placeholder={placeholders[placeholderIdx]}
           style={{
             width: "100%", padding: "13px 40px 13px 40px", borderRadius: 10,
@@ -102,6 +125,20 @@ function HeroSearchForm() {
           </button>
         )}
       </div>
+
+      {/* Blocked search error */}
+      {blockedError && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "10px 14px", borderRadius: 10,
+          background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.2)",
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" style={{ flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span style={{ fontSize: 13, color: "#DC2626", fontWeight: 500 }}>{blockedError}</span>
+        </div>
+      )}
 
       {/* Account type */}
       <div className="acc-type-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
