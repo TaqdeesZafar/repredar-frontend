@@ -104,7 +104,7 @@ function HeroSearchForm() {
       </div>
 
       {/* Account type */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+      <div className="acc-type-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         {[
           { id: "company", icon: "🏢", label: "Business / Brand" },
           { id: "person",  icon: "👤", label: "Person / Influencer" },
@@ -130,7 +130,7 @@ function HeroSearchForm() {
         <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8, marginTop: 0 }}>
           Platforms to scan
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <div className="platform-chips" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {PLATFORMS.map(p => {
             const active = activePlatforms.has(p.id);
             return (
@@ -250,15 +250,12 @@ function HeroSearchForm() {
 // ─── Stats strip ──────────────────────────────────────────────────────────────
 function StatsStrip() {
   return (
-    <section style={{
+    <section className="stats-section" style={{
       background: "var(--bg-surface)",
       borderTop: "1px solid var(--border)",
       borderBottom: "1px solid var(--border)",
       padding: "32px 24px",
     }}>
-      <style>{`
-        @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr 1fr !important; } }
-      `}</style>
       <div className="stats-grid" style={{ maxWidth: 860, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, textAlign: "center" }}>
         {[
           { v: "50K+",  l: "Reports Generated" },
@@ -311,13 +308,7 @@ function HowItWorks() {
     },
   ];
   return (
-    <section style={{ background: "var(--bg-page)", padding: "96px 24px" }}>
-      <style>{`
-        @media (max-width: 700px) {
-          .how-grid { grid-template-columns: 1fr !important; }
-          .how-card-mid { transform: none !important; margin-top: 0 !important; }
-        }
-      `}</style>
+    <section className="how-section" style={{ background: "var(--bg-page)", padding: "96px 24px" }}>
       <div style={{ maxWidth: 920, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 56 }}>
           <span style={{
@@ -426,14 +417,11 @@ function ReportFeatures() {
   ];
 
   return (
-    <section style={{
+    <section className="features-section" style={{
       background: "var(--bg-surface)",
       borderTop: "1px solid var(--border)",
       padding: "88px 24px",
     }}>
-      <style>{`
-        @media (max-width: 700px) { .features-grid { grid-template-columns: 1fr !important; } }
-      `}</style>
       <div style={{ maxWidth: 920, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 52 }}>
           <h2 style={{ fontSize: 32, fontWeight: 800, color: "var(--text-1)", marginBottom: 12, marginTop: 0, letterSpacing: "-0.025em" }}>
@@ -480,7 +468,7 @@ function ReportFeatures() {
 function TrustBar() {
   return (
     <section style={{ background: "var(--bg-page)", borderTop: "1px solid var(--border)", padding: "36px 24px" }}>
-      <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 32 }}>
+      <div className="trust-bar" style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 32 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
           Trusted by businesses across
         </span>
@@ -501,7 +489,7 @@ function TrustBar() {
 // ─── Final CTA ────────────────────────────────────────────────────────────────
 function FinalCTA() {
   return (
-    <section style={{
+    <section className="cta-section" style={{
       background: "var(--accent)",
       padding: "96px 24px",
       textAlign: "center",
@@ -522,7 +510,7 @@ function FinalCTA() {
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff", display: "inline-block" }}/>
           <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", letterSpacing: "0.1em" }}>FREE · NO ACCOUNT REQUIRED</span>
         </div>
-        <h2 style={{ fontSize: 38, fontWeight: 800, color: "#fff", marginBottom: 14, marginTop: 0, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+        <h2 className="cta-headline" style={{ fontSize: 38, fontWeight: 800, color: "#fff", marginBottom: 14, marginTop: 0, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
           Ready to see your reputation?
         </h2>
         <p style={{ fontSize: 16, color: "rgba(255,255,255,0.82)", marginBottom: 36, lineHeight: 1.6 }}>
@@ -530,6 +518,7 @@ function FinalCTA() {
         </p>
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="cta-btn"
           style={{
             background: "#fff",
             color: "var(--accent)",
@@ -560,11 +549,33 @@ const Hero = () => {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        @media (max-width: 700px) {
-          .hero-grid { grid-template-columns: 1fr !important; }
+
+        @media (max-width: 860px) {
+          .hero-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
           .hero-right { display: none !important; }
-          .hero-section { padding: 52px 20px 44px !important; }
-          .hero-headline { font-size: clamp(32px, 9vw, 52px) !important; }
+        }
+        @media (max-width: 640px) {
+          .hero-section { padding: 40px 16px 36px !important; }
+          .hero-headline { font-size: clamp(30px, 9vw, 48px) !important; line-height: 1.1 !important; }
+          .hero-sub { font-size: 15px !important; }
+          .hero-search-card { padding: 18px !important; border-radius: 14px !important; }
+          .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 16px !important; }
+          .how-grid { grid-template-columns: 1fr !important; }
+          .how-card-mid { transform: none !important; }
+          .features-grid { grid-template-columns: 1fr !important; }
+          .trust-bar { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+          .cta-section { padding: 60px 16px !important; }
+          .cta-headline { font-size: 28px !important; }
+          .cta-btn { padding: 14px 28px !important; font-size: 14px !important; }
+          .how-section { padding: 60px 16px !important; }
+          .features-section { padding: 60px 16px !important; }
+          .stats-section { padding: 24px 16px !important; }
+          .platform-chips { gap: 5px !important; }
+          .platform-chips button { font-size: 11px !important; padding: 4px 9px !important; }
+          .acc-type-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 400px) {
+          .acc-type-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -573,7 +584,7 @@ const Hero = () => {
         className="hero-section"
         style={{
           background: "var(--bg-page)",
-          padding: "80px 24px 64px",
+          padding: "72px 24px 56px",
           position: "relative",
           overflow: "hidden",
         }}
@@ -649,12 +660,12 @@ const Hero = () => {
             </h1>
 
             {/* Subheadline */}
-            <p style={{ fontSize: 17, color: "var(--text-2)", lineHeight: 1.65, marginBottom: 32, maxWidth: 460, marginTop: 0 }}>
+            <p className="hero-sub" style={{ fontSize: 17, color: "var(--text-2)", lineHeight: 1.65, marginBottom: 28, maxWidth: 460, marginTop: 0 }}>
               Scan X, Instagram, TikTok, Facebook, LinkedIn and Google in under 60 seconds. Get an AI reputation score, competitor analysis, and a full PDF — completely free.
             </p>
 
             {/* Search card */}
-            <div style={{
+            <div className="hero-search-card" style={{
               background: "var(--bg-surface)",
               border: "1px solid var(--border)",
               borderRadius: 16,
