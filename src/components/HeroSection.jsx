@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// ─── Platform definitions ─────────────────────────────────────────────────────
 const PLATFORMS = [
-  { id:"twitter",   label:"X",         bg:"#000" },
-  { id:"instagram", label:"Instagram",  bg:"linear-gradient(135deg,#833AB4,#C13584,#F56040)" },
-  { id:"tiktok",    label:"TikTok",     bg:"#000" },
-  { id:"facebook",  label:"Facebook",   bg:"#1877F2" },
-  { id:"linkedin",  label:"LinkedIn",   bg:"#0A66C2" },
-  { id:"google",    label:"Google",     bg:"#fff",  textDark:true },
+  { id:"twitter",   label:"X",         bg:"#000",                                             tc:"#fff" },
+  { id:"instagram", label:"Instagram",  bg:"linear-gradient(135deg,#833AB4,#C13584,#F56040)", tc:"#fff" },
+  { id:"tiktok",    label:"TikTok",     bg:"#010101",                                          tc:"#fff" },
+  { id:"facebook",  label:"Facebook",   bg:"#1877F2",                                          tc:"#fff" },
+  { id:"linkedin",  label:"LinkedIn",   bg:"#0A66C2",                                          tc:"#fff" },
+  { id:"google",    label:"Google",     bg:"#fff",                                             tc:"#444", border:"rgba(15,23,42,0.15)" },
 ];
 
 function PlatformSVG({ id, size = 16 }) {
@@ -22,7 +21,7 @@ function PlatformSVG({ id, size = 16 }) {
   return null;
 }
 
-// ─── The hero search form (all original logic preserved) ──────────────────────
+// ─── Hero Search Form ─────────────────────────────────────────────────────────
 function HeroSearchForm() {
   const navigate = useNavigate();
   const inputRef = useRef(null);
@@ -37,7 +36,7 @@ function HeroSearchForm() {
 
   const placeholders = ["Try 'Elon Musk'", "Try 'Nike'", "Try 'your business name'", "Try 'Tesla'"];
   useEffect(() => {
-    const i = setInterval(() => setPlaceholderIdx(p => (p + 1) % placeholders.length), 2400);
+    const i = setInterval(() => setPlaceholderIdx(p => (p + 1) % placeholders.length), 2600);
     return () => clearInterval(i);
   }, []);
 
@@ -70,22 +69,13 @@ function HeroSearchForm() {
     navigate("/search", { state: { username: username.trim(), mode, platforms: [...activePlatforms], handles, googleLocation: location.trim() } });
   };
 
-  const pill = (active) => ({
-    display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px",
-    borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer", border: "1px solid",
-    background: active ? "var(--accent-dim)" : "var(--bg-elevated)",
-    borderColor: active ? "var(--accent-border)" : "var(--border)",
-    color: active ? "var(--accent)" : "var(--text-2)",
-    fontFamily: "inherit",
-  });
-
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
       {/* Name input */}
       <div style={{ position: "relative" }}>
-        <div style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", pointerEvents: "none" }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", pointerEvents: "none" }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
           </svg>
         </div>
@@ -96,59 +86,70 @@ function HeroSearchForm() {
           onChange={e => setUsername(e.target.value)}
           placeholder={placeholders[placeholderIdx]}
           style={{
-            width: "100%", padding: "14px 44px", borderRadius: 14,
-            background: "var(--bg-elevated)", border: "1px solid var(--border)",
+            width: "100%", padding: "13px 40px 13px 40px", borderRadius: 10,
+            background: "var(--bg-page)", border: "1.5px solid var(--border)",
             color: "var(--text-1)", fontSize: 15, outline: "none",
             boxSizing: "border-box", fontFamily: "inherit",
+            transition: "border-color 0.15s, box-shadow 0.15s",
           }}
-          onFocus={e => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px var(--accent-dim)"; }}
+          onFocus={e => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
           onBlur={e => { e.target.style.borderColor = "var(--border)"; e.target.style.boxShadow = "none"; }}
         />
         {username && (
           <button type="button" onClick={() => setUsername("")}
-            style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         )}
       </div>
 
-      {/* Account type toggle */}
+      {/* Account type */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         {[
-          { id: "company", emoji: "🏢", label: "Business / Brand" },
-          { id: "person",  emoji: "👤", label: "Person / Influencer" },
+          { id: "company", icon: "🏢", label: "Business / Brand" },
+          { id: "person",  icon: "👤", label: "Person / Influencer" },
         ].map(opt => (
           <button key={opt.id} type="button" onClick={() => handleModeChange(opt.id)}
             style={{
-              padding: "10px 12px", borderRadius: 12, fontSize: 13, fontWeight: 600,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-              cursor: "pointer", border: "1px solid",
-              background: mode === opt.id ? "var(--accent-dim)" : "var(--bg-elevated)",
-              borderColor: mode === opt.id ? "var(--accent-border)" : "var(--border)",
+              padding: "9px 10px", borderRadius: 9, fontSize: 13, fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              cursor: "pointer", border: "1.5px solid",
+              background: mode === opt.id ? "var(--accent-dim)" : "var(--bg-surface)",
+              borderColor: mode === opt.id ? "var(--accent)" : "var(--border)",
               color: mode === opt.id ? "var(--accent)" : "var(--text-2)",
               fontFamily: "inherit",
+              transition: "all 0.15s",
             }}>
-            <span>{opt.emoji}</span>{opt.label}
+            <span>{opt.icon}</span>{opt.label}
           </button>
         ))}
       </div>
 
       {/* Platform chips */}
       <div>
-        <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8, marginTop: 0 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8, marginTop: 0 }}>
           Platforms to scan
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {PLATFORMS.map(p => {
             const active = activePlatforms.has(p.id);
             return (
               <button key={p.id} type="button" onClick={() => togglePlatform(p.id)}
-                style={{ ...pill(active), position: "relative" }}>
-                <span style={{ color: active && p.id !== "google" ? "var(--accent)" : "inherit" }}>
-                  <PlatformSVG id={p.id} size={13} />
-                </span>
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "5px 11px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                  cursor: "pointer", border: "1.5px solid",
+                  background: active ? "var(--accent-dim)" : "var(--bg-surface)",
+                  borderColor: active ? "var(--accent)" : "var(--border)",
+                  color: active ? "var(--accent)" : "var(--text-2)",
+                  fontFamily: "inherit",
+                  transition: "all 0.15s",
+                }}>
+                <PlatformSVG id={p.id} size={12} />
                 {p.label}
-                {active && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="M5 12l5 5L20 7"/></svg>}
+                {active && (
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="M5 12l5 5L20 7"/></svg>
+                )}
               </button>
             );
           })}
@@ -158,10 +159,10 @@ function HeroSearchForm() {
       {/* Google location */}
       {googleActive && (
         <div style={{
-          display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12,
-          background: "var(--green-dim)", border: "1px solid rgba(52,211,153,0.25)",
+          display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9,
+          background: "rgba(5,150,105,0.06)", border: "1.5px solid rgba(5,150,105,0.2)",
         }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2">
             <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
             <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
           </svg>
@@ -173,12 +174,13 @@ function HeroSearchForm() {
         </div>
       )}
 
-      {/* Per-platform usernames */}
-      <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+      {/* Per-platform usernames accordion */}
+      <div style={{ border: "1.5px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
         <button type="button" onClick={() => setShowAdv(v => !v)}
           style={{
-            width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 14px",
+            width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
             background: "var(--bg-elevated)", cursor: "pointer", border: "none", color: "inherit", textAlign: "left", fontFamily: "inherit",
+            transition: "background 0.12s",
           }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
             <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -187,19 +189,19 @@ function HeroSearchForm() {
             <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", margin: 0 }}>Different username on some platforms?</p>
             <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>e.g. @nike on Instagram but Nike Inc on LinkedIn</p>
           </div>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2"
-            style={{ transform: showAdvanced ? "rotate(180deg)" : "none" }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.5"
+            style={{ transition: "transform 0.2s", transform: showAdvanced ? "rotate(180deg)" : "none" }}>
             <path d="M19 9l-7 7-7-7"/>
           </svg>
         </button>
         {showAdvanced && (
-          <div style={{ padding: "12px 14px", background: "var(--bg-surface)", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ padding: "12px", background: "var(--bg-surface)", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 8 }}>
             <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>Leave blank to use the name above.</p>
             {[...activePlatforms].filter(id => id !== "google").map(id => {
               const pl = PLATFORMS.find(p => p.id === id);
               return (
                 <div key={id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 8, background: pl?.bg || "#000", display: "flex", alignItems: "center", justifyContent: "center", color: pl?.textDark ? "#000" : "#fff", flexShrink: 0 }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 7, background: pl?.bg || "#000", display: "flex", alignItems: "center", justifyContent: "center", color: pl?.tc || "#fff", flexShrink: 0, border: pl?.border || "none" }}>
                     <PlatformSVG id={id} size={12} />
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-3)", width: 72, flexShrink: 0 }}>{pl?.label}</span>
@@ -209,8 +211,8 @@ function HeroSearchForm() {
                     onChange={e => setPerPlatform(prev => ({ ...prev, [id]: e.target.value }))}
                     placeholder={username || "username or @handle"}
                     style={{
-                      flex: 1, padding: "7px 10px", borderRadius: 9, fontSize: 12,
-                      background: "var(--bg-elevated)", border: "1px solid var(--border)",
+                      flex: 1, padding: "7px 10px", borderRadius: 8, fontSize: 12,
+                      background: "var(--bg-elevated)", border: "1.5px solid var(--border)",
                       color: "var(--text-1)", outline: "none", fontFamily: "inherit",
                     }}
                   />
@@ -226,56 +228,47 @@ function HeroSearchForm() {
         type="submit"
         disabled={!username.trim() || activePlatforms.size === 0}
         style={{
-          width: "100%", padding: "15px 22px", borderRadius: 14, fontSize: 15, fontWeight: 700,
-          background: "linear-gradient(135deg, #38BDF8 0%, #818CF8 100%)",
-          color: "#050911", border: "none",
+          width: "100%", padding: "14px 22px", borderRadius: 10, fontSize: 15, fontWeight: 700,
+          background: (!username.trim() || activePlatforms.size === 0) ? "#94A3B8" : "var(--accent)",
+          color: "#fff", border: "none",
           cursor: (!username.trim() || activePlatforms.size === 0) ? "not-allowed" : "pointer",
-          opacity: (!username.trim() || activePlatforms.size === 0) ? 0.4 : 1,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
-          boxShadow: "var(--shadow-btn)",
+          boxShadow: (!username.trim() || activePlatforms.size === 0) ? "none" : "var(--shadow-btn)",
           fontFamily: "inherit",
-        }}>
+          transition: "background 0.15s, box-shadow 0.15s, transform 0.1s",
+        }}
+        onMouseOver={e => { if (username.trim() && activePlatforms.size > 0) e.currentTarget.style.transform = "translateY(-1px)"; }}
+        onMouseOut={e => { e.currentTarget.style.transform = "none"; }}
+      >
         Find Accounts & Check Reputation
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
     </form>
   );
 }
 
-// ─── Section 2: Social proof strip ───────────────────────────────────────────
+// ─── Stats strip ──────────────────────────────────────────────────────────────
 function StatsStrip() {
   return (
     <section style={{
       background: "var(--bg-surface)",
       borderTop: "1px solid var(--border)",
       borderBottom: "1px solid var(--border)",
-      padding: "28px 24px",
+      padding: "32px 24px",
     }}>
       <style>{`
-        @media (max-width: 640px) {
-          .stats-grid { grid-template-columns: 1fr 1fr !important; }
-        }
+        @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr 1fr !important; } }
       `}</style>
-      <div
-        className="stats-grid"
-        style={{
-          maxWidth: 900,
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 24,
-          textAlign: "center",
-        }}
-      >
+      <div className="stats-grid" style={{ maxWidth: 860, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, textAlign: "center" }}>
         {[
           { v: "50K+",  l: "Reports Generated" },
-          { v: "6",     l: "Platforms" },
+          { v: "6",     l: "Platforms Scanned" },
           { v: "< 60s", l: "Generation Time" },
-          { v: "100%",  l: "Free" },
+          { v: "100%",  l: "Free Forever" },
         ].map(s => (
           <div key={s.l}>
-            <p style={{ fontSize: 28, fontWeight: 800, color: "var(--accent)", margin: 0, fontFamily: "monospace" }}>{s.v}</p>
-            <p style={{ fontSize: 12, color: "var(--text-3)", margin: "4px 0 0", fontWeight: 500 }}>{s.l}</p>
+            <p style={{ fontSize: 26, fontWeight: 800, color: "var(--accent)", margin: 0, letterSpacing: "-0.03em" }}>{s.v}</p>
+            <p style={{ fontSize: 12, color: "var(--text-3)", margin: "5px 0 0", fontWeight: 500 }}>{s.l}</p>
           </div>
         ))}
       </div>
@@ -283,61 +276,86 @@ function StatsStrip() {
   );
 }
 
-// ─── Section 3: How it works ─────────────────────────────────────────────────
+// ─── How it works ─────────────────────────────────────────────────────────────
 function HowItWorks() {
   const steps = [
-    { n: "01", title: "Enter a name", body: "Type any business, brand, or person. Select the platforms you want scanned." },
-    { n: "02", title: "Confirm profiles", body: "AI picks the best match on each platform — swap if wrong." },
-    { n: "03", title: "Get your report", body: "AI analyses sentiment, scores competitors, builds a full PDF." },
+    {
+      n: "01",
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+        </svg>
+      ),
+      title: "Enter a name",
+      body: "Type any business, brand, or public figure. Select the platforms you want scanned.",
+    },
+    {
+      n: "02",
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+      ),
+      title: "Confirm profiles",
+      body: "AI picks the best match on each platform — swap it if wrong in one click.",
+    },
+    {
+      n: "03",
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      ),
+      title: "Get your report",
+      body: "AI analyses sentiment, scores reputation, benchmarks competitors, builds a full PDF.",
+    },
   ];
   return (
-    <section style={{ background: "var(--bg-page)", padding: "100px 24px" }}>
+    <section style={{ background: "var(--bg-page)", padding: "96px 24px" }}>
       <style>{`
-        @media (max-width: 640px) {
+        @media (max-width: 700px) {
           .how-grid { grid-template-columns: 1fr !important; }
-          .how-card-mid { transform: none !important; }
+          .how-card-mid { transform: none !important; margin-top: 0 !important; }
         }
       `}</style>
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 52 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 12px" }}>
-            HOW IT WORKS
-          </p>
-          <h2 style={{ fontSize: 36, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.02em", margin: 0 }}>
+      <div style={{ maxWidth: 920, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 56 }}>
+          <span style={{
+            display: "inline-block", padding: "4px 14px", borderRadius: 999,
+            background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
+            color: "var(--accent)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em",
+            textTransform: "uppercase", marginBottom: 16,
+          }}>
+            How it works
+          </span>
+          <h2 style={{ fontSize: 34, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.025em", margin: 0 }}>
             From name to report in 60 seconds
           </h2>
         </div>
-        <div
-          className="how-grid"
-          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}
-        >
+        <div className="how-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
           {steps.map((s, i) => (
             <div
               key={s.n}
               className={i === 1 ? "how-card-mid" : ""}
               style={{
-                padding: 28, borderRadius: 16,
-                background: "var(--bg-surface)", border: "1px solid var(--border)",
-                position: "relative", overflow: "hidden",
-                transform: i === 1 ? "translateY(24px)" : "none",
+                padding: "28px 24px", borderRadius: 16,
+                background: "var(--bg-surface)",
+                border: i === 1 ? "2px solid var(--accent-border)" : "1px solid var(--border)",
+                boxShadow: i === 1 ? "var(--shadow-glow)" : "var(--shadow-sm)",
+                transform: i === 1 ? "translateY(-8px)" : "none",
               }}
             >
               <div style={{
-                position: "absolute", top: 12, right: 16,
-                fontSize: 56, fontWeight: 800, color: "var(--accent)",
-                fontFamily: "monospace", opacity: 0.10, lineHeight: 1,
-                userSelect: "none", pointerEvents: "none",
+                width: 48, height: 48, borderRadius: 12,
+                background: i === 1 ? "var(--accent)" : "var(--accent-dim)",
+                border: i === 1 ? "none" : "1px solid var(--accent-border)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: i === 1 ? "#fff" : "var(--accent)",
+                marginBottom: 20,
               }}>
-                {s.n}
+                {s.icon}
               </div>
-              <div style={{ marginBottom: 16, position: "relative" }}>
-                <span style={{
-                  fontSize: 56, fontWeight: 800, fontFamily: "monospace",
-                  color: "var(--accent)", opacity: 0.15, lineHeight: 1, display: "block",
-                }}>
-                  {s.n}
-                </span>
-              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", letterSpacing: "0.1em", marginBottom: 8 }}>STEP {s.n}</div>
               <h3 style={{ fontSize: 17, fontWeight: 700, color: "var(--text-1)", marginBottom: 8, marginTop: 0 }}>{s.title}</h3>
               <p style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.65, margin: 0 }}>{s.body}</p>
             </div>
@@ -348,63 +366,106 @@ function HowItWorks() {
   );
 }
 
-// ─── Section 4: What's in the report ─────────────────────────────────────────
+// ─── What's in the report ─────────────────────────────────────────────────────
 function ReportFeatures() {
   const features = [
-    { icon: "📊", title: "Reputation Score", body: "AI score 1-10 based on real social signals across every platform." },
-    { icon: "🧠", title: "Sentiment Analysis", body: "Positive/neutral/negative breakdown of how people talk about you." },
-    { icon: "📈", title: "12-Month Trends", body: "How your reputation moved over the past year — with charts." },
-    { icon: "🏆", title: "Competitor Benchmarking", body: "How you compare to top competitors in your space." },
-    { icon: "🗺️", title: "30/60/90-Day Action Plan", body: "Concrete steps to protect and grow your reputation." },
-    { icon: "📄", title: "Full PDF Report", body: "Instant download, shareable, yours to keep. No account needed." },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+      ),
+      title: "Reputation Score",
+      body: "AI score 1–10 based on real social signals across every platform, updated live.",
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+      ),
+      title: "Sentiment Analysis",
+      body: "Positive/neutral/negative breakdown of how the internet talks about you.",
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+        </svg>
+      ),
+      title: "12-Month Trends",
+      body: "How your reputation moved over the past year — peaks, dips, and inflection points.",
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+        </svg>
+      ),
+      title: "Competitor Benchmarking",
+      body: "See how you compare to your top competitors side-by-side.",
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      ),
+      title: "30/60/90-Day Action Plan",
+      body: "Concrete steps to protect and improve your reputation, prioritised by impact.",
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/>
+        </svg>
+      ),
+      title: "Full PDF Report",
+      body: "Instant download, shareable with your team or clients. No account needed.",
+    },
   ];
 
   return (
     <section style={{
       background: "var(--bg-surface)",
       borderTop: "1px solid var(--border)",
-      padding: "80px 24px",
+      padding: "88px 24px",
     }}>
       <style>{`
-        @media (max-width: 640px) {
-          .features-grid { grid-template-columns: 1fr !important; }
-        }
+        @media (max-width: 700px) { .features-grid { grid-template-columns: 1fr !important; } }
       `}</style>
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <h2 style={{ fontSize: 32, fontWeight: 800, color: "var(--text-1)", marginBottom: 12, marginTop: 0 }}>
+      <div style={{ maxWidth: 920, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 52 }}>
+          <h2 style={{ fontSize: 32, fontWeight: 800, color: "var(--text-1)", marginBottom: 12, marginTop: 0, letterSpacing: "-0.025em" }}>
             Everything in your free report
           </h2>
-          <p style={{ fontSize: 15, color: "var(--text-2)", margin: 0 }}>
-            No upsells. No paywalls. The full analysis, free.
+          <p style={{ fontSize: 16, color: "var(--text-2)", margin: 0, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+            No upsells. No paywalls. Full AI analysis — completely free.
           </p>
         </div>
-        <div
-          className="features-grid"
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}
-        >
+        <div className="features-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           {features.map((f) => (
             <div
               key={f.title}
               style={{
-                display: "flex",
-                gap: 16,
-                padding: "20px 22px",
-                borderRadius: 16,
-                background: "var(--bg-elevated)",
+                display: "flex", gap: 16, padding: "20px",
+                borderRadius: 14, background: "var(--bg-elevated)",
                 border: "1px solid var(--border)",
+                transition: "box-shadow 0.15s, transform 0.15s",
               }}
+              onMouseOver={e => { e.currentTarget.style.boxShadow = "var(--shadow-md)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseOut={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}
             >
               <div style={{
-                width: 44, height: 44, borderRadius: "50%",
+                width: 42, height: 42, borderRadius: 10,
                 background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 20, flexShrink: 0,
+                color: "var(--accent)", flexShrink: 0,
               }}>
                 {f.icon}
               </div>
               <div>
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-1)", margin: "0 0 4px" }}>{f.title}</h3>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-1)", margin: "0 0 4px" }}>{f.title}</h3>
                 <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0, lineHeight: 1.55 }}>{f.body}</p>
               </div>
             </div>
@@ -415,106 +476,149 @@ function ReportFeatures() {
   );
 }
 
-// ─── Section 5: Final CTA ─────────────────────────────────────────────────────
-function FinalCTA() {
-  const handleScrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+// ─── Social proof / trust bar ─────────────────────────────────────────────────
+function TrustBar() {
   return (
-    <section style={{ background: "var(--bg-page)", padding: "100px 24px", textAlign: "center" }}>
-      <div style={{ maxWidth: 600, margin: "0 auto" }}>
-        <h2 style={{ fontSize: 40, fontWeight: 800, color: "var(--text-1)", marginBottom: 12, marginTop: 0, letterSpacing: "-0.03em" }}>
+    <section style={{ background: "var(--bg-page)", borderTop: "1px solid var(--border)", padding: "36px 24px" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 32 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-3)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+          Trusted by businesses across
+        </span>
+        {["Restaurants", "Real Estate", "E-Commerce", "Healthcare", "Hospitality", "Personal Brands"].map(label => (
+          <span key={label} style={{
+            fontSize: 13, fontWeight: 600, color: "var(--text-2)",
+            padding: "4px 14px", borderRadius: 999,
+            background: "var(--bg-surface)", border: "1px solid var(--border)",
+          }}>
+            {label}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ─── Final CTA ────────────────────────────────────────────────────────────────
+function FinalCTA() {
+  return (
+    <section style={{
+      background: "var(--accent)",
+      padding: "96px 24px",
+      textAlign: "center",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* subtle pattern overlay */}
+      <div style={{
+        position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.06,
+        backgroundImage: "radial-gradient(circle at 25% 50%, #fff 1px, transparent 1px), radial-gradient(circle at 75% 50%, #fff 1px, transparent 1px)",
+        backgroundSize: "60px 60px",
+      }}/>
+      <div style={{ position: "relative", maxWidth: 560, margin: "0 auto" }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 20,
+          padding: "5px 14px", borderRadius: 999, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)",
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff", display: "inline-block" }}/>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", letterSpacing: "0.1em" }}>FREE · NO ACCOUNT REQUIRED</span>
+        </div>
+        <h2 style={{ fontSize: 38, fontWeight: 800, color: "#fff", marginBottom: 14, marginTop: 0, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
           Ready to see your reputation?
         </h2>
-        <p style={{ fontSize: 16, color: "var(--text-2)", marginBottom: 36 }}>
-          It takes 30 seconds. No account needed.
+        <p style={{ fontSize: 16, color: "rgba(255,255,255,0.82)", marginBottom: 36, lineHeight: 1.6 }}>
+          Takes 30 seconds. Get an AI reputation score, competitor benchmarks, and a full PDF — free.
         </p>
         <button
-          onClick={handleScrollToTop}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           style={{
-            background: "var(--accent)",
-            color: "#050911",
-            padding: "18px 48px",
-            borderRadius: 14,
-            fontSize: 16,
+            background: "#fff",
+            color: "var(--accent)",
+            padding: "16px 40px",
+            borderRadius: 10,
+            fontSize: 15,
             fontWeight: 700,
             border: "none",
             cursor: "pointer",
-            boxShadow: "var(--shadow-btn)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
             fontFamily: "inherit",
+            transition: "transform 0.15s, box-shadow 0.15s",
           }}
-          onMouseOver={e => e.currentTarget.style.opacity = "0.9"}
-          onMouseOut={e => e.currentTarget.style.opacity = "1"}
+          onMouseOver={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(0,0,0,0.22)"; }}
+          onMouseOut={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.18)"; }}
         >
-          Check Your Reputation — Free →
+          Check Your Reputation — Free
+          <span style={{ marginLeft: 8 }}>→</span>
         </button>
       </div>
     </section>
   );
 }
 
-// ─── Main Hero export ─────────────────────────────────────────────────────────
+// ─── Main Hero ────────────────────────────────────────────────────────────────
 const Hero = () => {
   return (
     <>
       <style>{`
-        @media (max-width: 640px) {
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        @media (max-width: 700px) {
           .hero-grid { grid-template-columns: 1fr !important; }
           .hero-right { display: none !important; }
-          .hero-section { padding: 60px 20px 48px !important; min-height: auto !important; }
-          .hero-headline { font-size: clamp(36px, 10vw, 52px) !important; }
+          .hero-section { padding: 52px 20px 44px !important; }
+          .hero-headline { font-size: clamp(32px, 9vw, 52px) !important; }
         }
       `}</style>
 
-      {/* ── Section 1: Hero ── */}
+      {/* ── Hero ── */}
       <section
         className="hero-section"
         style={{
-          minHeight: "100vh",
           background: "var(--bg-page)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "72px 24px 60px",
+          padding: "80px 24px 64px",
           position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* Radial glow */}
+        {/* Top blue accent line */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "var(--accent)", opacity: 0.9 }}/>
+
+        {/* Very subtle dot grid */}
         <div style={{
           position: "absolute", inset: 0, pointerEvents: "none",
-          background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(56,189,248,0.08), transparent 70%)",
+          backgroundImage: "radial-gradient(circle, rgba(37,99,235,0.08) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+          opacity: 0.7,
         }}/>
-        {/* Fine grid */}
+
+        {/* Soft blue bloom top-right */}
         <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
-          backgroundImage: "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          opacity: 0.6,
+          position: "absolute", top: -80, right: -80, width: 500, height: 500,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%)",
+          pointerEvents: "none",
         }}/>
 
         <div
           className="hero-grid"
           style={{
-            position: "relative", zIndex: 2, width: "100%", maxWidth: 1100,
-            display: "grid", gridTemplateColumns: "1.15fr 0.85fr",
-            gap: 60, alignItems: "center",
+            position: "relative", zIndex: 2,
+            maxWidth: 1080, margin: "0 auto",
+            display: "grid", gridTemplateColumns: "1.1fr 0.9fr",
+            gap: 64, alignItems: "center",
           }}
         >
           {/* LEFT */}
           <div>
-            {/* Top badge */}
-            <div style={{ marginBottom: 24 }}>
+            {/* Badge */}
+            <div style={{ marginBottom: 22 }}>
               <span style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                padding: "6px 14px", borderRadius: 999,
-                fontSize: 10, fontWeight: 700,
-                background: "var(--accent-dim)", border: "1px solid var(--accent-border)", color: "var(--accent)",
-                letterSpacing: "0.12em",
+                display: "inline-flex", alignItems: "center", gap: 7,
+                padding: "5px 14px", borderRadius: 999,
+                fontSize: 11, fontWeight: 700,
+                background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
+                color: "var(--accent)", letterSpacing: "0.1em",
               }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", boxShadow: "0 0 8px var(--accent)", display: "inline-block" }}/>
-                AI-POWERED · REPUTATION INTELLIGENCE
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", display: "inline-block", animation: "pulse-dot 2s ease-in-out infinite" }}/>
+                AI-POWERED REPUTATION INTELLIGENCE
               </span>
             </div>
 
@@ -522,172 +626,153 @@ const Hero = () => {
             <h1
               className="hero-headline"
               style={{
-                fontSize: "clamp(44px, 5.5vw, 72px)",
+                fontSize: "clamp(40px, 5vw, 66px)",
                 fontWeight: 800,
-                lineHeight: 1.05,
+                lineHeight: 1.06,
                 letterSpacing: "-0.04em",
-                marginBottom: 20,
+                marginBottom: 18,
                 marginTop: 0,
+                color: "var(--text-1)",
               }}
             >
-              <span style={{ color: "var(--text-1)", display: "block" }}>See what the internet</span>
-              <span
-                style={{
-                  backgroundImage: "linear-gradient(135deg, #38BDF8, #818CF8)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  display: "inline-block",
-                  transition: "none",
-                }}
-              >
+              See what the internet<br/>
+              <span style={{
+                backgroundImage: "linear-gradient(135deg, #2563EB, #7C3AED)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                display: "inline-block",
+                transition: "none",
+              }}>
                 says about anyone.
               </span>
             </h1>
 
             {/* Subheadline */}
-            <p style={{ fontSize: 17, color: "var(--text-2)", lineHeight: 1.6, marginBottom: 32, maxWidth: 480, marginTop: 0 }}>
-              Scan X, Instagram, TikTok, Facebook, LinkedIn & Google in seconds. Get an AI reputation score, competitor analysis, and a full PDF report — free.
+            <p style={{ fontSize: 17, color: "var(--text-2)", lineHeight: 1.65, marginBottom: 32, maxWidth: 460, marginTop: 0 }}>
+              Scan X, Instagram, TikTok, Facebook, LinkedIn and Google in under 60 seconds. Get an AI reputation score, competitor analysis, and a full PDF — completely free.
             </p>
 
             {/* Search card */}
             <div style={{
               background: "var(--bg-surface)",
               border: "1px solid var(--border)",
-              borderRadius: 20,
-              padding: 28,
-              boxShadow: "var(--shadow-glow)",
+              borderRadius: 16,
+              padding: 24,
+              boxShadow: "var(--shadow-md)",
             }}>
               <HeroSearchForm />
             </div>
 
             {/* Trust signals */}
-            <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+            <div style={{ marginTop: 20, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 20 }}>
               {[
-                "No signup required",
-                "6 platforms",
-                "Results in 60s",
+                { icon: "✓", text: "No signup required" },
+                { icon: "✓", text: "6 platforms" },
+                { icon: "✓", text: "Results in 60s" },
               ].map(t => (
-                <span key={t} style={{ fontSize: 12, color: "var(--text-3)", display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--green)", display: "inline-block", flexShrink: 0 }}/>
-                  {t}
+                <span key={t.text} style={{ fontSize: 12, color: "var(--text-3)", display: "flex", alignItems: "center", gap: 6, fontWeight: 500 }}>
+                  <span style={{ color: "var(--green)", fontWeight: 700 }}>{t.icon}</span>
+                  {t.text}
                 </span>
               ))}
             </div>
           </div>
 
-          {/* RIGHT — decorative visual */}
+          {/* RIGHT — decorative card stack */}
           <div
             className="hero-right"
-            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative" }}
+            style={{ display: "flex", justifyContent: "center", alignItems: "center", position: "relative", height: 440 }}
           >
-            {/* Outer glow */}
+            {/* Main report preview card */}
             <div style={{
-              position: "absolute", inset: -60,
-              background: "radial-gradient(circle, rgba(56,189,248,0.08), transparent 70%)",
-              pointerEvents: "none",
-            }}/>
-
-            {/* Radar circle */}
-            <div style={{
-              width: 320, height: 320, borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(56,189,248,0.04) 0%, transparent 70%), var(--bg-surface)",
-              border: "1px solid var(--accent-border)",
-              position: "relative", overflow: "hidden", flexShrink: 0,
+              position: "absolute",
+              width: 300,
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border)",
+              borderRadius: 20,
+              padding: 24,
+              boxShadow: "0 20px 60px rgba(15,23,42,0.14)",
+              top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 3,
             }}>
-              {/* Rings */}
-              {[0.3, 0.55, 0.78].map((r, i) => (
-                <div key={i} style={{
-                  position: "absolute", borderRadius: "50%",
-                  border: "1px solid var(--accent-border)",
-                  width: `${r * 100}%`, height: `${r * 100}%`,
-                  top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-                  opacity: 0.5,
-                }}/>
-              ))}
-              {/* Cross */}
-              <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-                <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 1, background: "var(--border)", transform: "translateX(-50%)" }}/>
-                <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 1, background: "var(--border)", transform: "translateY(-50%)" }}/>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg, #2563EB, #7C3AED)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-1)" }}>Reputation Report</div>
+                  <div style={{ fontSize: 11, color: "var(--text-3)" }}>Generated just now</div>
+                </div>
               </div>
-              {/* Sweep */}
-              <div style={{
-                position: "absolute", inset: 0, borderRadius: "50%",
-                background: "conic-gradient(from 0deg, transparent 0deg, transparent 280deg, rgba(56,189,248,0) 280deg, rgba(56,189,248,0.45) 355deg, rgba(56,189,248,0.9) 360deg)",
-                animation: "radar-sweep 3.5s linear infinite",
-              }}/>
-              {/* Blips */}
-              {[
-                { x: 38, y: 30 }, { x: 62, y: 55 }, { x: 25, y: 65 },
-                { x: 70, y: 25 }, { x: 45, y: 75 }, { x: 80, y: 60 },
-              ].map((d, i) => (
-                <div key={i} style={{
-                  position: "absolute", left: `${d.x}%`, top: `${d.y}%`,
-                  width: 5, height: 5, borderRadius: "50%",
-                  background: "var(--accent)", boxShadow: "0 0 8px var(--accent)",
-                  transform: "translate(-50%,-50%)", opacity: 0.85,
-                }}/>
-              ))}
-            </div>
-
-            {/* Live scan chip */}
-            <div style={{
-              position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
-              padding: "5px 12px", borderRadius: 999, fontSize: 10, fontWeight: 700,
-              background: "var(--bg-elevated)", border: "1px solid var(--accent-border)",
-              color: "var(--accent)", display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap",
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", animation: "pulse-dot 1.2s ease-in-out infinite" }}/>
-              LIVE · SCANNING
-            </div>
-
-            {/* Floating stat card */}
-            <div style={{
-              position: "absolute", bottom: -24, right: -24,
-              padding: 14, borderRadius: 14, minWidth: 180,
-              background: "var(--bg-surface)", border: "1px solid var(--border)",
-              animation: "float 3s ease-in-out infinite",
-              boxShadow: "var(--shadow-md)",
-            }}>
-              <div style={{ fontSize: 9, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 }}>Live signal</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-1)", fontFamily: "monospace" }}>+128</span>
-                <span style={{ fontSize: 11, color: "var(--green)" }}>↑ 24% sentiment</span>
+              {/* Score */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Reputation Score</div>
+                  <div style={{ fontSize: 36, fontWeight: 800, color: "var(--green)", letterSpacing: "-0.04em" }}>8.4<span style={{ fontSize: 16, color: "var(--text-3)", fontWeight: 500 }}>/10</span></div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ padding: "4px 10px", borderRadius: 999, background: "var(--green-dim)", border: "1px solid rgba(5,150,105,0.2)", fontSize: 11, fontWeight: 700, color: "var(--green)" }}>Excellent</div>
+                  <div style={{ fontSize: 11, color: "var(--green)", marginTop: 4, fontWeight: 500 }}>↑ +0.6 this month</div>
+                </div>
               </div>
-              <div style={{ marginTop: 8, display: "flex", gap: 3 }}>
-                {[3, 6, 4, 8, 5, 9, 7, 11, 9, 12].map((h, i) => (
-                  <div key={i} style={{ width: 5, height: h * 2, background: "var(--accent)", opacity: 0.3 + i * 0.06, borderRadius: 2 }}/>
+              {/* Bar */}
+              <div style={{ height: 6, borderRadius: 999, background: "var(--bg-elevated)", overflow: "hidden", marginBottom: 16 }}>
+                <div style={{ height: "100%", width: "84%", borderRadius: 999, background: "linear-gradient(90deg, #059669, #2563EB)" }}/>
+              </div>
+              {/* Mini stats */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                {[
+                  { l: "Positive", v: "74%", c: "var(--green)" },
+                  { l: "Neutral",  v: "18%", c: "var(--amber)" },
+                  { l: "Negative", v: "8%",  c: "var(--red)" },
+                ].map(s => (
+                  <div key={s.l} style={{ textAlign: "center", padding: "8px 6px", background: "var(--bg-elevated)", borderRadius: 8 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: s.c }}>{s.v}</div>
+                    <div style={{ fontSize: 10, color: "var(--text-3)", marginTop: 2 }}>{s.l}</div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Platform icons card */}
+            {/* Floating platform badges */}
             <div style={{
-              position: "absolute", top: 16, left: -40, padding: 12, borderRadius: 12,
+              position: "absolute", top: 30, left: 0,
+              padding: "10px 14px", borderRadius: 12,
               background: "var(--bg-surface)", border: "1px solid var(--border)",
-              display: "flex", flexDirection: "column", gap: 6,
-              boxShadow: "var(--shadow-md)",
+              boxShadow: "var(--shadow-md)", display: "flex", gap: 6, zIndex: 4,
+              animation: "float 4s ease-in-out infinite",
             }}>
-              {PLATFORMS.slice(0, 3).map(p => (
-                <div key={p.id} style={{ width: 22, height: 22, borderRadius: 6, background: p.bg, display: "flex", alignItems: "center", justifyContent: "center", color: p.textDark ? "#000" : "#fff" }}>
-                  <PlatformSVG id={p.id} size={11} />
+              {PLATFORMS.slice(0, 4).map(p => (
+                <div key={p.id} style={{ width: 24, height: 24, borderRadius: 6, background: p.bg, display: "flex", alignItems: "center", justifyContent: "center", color: p.tc || "#fff", border: p.border || "none", flexShrink: 0 }}>
+                  <PlatformSVG id={p.id} size={12} />
                 </div>
               ))}
+              <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-2)", alignSelf: "center", marginLeft: 4 }}>+2 more</span>
+            </div>
+
+            {/* Scanning badge */}
+            <div style={{
+              position: "absolute", bottom: 40, right: 0,
+              padding: "10px 14px", borderRadius: 12,
+              background: "var(--accent)", border: "none",
+              boxShadow: "0 4px 16px rgba(37,99,235,0.35)",
+              display: "flex", alignItems: "center", gap: 8, zIndex: 4,
+              animation: "float 3s ease-in-out infinite 1.5s",
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff", display: "inline-block", animation: "pulse-dot 1.4s ease-in-out infinite" }}/>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>Scanning 6 platforms…</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Section 2: Social proof ── */}
       <StatsStrip />
-
-      {/* ── Section 3: How it works ── */}
       <HowItWorks />
-
-      {/* ── Section 4: What's in the report ── */}
       <ReportFeatures />
-
-      {/* ── Section 5: Final CTA ── */}
+      <TrustBar />
       <FinalCTA />
     </>
   );

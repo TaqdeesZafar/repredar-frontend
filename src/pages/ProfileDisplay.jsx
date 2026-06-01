@@ -143,7 +143,7 @@ function SingleProfileHeader({ user }) {
       <div style={{ height:100, position:"relative", overflow:"hidden", background:"linear-gradient(135deg, #0C1322, #111827)" }}>
         {avatar && <img src={avatar} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"blur(16px) brightness(0.3)", transform:"scale(1.1)" }}/>}
         {/* Grid overlay */}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(56,189,248,0.025) 1px, transparent 1px)", backgroundSize:"20px 20px" }}/>
+        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(37,99,235,0.05) 1px, transparent 1px)", backgroundSize:"20px 20px" }}/>
         {/* Platform watermark */}
         <div style={{ position:"absolute", top:10, right:16, opacity:0.1, color:"#fff" }}>
           <PlatformSVG id={cfg.icon} size={48} />
@@ -164,7 +164,7 @@ function SingleProfileHeader({ user }) {
                 </div>
             }
           </div>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:cfg.textDark?"#fff":"rgba(255,255,255,0.08)", color:cfg.textDark?"#000":"#fff" }}>
+          <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:cfg.textDark?"#fff":"rgba(15,23,42,0.5)", color:cfg.textDark?"#000":"#fff" }}>
             <PlatformSVG id={cfg.icon} size={10} />{cfg.label}
           </div>
         </div>
@@ -187,7 +187,7 @@ function CombinedProfileHeader({ brandName, selectedPlatforms, mode, avatar }) {
     <div style={{ ...card, overflow:"hidden", padding:0 }}>
       <div style={{ height:100, position:"relative", overflow:"hidden", background:"linear-gradient(135deg, #0C1322, #111827)" }}>
         {avatar && <img src={avatar} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"blur(16px) brightness(0.25)", transform:"scale(1.1)" }}/>}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(56,189,248,0.025) 1px, transparent 1px)", backgroundSize:"20px 20px" }}/>
+        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle, rgba(37,99,235,0.05) 1px, transparent 1px)", backgroundSize:"20px 20px" }}/>
         <div style={{ position:"absolute", top:10, right:14, display:"flex", gap:8, opacity:0.15 }}>
           {selectedPlatforms.slice(0,4).map(id => <PlatformSVG key={id} id={id==="x"?"twitter":id} size={18} />)}
         </div>
@@ -201,10 +201,10 @@ function CombinedProfileHeader({ brandName, selectedPlatforms, mode, avatar }) {
       </div>
       <div style={{ padding:"0 20px 20px" }}>
         <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginTop:-28, marginBottom:14, position:"relative", zIndex:2 }}>
-          <div style={{ width:56, height:56, borderRadius:"50%", border:"3px solid var(--bg-page)", overflow:"hidden", background:"linear-gradient(135deg, #38BDF8, #818CF8)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <div style={{ width:56, height:56, borderRadius:"50%", border:"3px solid var(--bg-page)", overflow:"hidden", background:"var(--accent)", display:"flex", alignItems:"center", justifyContent:"center" }}>
             {avatar
               ? <img src={avatar} alt={brandName} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none";}}/>
-              : <span style={{ color:"#050911", fontWeight:800, fontSize:22 }}>{initial}</span>
+              : <span style={{ color:"#fff", fontWeight:800, fontSize:22 }}>{initial}</span>
             }
           </div>
           <span style={{ fontSize:11, color:"var(--text-3)", background:"var(--bg-elevated)", border:"1px solid var(--border)", padding:"3px 10px", borderRadius:999 }}>
@@ -215,7 +215,7 @@ function CombinedProfileHeader({ brandName, selectedPlatforms, mode, avatar }) {
           {selectedPlatforms.map(id => {
             const cfg = getPlatformCfg(id);
             return (
-              <div key={id} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:"rgba(255,255,255,0.05)", color:"var(--text-2)", border:"1px solid var(--border)" }}>
+              <div key={id} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 9px", borderRadius:999, fontSize:10, fontWeight:700, background:"var(--bg-elevated)", color:"var(--text-2)", border:"1px solid var(--border)" }}>
                 <PlatformSVG id={cfg.icon} size={10} />{cfg.label}
               </div>
             );
@@ -344,7 +344,7 @@ export default function ProfileDisplay() {
       {/* Grid background */}
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        backgroundImage: "linear-gradient(rgba(56,189,248,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.025) 1px, transparent 1px)",
+        backgroundImage: "linear-gradient(rgba(37,99,235,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.05) 1px, transparent 1px)",
         backgroundSize: "60px 60px",
       }}/>
 
@@ -354,7 +354,7 @@ export default function ProfileDisplay() {
           position: "fixed", top: 16, right: 16, zIndex: 100,
           background: "var(--bg-surface)", border: "1px solid rgba(248,113,113,0.3)",
           borderRadius: 14, padding: 16, maxWidth: 340, display: "flex", gap: 12,
-          boxShadow: "0 8px 30px rgba(0,0,0,0.5)",
+          boxShadow: "0 8px 30px rgba(15,23,42,0.14)",
         }}>
           <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -400,7 +400,7 @@ export default function ProfileDisplay() {
             </div>
             <button onClick={handleGenerateReport} style={{
               width: "100%", padding: "15px 22px", borderRadius: 14, fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer",
-              background: "linear-gradient(135deg, #38BDF8, #818CF8)", color: "#050911",
+              background: "var(--accent)", color: "#fff",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
               boxShadow: "var(--shadow-btn)", fontFamily: "inherit",
             }}>
@@ -437,8 +437,8 @@ export default function ProfileDisplay() {
               <div style={{ height: 6, background: "var(--bg-elevated)", borderRadius: 999, overflow: "hidden" }}>
                 <div style={{
                   height: "100%", borderRadius: 999, width: `${progress}%`,
-                  background: "linear-gradient(90deg, #38BDF8, #818CF8)",
-                  boxShadow: "0 0 12px rgba(56,189,248,0.4)",
+                  background: "var(--accent)",
+                  boxShadow: "0 0 12px rgba(37,99,235,0.3)",
                   transition: "width .7s ease-out",
                 }}/>
               </div>
@@ -458,7 +458,7 @@ export default function ProfileDisplay() {
                   }}>
                     <div style={{
                       width: 24, height: 24, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11,
-                      background: done ? "var(--green-dim)" : active ? "var(--accent-dim)" : "rgba(255,255,255,0.03)",
+                      background: done ? "var(--green-dim)" : active ? "var(--accent-dim)" : "var(--bg-elevated)",
                       border: `1.5px solid ${done ? "var(--green)" : active ? "var(--accent)" : "var(--border)"}`,
                     }}>
                       {done ? <span style={{ color: "var(--green)", fontSize: 10 }}>✓</span> : step.emoji}
@@ -515,7 +515,7 @@ export default function ProfileDisplay() {
             </div>
 
             {/* Unlock CTA */}
-            <div style={{ ...card, background: "linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.06))", border: "1px solid var(--accent-border)" }}>
+            <div style={{ ...card, background: "linear-gradient(135deg, rgba(37,99,235,0.05), rgba(124,58,237,0.04))", border: "1px solid var(--accent-border)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                 <div style={{ width: 42, height: 42, borderRadius: 12, background: "var(--accent-dim)", border: "1px solid var(--accent-border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   🔒
@@ -527,7 +527,7 @@ export default function ProfileDisplay() {
               </div>
               <button onClick={handleUnlock} style={{
                 width: "100%", padding: "15px 22px", borderRadius: 14, fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer",
-                background: "linear-gradient(135deg, #38BDF8, #818CF8)", color: "#050911",
+                background: "var(--accent)", color: "#fff",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
                 boxShadow: "var(--shadow-btn)", fontFamily: "inherit",
               }}>
@@ -577,13 +577,13 @@ export default function ProfileDisplay() {
                 <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0 }}>Compiling all insights into your report</p>
               </div>
               <div style={{ height: 6, background: "var(--bg-elevated)", borderRadius: 999, overflow: "hidden", marginBottom: 8 }}>
-                <div style={{ height: "100%", borderRadius: 999, width: `${progress}%`, background: "linear-gradient(90deg, #38BDF8, #818CF8)", boxShadow: "0 0 12px rgba(56,189,248,0.4)", transition: "width .7s ease-out" }}/>
+                <div style={{ height: "100%", borderRadius: 999, width: `${progress}%`, background: "var(--accent)", boxShadow: "0 0 10px rgba(37,99,235,0.3)", transition: "width .7s ease-out" }}/>
               </div>
               <p style={{ textAlign: "center", fontSize: 11, color: "var(--text-3)" }}>{Math.round(progress)}% · Please keep this tab open</p>
             </div>
 
             {!upsellDismissed && (
-              <div style={{ borderRadius: 20, overflow: "hidden", background: "linear-gradient(135deg, rgba(56,189,248,0.08), rgba(129,140,248,0.06))", border: "1px solid var(--accent-border)" }}>
+              <div style={{ borderRadius: 20, overflow: "hidden", background: "linear-gradient(135deg, rgba(37,99,235,0.05), rgba(124,58,237,0.04))", border: "1px solid var(--accent-border)" }}>
                 <div style={{ padding: 24, position: "relative" }}>
                   <button onClick={() => setUpsellDismissed(true)} style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", color: "var(--text-3)", cursor: "pointer", fontSize: 16, fontFamily: "inherit" }}>✕</button>
                   <p style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 8, marginTop: 0 }}>While you wait</p>
@@ -595,7 +595,7 @@ export default function ProfileDisplay() {
                       { emoji:"🔄", label:"Re-run Anytime", sub:"Fresh data always" },
                       { emoji:"📈", label:"Track Trends",   sub:"See changes" },
                     ].map(item => (
-                      <div key={item.label} style={{ borderRadius: 12, padding: "10px 8px", textAlign: "center", background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)" }}>
+                      <div key={item.label} style={{ borderRadius: 12, padding: "10px 8px", textAlign: "center", background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
                         <div style={{ fontSize: 18, marginBottom: 4 }}>{item.emoji}</div>
                         <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-1)", margin: "0 0 2px" }}>{item.label}</p>
                         <p style={{ fontSize: 10, color: "var(--text-3)", margin: 0 }}>{item.sub}</p>
@@ -633,7 +633,7 @@ export default function ProfileDisplay() {
                   <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>Free · Takes 30 seconds</p>
                 </div>
                 <button onClick={() => navigate("/signup", { state: { prefillEmail: capturedEmail } })}
-                  style={{ padding: "9px 16px", borderRadius: 10, fontWeight: 700, fontSize: 12, background: "linear-gradient(135deg, #38BDF8, #818CF8)", color: "#050911", border: "none", cursor: "pointer", flexShrink: 0, fontFamily: "inherit" }}>
+                  style={{ padding: "9px 16px", borderRadius: 10, fontWeight: 700, fontSize: 12, background: "var(--accent)", color: "#fff", border: "none", cursor: "pointer", flexShrink: 0, fontFamily: "inherit" }}>
                   Sign Up →
                 </button>
               </div>
@@ -644,11 +644,11 @@ export default function ProfileDisplay() {
 
       {/* ── Email modal ── */}
       {showEmailModal && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(15,23,42,0.5)", backdropFilter: "blur(8px)" }}>
           <div style={{
             background: "var(--bg-surface)", border: "1px solid var(--border)",
             borderRadius: 22, padding: 32, maxWidth: 360, width: "100%",
-            boxShadow: "0 40px 80px rgba(0,0,0,0.8)", position: "relative",
+            boxShadow: "0 20px 60px rgba(15,23,42,0.18)", position: "relative",
           }}>
             <button onClick={() => setShowEmailModal(false)} style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", color: "var(--text-3)", cursor: "pointer", fontSize: 18, fontFamily: "inherit" }}>✕</button>
             <div style={{ textAlign: "center", marginBottom: 24 }}>
@@ -676,7 +676,7 @@ export default function ProfileDisplay() {
               {modalError && <p style={{ fontSize: 12, color: "var(--red)", margin: 0, display: "flex", gap: 5 }}>⚠️ {modalError}</p>}
               <button type="submit" style={{
                 padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer",
-                background: "linear-gradient(135deg, #38BDF8, #818CF8)", color: "#050911",
+                background: "var(--accent)", color: "#fff",
                 boxShadow: "var(--shadow-btn)", fontFamily: "inherit",
               }}>
                 Unlock Full Report →

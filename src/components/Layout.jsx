@@ -4,10 +4,12 @@ import { useEffect, useState, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import Logo from "./common/Logo"
 import { isTokenExpired } from "../utils/token"
+
 export default function Layout({ children }) {
   const navigate = useNavigate()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const dropdownRef = useRef(null)
   const token = localStorage.getItem("token")
 
@@ -33,6 +35,12 @@ export default function Layout({ children }) {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    window.addEventListener("scroll", onScroll)
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
   const handleLogout = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("userInfo")
@@ -41,53 +49,110 @@ export default function Layout({ children }) {
     navigate("/login")
   }
 
-  const navStyle = {
-    background: "var(--bg-page)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
-    borderBottom: "1px solid var(--border)",
-    position: "sticky",
-    top: 0,
-    zIndex: 9999,
-  }
-
-  const btnGhost = {
-    padding: "8px 18px",
-    background: "transparent",
-    color: "var(--text-2)",
-    fontWeight: 500,
-    fontSize: 13,
-    border: "1px solid var(--border)",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontFamily: "inherit",
-  }
-
-  const btnPrimary = {
-    padding: "8px 18px",
-    background: "linear-gradient(135deg, #38BDF8, #818CF8)",
-    color: "#050911",
-    fontWeight: 700,
-    fontSize: 13,
-    border: "none",
-    borderRadius: 10,
-    cursor: "pointer",
-    boxShadow: "var(--shadow-btn)",
-    fontFamily: "inherit",
-  }
-
   return (
     <>
+      <style>{`
+        .nav-login-btn {
+          padding: 7px 16px;
+          background: transparent;
+          color: var(--text-2);
+          font-weight: 500;
+          font-size: 13px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: inherit;
+          transition: border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .nav-login-btn:hover {
+          border-color: var(--accent);
+          color: var(--accent);
+          background: var(--accent-dim);
+        }
+        .nav-signup-btn {
+          padding: 7px 16px;
+          background: var(--accent);
+          color: #fff;
+          font-weight: 600;
+          font-size: 13px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: inherit;
+          box-shadow: var(--shadow-btn);
+          transition: opacity 0.15s, transform 0.1s;
+        }
+        .nav-signup-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+        .nav-profile-btn {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 14px;
+          background: var(--accent-dim);
+          border: 1px solid var(--accent-border);
+          border-radius: 8px;
+          cursor: pointer;
+          color: var(--accent);
+          font-size: 13px;
+          font-weight: 600;
+          font-family: inherit;
+          transition: background 0.15s;
+        }
+        .nav-profile-btn:hover { background: rgba(37,99,235,0.13); }
+        .nav-dd-item {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 16px;
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid var(--border);
+          cursor: pointer;
+          color: var(--text-2);
+          font-size: 13px;
+          text-align: left;
+          font-family: inherit;
+          transition: background 0.12s, color 0.12s;
+        }
+        .nav-dd-item:hover { background: var(--bg-elevated); color: var(--text-1); }
+        .nav-dd-logout {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 16px;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          color: var(--red);
+          font-size: 13px;
+          text-align: left;
+          font-family: inherit;
+          transition: background 0.12s;
+        }
+        .nav-dd-logout:hover { background: var(--red-dim); }
+      `}</style>
+
       <div style={{
         minHeight: "100vh",
         width: "100%",
         background: "var(--bg-page)",
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}>
-        <header style={navStyle}>
+        <header style={{
+          background: scrolled ? "rgba(248,249,252,0.96)" : "var(--bg-surface)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderBottom: `1px solid ${scrolled ? "var(--border)" : "rgba(15,23,42,0.07)"}`,
+          position: "sticky",
+          top: 0,
+          zIndex: 9999,
+          transition: "background 0.2s, border-color 0.2s, box-shadow 0.2s",
+          boxShadow: scrolled ? "0 1px 12px rgba(15,23,42,0.08)" : "none",
+        }}>
           <div style={{
             maxWidth: 1200,
             margin: "0 auto",
@@ -95,44 +160,31 @@ export default function Layout({ children }) {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            height: 64,
+            height: 60,
           }}>
             <Logo />
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {isLoggedIn ? (
                 <div style={{ position: "relative" }} ref={dropdownRef}>
                   <button
+                    className="nav-profile-btn"
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "8px 14px",
-                      background: "var(--accent-dim)",
-                      border: "1px solid var(--accent-border)",
-                      borderRadius: 10,
-                      cursor: "pointer",
-                      color: "var(--accent)",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      fontFamily: "inherit",
-                    }}
                   >
-                    <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" strokeWidth="2" strokeLinecap="round"/>
                       <circle cx="12" cy="7" r="4" strokeWidth="2"/>
                     </svg>
                     Profile
                     <svg
                       style={{
-                        width: 12,
-                        height: 12,
+                        width: 11,
+                        height: 11,
                         transition: "transform 0.2s",
                         transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
                       }}
                       fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     >
-                      <path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M19 9l-7 7-7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
 
@@ -141,12 +193,11 @@ export default function Layout({ children }) {
                       position: "absolute",
                       right: 0,
                       top: "calc(100% + 8px)",
-                      width: 200,
+                      width: 196,
                       background: "var(--bg-surface)",
                       border: "1px solid var(--border)",
-                      borderRadius: 14,
-                      backdropFilter: "blur(20px)",
-                      boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
+                      borderRadius: 12,
+                      boxShadow: "0 8px 30px rgba(15,23,42,0.14)",
                       overflow: "hidden",
                       zIndex: 10,
                     }}>
@@ -176,54 +227,14 @@ export default function Layout({ children }) {
                       ].map((item) => (
                         <button
                           key={item.label}
+                          className="nav-dd-item"
                           onClick={item.action}
-                          style={{
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            padding: "11px 16px",
-                            background: "transparent",
-                            border: "none",
-                            borderBottom: "1px solid var(--border)",
-                            cursor: "pointer",
-                            color: "var(--text-2)",
-                            fontSize: 13,
-                            textAlign: "left",
-                            fontFamily: "inherit",
-                          }}
-                          onMouseOver={e => {
-                            e.currentTarget.style.background = "var(--bg-hover)"
-                            e.currentTarget.style.color = "var(--text-1)"
-                          }}
-                          onMouseOut={e => {
-                            e.currentTarget.style.background = "transparent"
-                            e.currentTarget.style.color = "var(--text-2)"
-                          }}
                         >
                           {item.icon}
                           {item.label}
                         </button>
                       ))}
-                      <button
-                        onClick={handleLogout}
-                        style={{
-                          width: "100%",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          padding: "11px 16px",
-                          background: "transparent",
-                          border: "none",
-                          cursor: "pointer",
-                          color: "var(--red)",
-                          fontSize: 13,
-                          textAlign: "left",
-                          fontFamily: "inherit",
-                        }}
-                        onMouseOver={e => { e.currentTarget.style.background = "var(--red-dim)"; }}
-                        onMouseOut={e => { e.currentTarget.style.background = "transparent"; }}
-                      >
+                      <button className="nav-dd-logout" onClick={handleLogout}>
                         <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
@@ -235,23 +246,13 @@ export default function Layout({ children }) {
               ) : (
                 <>
                   <button
+                    className="nav-login-btn"
                     onClick={() => navigate("/login")}
-                    style={btnGhost}
-                    onMouseOver={e => {
-                      e.currentTarget.style.borderColor = "var(--accent)"
-                      e.currentTarget.style.color = "var(--accent)"
-                    }}
-                    onMouseOut={e => {
-                      e.currentTarget.style.borderColor = "var(--border)"
-                      e.currentTarget.style.color = "var(--text-2)"
-                    }}
                   >
                     Login
                   </button>
                   <button
-                    style={btnPrimary}
-                    onMouseOver={e => e.currentTarget.style.opacity = "0.9"}
-                    onMouseOut={e => e.currentTarget.style.opacity = "1"}
+                    className="nav-signup-btn"
                     onClick={async () => {
                       try {
                         await fetch(`${import.meta.env.VITE_BACKEND_URL}/signup-logs/visit`, {
