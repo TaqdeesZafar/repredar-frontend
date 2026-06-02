@@ -688,7 +688,7 @@ export default function ProfileDisplay() {
                   {/* ── Footer ── */}
                   <div style={{ padding: "10px 18px", background: "var(--bg-elevated)", display: "flex", alignItems: "center", gap: 7 }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>Full web intelligence report — page 7 of your PDF</p>
+                    <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>Full web intelligence report — page 5 of your PDF</p>
                   </div>
 
                 </div>
