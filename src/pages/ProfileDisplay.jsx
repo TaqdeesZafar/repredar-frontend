@@ -346,6 +346,21 @@ export default function ProfileDisplay() {
   };
 
   const overall   = reportData?.sentimentAnalysis?.overall;
+
+  // Blend the web-intelligence score into the displayed score so the preview
+  // matches the PDF exactly. Mirrors backend blendWebScore():
+  // social 70% + web 30%, minus 0.5 per crisis flag (capped -2), clamped 1-10.
+  const blendedScore = (() => {
+    const social = Number(overall?.score);
+    const web = Number(webData?.gptAnalysis?.search_presence_score);
+    if (!social) return overall?.score ?? null;
+    if (!web) return Math.round(social);
+    const crisisFlags = webData?.gptAnalysis?.crisis_flags || [];
+    const crisisPenalty = Math.min(crisisFlags.length * 0.5, 2);
+    const blended = social * 0.70 + web * 0.30 - crisisPenalty;
+    return Math.max(1, Math.min(10, Math.round(blended)));
+  })();
+
   const sentiment = overall?.sentiment || "neutral";
   const sentColors = {
     positive: { bg:"var(--green-dim)", text:"var(--green)", dot:"var(--green)" },
@@ -516,8 +531,8 @@ export default function ProfileDisplay() {
                 </span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                <div style={{ width: 100, height: 100, borderRadius: "50%", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: scoreBg(overall?.score), border: `3px solid ${scoreBorder(overall?.score)}` }}>
-                  <span style={{ fontSize: 32, fontWeight: 900, color: scoreColor(overall?.score), lineHeight: 1 }}>{overall?.score ?? "—"}</span>
+                <div style={{ width: 100, height: 100, borderRadius: "50%", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: scoreBg(blendedScore), border: `3px solid ${scoreBorder(blendedScore)}` }}>
+                  <span style={{ fontSize: 32, fontWeight: 900, color: scoreColor(blendedScore), lineHeight: 1 }}>{blendedScore ?? "—"}</span>
                   <span style={{ fontSize: 10, color: "var(--text-3)", fontWeight: 500 }}>/10</span>
                 </div>
                 <div style={{ flex: 1 }}>
