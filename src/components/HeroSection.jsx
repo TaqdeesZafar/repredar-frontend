@@ -523,6 +523,210 @@ function TrustBar() {
   );
 }
 
+// ─── Report preview — pixel-perfect CSS mockup of the actual PDF ──────────────
+function ReportPreview() {
+  return (
+    <section className="preview-section" style={{ background: "var(--bg-page)", borderTop: "1px solid var(--border)", padding: "96px 24px", overflow: "hidden" }}>
+      <div className="preview-grid" style={{
+        maxWidth: 1000, margin: "0 auto",
+        display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: 56, alignItems: "center",
+      }}>
+        {/* LEFT — copy */}
+        <div className="preview-copy">
+          <span style={{
+            display: "inline-block", padding: "4px 14px", borderRadius: 999,
+            background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
+            color: "var(--accent)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em",
+            textTransform: "uppercase", marginBottom: 16,
+          }}>
+            The Report
+          </span>
+          <h2 style={{ fontSize: 34, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.025em", margin: "0 0 16px", lineHeight: 1.15 }}>
+            A boardroom-ready PDF, generated in seconds
+          </h2>
+          <p style={{ fontSize: 16, color: "var(--text-2)", lineHeight: 1.65, margin: "0 0 24px" }}>
+            Every report is a polished, multi-page PDF you can download, share with your team, or send to a client — no design work needed.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[
+              "Reputation score & letter grade on the cover",
+              "Sentiment breakdown with live charts",
+              "Web & search intelligence + competitor benchmarks",
+              "30/60/90-day action plan",
+            ].map(t => (
+              <div key={t} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <span style={{
+                  width: 20, height: 20, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+                  background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="3"><path d="M5 12l5 5L20 7"/></svg>
+                </span>
+                <span style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.5 }}>{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT — fanned report pages mockup */}
+        <div className="preview-visual" style={{ position: "relative", height: 420, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* glow */}
+          <div style={{ position: "absolute", inset: -40, background: "radial-gradient(circle, rgba(37,99,235,0.10), transparent 70%)", pointerEvents: "none" }}/>
+
+          {/* Back page (peeking) */}
+          <div style={{
+            position: "absolute", width: 260, height: 360, borderRadius: 12,
+            background: "var(--bg-surface)", border: "1px solid var(--border)",
+            boxShadow: "0 12px 40px rgba(15,23,42,0.10)",
+            transform: "rotate(-7deg) translateX(-44px)",
+          }}>
+            <div style={{ height: 90, borderRadius: "12px 12px 0 0", background: "linear-gradient(135deg, #0F1F3D, #1a3a6e)" }}/>
+            <div style={{ padding: 18 }}>
+              {[80, 60, 70, 50].map((w, i) => (
+                <div key={i} style={{ height: 7, width: `${w}%`, borderRadius: 4, background: "var(--bg-elevated)", marginBottom: 10 }}/>
+              ))}
+              <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                <div style={{ flex: 1, height: 48, borderRadius: 8, background: "var(--bg-elevated)" }}/>
+                <div style={{ flex: 1, height: 48, borderRadius: 8, background: "var(--bg-elevated)" }}/>
+              </div>
+            </div>
+          </div>
+
+          {/* Front page — the cover */}
+          <div style={{
+            position: "absolute", width: 270, height: 374, borderRadius: 14, overflow: "hidden",
+            background: "var(--bg-surface)", border: "1px solid var(--border)",
+            boxShadow: "0 24px 70px rgba(15,23,42,0.20)",
+            transform: "rotate(4deg) translateX(34px)",
+          }}>
+            {/* Cover header */}
+            <div style={{ background: "linear-gradient(135deg, #0F1F3D 0%, #1a3a6e 100%)", padding: "20px 18px 24px", position: "relative" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 18 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#38BDF8" }}/>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>RepRadar</span>
+              </div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#38BDF8", letterSpacing: "1.5px", marginBottom: 6 }}>REPUTATION REPORT</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#fff", lineHeight: 1.1 }}>Your Online<br/><span style={{ color: "#38BDF8" }}>Reputation</span><br/>Decoded.</div>
+              {/* gauge */}
+              <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ position: "relative", width: 70, height: 40 }}>
+                  <svg width="70" height="40" viewBox="0 0 70 40">
+                    <path d="M 8 38 A 27 27 0 0 1 62 38" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="6" strokeLinecap="round"/>
+                    <path d="M 8 38 A 27 27 0 0 1 52 14" fill="none" stroke="#10B981" strokeWidth="6" strokeLinecap="round"/>
+                  </svg>
+                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, textAlign: "center", fontSize: 13, fontWeight: 900, color: "#10B981" }}>8.4</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 8, color: "#94A3B8", letterSpacing: "1px" }}>GRADE</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#10B981" }}>A</div>
+                </div>
+              </div>
+            </div>
+            {/* Cover body */}
+            <div style={{ padding: 16 }}>
+              <div style={{ display: "flex", gap: 7, marginBottom: 14 }}>
+                <span style={{ fontSize: 8, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: "var(--accent-dim)", color: "var(--accent)" }}>INSTAGRAM</span>
+                <span style={{ fontSize: 8, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: "rgba(124,58,237,0.1)", color: "#7C3AED" }}>BUSINESS</span>
+              </div>
+              {[90, 75, 82].map((w, i) => (
+                <div key={i} style={{ height: 6, width: `${w}%`, borderRadius: 4, background: "var(--bg-elevated)", marginBottom: 8 }}/>
+              ))}
+              <div style={{ marginTop: 14, padding: 10, borderRadius: 8, background: "var(--bg-elevated)", display: "flex", gap: 8 }}>
+                {["#10B981", "#F59E0B", "#EF4444"].map(c => (
+                  <div key={c} style={{ flex: 1, textAlign: "center" }}>
+                    <div style={{ width: 22, height: 22, borderRadius: "50%", background: c, margin: "0 auto 5px", opacity: 0.85 }}/>
+                    <div style={{ height: 5, width: "70%", borderRadius: 3, background: "var(--border)", margin: "0 auto" }}/>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Floating "PDF" pill */}
+          <div style={{
+            position: "absolute", top: 24, right: 0, zIndex: 5,
+            padding: "8px 14px", borderRadius: 10, background: "var(--accent)",
+            boxShadow: "0 6px 20px rgba(37,99,235,0.35)",
+            display: "flex", alignItems: "center", gap: 7,
+            animation: "float 3.5s ease-in-out infinite",
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>Instant PDF</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── FAQ accordion ────────────────────────────────────────────────────────────
+function FAQ() {
+  const [open, setOpen] = useState(0);
+  const faqs = [
+    { q: "Is it really free?", a: "Yes — completely free, no credit card, no trial that expires. Enter a name, pick your platforms, and get a full PDF report. We built this as a free tool because we believe everyone should be able to see their online reputation." },
+    { q: "How accurate is the reputation score?", a: "The score is generated by AI analysing real social media posts, comments, reviews, news coverage and web search results. It blends social sentiment (70%) with web & search presence (30%), then adjusts for any crisis signals — so it reflects how the internet actually sees you, not a guess." },
+    { q: "Do I need to create an account?", a: "No. You can generate and download a full report without signing up. We only ask for an email so we can send you a copy of the PDF — and you can create a free account later if you want to save and track reports over time." },
+    { q: "Which platforms do you scan?", a: "X (Twitter), Instagram, TikTok, Facebook, LinkedIn and Google Business — plus a web & search intelligence layer that pulls in news, reviews and press mentions from across the internet." },
+    { q: "How long does it take?", a: "Most reports are ready in under 60 seconds for the on-screen preview, and the full PDF is generated moments after. Larger cross-platform scans can take 2–3 minutes." },
+    { q: "Is my data safe?", a: "We only analyse publicly available information — the same posts, reviews and search results anyone could find. We never post, never access private accounts, and never share your email." },
+  ];
+  return (
+    <section className="faq-section" style={{ background: "var(--bg-surface)", borderTop: "1px solid var(--border)", padding: "88px 24px" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={{
+            display: "inline-block", padding: "4px 14px", borderRadius: 999,
+            background: "var(--accent-dim)", border: "1px solid var(--accent-border)",
+            color: "var(--accent)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em",
+            textTransform: "uppercase", marginBottom: 16,
+          }}>
+            FAQ
+          </span>
+          <h2 style={{ fontSize: 32, fontWeight: 800, color: "var(--text-1)", letterSpacing: "-0.025em", margin: 0 }}>
+            Questions, answered
+          </h2>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {faqs.map((f, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={i} style={{
+                background: "var(--bg-page)", border: `1px solid ${isOpen ? "var(--accent-border)" : "var(--border)"}`,
+                borderRadius: 14, overflow: "hidden", transition: "border-color 0.2s",
+              }}>
+                <button
+                  onClick={() => setOpen(isOpen ? -1 : i)}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
+                    padding: "18px 20px", background: "transparent", border: "none", cursor: "pointer",
+                    textAlign: "left", fontFamily: "inherit",
+                  }}
+                >
+                  <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-1)" }}>{f.q}</span>
+                  <span style={{
+                    width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                    background: isOpen ? "var(--accent)" : "var(--accent-dim)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "background 0.2s, transform 0.2s",
+                    transform: isOpen ? "rotate(180deg)" : "none",
+                  }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={isOpen ? "#fff" : "var(--accent)"} strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                  </span>
+                </button>
+                {isOpen && (
+                  <div style={{ padding: "0 20px 20px" }}>
+                    <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.65, margin: 0 }}>{f.a}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Final CTA ────────────────────────────────────────────────────────────────
 function FinalCTA() {
   return (
@@ -607,6 +811,10 @@ const Hero = () => {
           .how-section { padding: 60px 16px !important; }
           .features-section { padding: 60px 16px !important; }
           .stats-section { padding: 24px 16px !important; }
+          .preview-section { padding: 60px 16px !important; }
+          .preview-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .preview-visual { height: 380px !important; margin-top: 8px; }
+          .faq-section { padding: 60px 16px !important; }
           .platform-chips { gap: 5px !important; }
           .platform-chips button { font-size: 11px !important; padding: 4px 9px !important; }
           .acc-type-grid { grid-template-columns: 1fr 1fr !important; }
@@ -819,8 +1027,10 @@ const Hero = () => {
 
       <StatsStrip />
       <HowItWorks />
+      <ReportPreview />
       <ReportFeatures />
       <TrustBar />
+      <FAQ />
       <FinalCTA />
     </>
   );
