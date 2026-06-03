@@ -19,6 +19,18 @@ const GLOBAL_CSS = `
   .sr-scroll::-webkit-scrollbar { width: 4px; }
   .sr-scroll::-webkit-scrollbar-track { background: transparent; }
   .sr-scroll::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.12); border-radius: 2px; }
+
+  @media (max-width: 600px) {
+    .sr-generate-bar {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 12px !important;
+      padding: 14px !important;
+    }
+    .sr-generate-info { text-align: center; }
+    .sr-generate-btns { width: 100% !important; }
+    .sr-btn-primary { flex: 1 !important; }
+  }
 `;
 
 // ─── Platform config ──────────────────────────────────────────────────────────
@@ -721,19 +733,19 @@ export default function SearchResult() {
       {selectedArr.length > 0 && (
         <div style={{
           position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 30,
-          padding: "0 16px",
-          paddingBottom: "max(24px, env(safe-area-inset-bottom, 24px))",
+          padding: "0 12px",
+          paddingBottom: "max(16px, env(safe-area-inset-bottom, 16px))",
         }}>
-          <div style={{
+          <div className="sr-generate-bar" style={{
             maxWidth: 900, margin: "0 auto",
             background: "var(--bg-surface)",
             border: "1px solid var(--border)",
             borderRadius: 18,
             boxShadow: "0 -4px 24px rgba(15,23,42,0.12), var(--shadow-glow)",
-            padding: "16px 20px",
+            padding: "14px 18px",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
           }}>
-            <div>
+            <div className="sr-generate-info" style={{ minWidth: 0 }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", margin: 0 }}>
                 {selectedArr.length} platform{selectedArr.length > 1 ? "s" : ""} selected
               </p>
@@ -742,30 +754,28 @@ export default function SearchResult() {
               </p>
             </div>
 
-            <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+            <div className="sr-generate-btns" style={{ display: "flex", gap: 10, flexShrink: 0 }}>
               {selectedArr.length === 1 ? (
                 <button onClick={() => handleGenerateReport("individual")}
-                  style={{ padding: "11px 22px", fontSize: 13, fontWeight: 700, background: "var(--accent)", color: "#fff", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "var(--shadow-btn)", fontFamily: "inherit" }}
-                  onMouseOver={e => e.currentTarget.style.opacity = "0.9"}
-                  onMouseOut={e => e.currentTarget.style.opacity = "1"}>
+                  className="sr-btn-primary"
+                  style={{ padding: "12px 22px", fontSize: 13, fontWeight: 700, background: "var(--accent)", color: "#fff", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "var(--shadow-btn)", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                   Generate Report
-                  <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg style={{ width: 14, height: 14, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M5 12h14M13 5l7 7-7 7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
               ) : (
                 <>
                   <button onClick={() => handleGenerateReport("individual")}
-                    style={{ padding: "11px 18px", fontSize: 13, fontWeight: 500, background: "transparent", color: "var(--text-2)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontFamily: "inherit" }}
+                    style={{ padding: "12px 18px", fontSize: 13, fontWeight: 500, background: "transparent", color: "var(--text-2)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flex: 1, textAlign: "center" }}
                     className="sr-btn-ghost">
                     Individual
                   </button>
                   <button onClick={() => handleGenerateReport("combined")}
-                    style={{ padding: "11px 22px", fontSize: 13, fontWeight: 700, background: "var(--accent)", color: "#fff", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "var(--shadow-btn)", fontFamily: "inherit" }}
-                    onMouseOver={e => e.currentTarget.style.opacity = "0.9"}
-                    onMouseOut={e => e.currentTarget.style.opacity = "1"}>
+                    className="sr-btn-primary"
+                    style={{ padding: "12px 22px", fontSize: 13, fontWeight: 700, background: "var(--accent)", color: "#fff", border: "none", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "var(--shadow-btn)", fontFamily: "inherit", whiteSpace: "nowrap", flex: 1 }}>
                     Combined
-                    <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg style={{ width: 14, height: 14, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path d="M5 12h14M13 5l7 7-7 7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
