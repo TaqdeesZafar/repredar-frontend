@@ -878,9 +878,12 @@ const Hero = () => {
               </span>
             </div>
 
-            {/* Headline */}
-            <h1
+            {/* Headline — styled div, not <h1>, so the page has exactly one H1
+                (the keyword-rich SEO heading in Home.jsx). Visual is unchanged. */}
+            <div
               className="hero-headline"
+              role="heading"
+              aria-level="2"
               style={{
                 fontSize: "clamp(40px, 5vw, 66px)",
                 fontWeight: 800,
@@ -902,7 +905,7 @@ const Hero = () => {
               }}>
                 says about anyone.
               </span>
-            </h1>
+            </div>
 
             {/* Subheadline */}
             <p className="hero-sub" style={{ fontSize: 17, color: "var(--text-2)", lineHeight: 1.65, marginBottom: 28, maxWidth: 460, marginTop: 0 }}>

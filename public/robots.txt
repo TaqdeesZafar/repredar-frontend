@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /profile-info
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /report/
+
+Sitemap: https://www.rep-radar.com/sitemap.xml
