@@ -255,6 +255,7 @@ export default function ProfileDisplay() {
   const [activeStep,      setActiveStep]     = useState(0);
   const [reportData,      setReportData]     = useState(null);
   const [webData,         setWebData]        = useState(null);
+  const [pdfBlobUrl,      setPdfBlobUrl]      = useState(null);
   const [errorMessage,    setErrorMessage]   = useState("");
   const [showEmailModal,  setShowEmailModal] = useState(false);
   const [email,           setEmail]          = useState("");
@@ -337,15 +338,41 @@ export default function ProfileDisplay() {
     if (!pdfUrl) { setErrorMessage("No PDF URL available."); return; }
     const fullPdfUrl = `${pdfUrl}&email=${encodeURIComponent(userEmail)}`;
     setPhase("downloading"); setProgress(0); setErrorMessage(""); startTicker(170000);
+
+    const isMobile = /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+
     try {
       const res = await fetch(fullPdfUrl);
       stopTicker();
       if (res.ok) {
-        const blob = await res.blob(); setProgress(100);
+        const blob = await res.blob();
+        setProgress(100);
         const filename = `${displayName.replace(/\s+/g, "_")}_reputation_report.pdf`;
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a"); a.style.display="none"; a.href=url; a.download=filename;
-        document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url); document.body.removeChild(a);
+
+        if (isMobile) {
+          // iOS Safari / mobile browsers do not reliably support the
+          // <a download> blob trick. Opening the blob URL lets the mobile
+          // browser render the PDF in its native viewer, where the user can
+          // then save/share it. Keep the blob URL alive (don't revoke immediately).
+          const win = window.open(url, "_blank");
+          if (!win) {
+            // popup blocked — give the user a tappable link instead
+            setPdfBlobUrl(url);
+          }
+          // Revoke later so the new tab has time to load it.
+          setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+        } else {
+          const a = document.createElement("a");
+          a.style.display = "none";
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          // Revoke after a tick so the download has been initiated.
+          setTimeout(() => window.URL.revokeObjectURL(url), 4000);
+        }
         setPhase("done");
       } else {
         let msg = ""; try { const d = await res.json(); msg = d.message || ""; } catch {}
@@ -825,10 +852,29 @@ export default function ProfileDisplay() {
           <>
             <div style={{ ...card, textAlign: "center" }}>
               <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--green-dim)", border: "1px solid var(--green)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>✅</div>
-              <h3 style={{ fontSize: 19, fontWeight: 800, margin: "0 0 6px", color: "var(--text-1)" }}>PDF Downloaded!</h3>
-              <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0 }}>Your download started automatically.</p>
-              {capturedEmail && <p style={{ fontSize: 12, color: "var(--green)", fontWeight: 600, marginTop: 8 }}>Report also sent to {capturedEmail}</p>}
-              <button onClick={() => setPhase("preview")} style={{ marginTop: 14, background: "none", border: "none", color: "var(--accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              <h3 style={{ fontSize: 19, fontWeight: 800, margin: "0 0 6px", color: "var(--text-1)" }}>Your report is ready!</h3>
+              <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0 }}>Your report opened in a new tab. You can save or share it from there.</p>
+              {capturedEmail && <p style={{ fontSize: 12, color: "var(--green)", fontWeight: 600, marginTop: 8 }}>A copy was also sent to {capturedEmail}</p>}
+
+              {/* Mobile popup-blocked fallback — tappable link to the PDF blob */}
+              {pdfBlobUrl && (
+                <a
+                  href={pdfBlobUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginTop: 16, display: "inline-flex", alignItems: "center", gap: 9,
+                    padding: "13px 26px", borderRadius: 12, background: "var(--accent)",
+                    color: "#fff", fontWeight: 700, fontSize: 14, textDecoration: "none",
+                    boxShadow: "var(--shadow-btn)",
+                  }}
+                >
+                  Open Report
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </a>
+              )}
+
+              <button onClick={() => setPhase("preview")} style={{ marginTop: 14, display: "block", marginLeft: "auto", marginRight: "auto", background: "none", border: "none", color: "var(--accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                 Back to preview
               </button>
             </div>
