@@ -281,11 +281,20 @@ export default function ProfileDisplay() {
     if (!analyzeUrl) { setErrorMessage("Missing profile data. Please search again."); return; }
     setPhase("analyzing"); setProgress(0); setActiveStep(0); setErrorMessage(""); startTicker(170000);
 
-    // Fetch web intelligence in parallel — fire-and-forget, never blocks main report
+    // Fetch web intelligence in parallel — fire-and-forget, never blocks main report.
+    // Pass verified identity context so the web search targets the RIGHT entity
+    // (the confirmed profile) and rejects similarly-named look-alikes.
     const webQuery = encodeURIComponent(
       isCombined ? (state.brandName || "") : (state.user?.name || state.user?.screen_name || "")
     );
-    const webUrl = `${import.meta.env.VITE_BACKEND_URL}/web/search?query=${webQuery}`;
+    const ctxParams = new URLSearchParams();
+    ctxParams.set("query", isCombined ? (state.brandName || "") : (state.user?.name || state.user?.screen_name || ""));
+    if (state.mode) ctxParams.set("profileType", state.mode === "person" ? "influencer" : "business");
+    const ctxLocation = state.googleLocation || state.user?.location || "";
+    if (ctxLocation) ctxParams.set("location", ctxLocation);
+    const ctxBio = state.user?.description || state.user?.biography || state.user?.headline || "";
+    if (ctxBio) ctxParams.set("bio", ctxBio.slice(0, 300));
+    const webUrl = `${import.meta.env.VITE_BACKEND_URL}/web/search?${ctxParams.toString()}`;
     fetch(webUrl)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setWebData(d); })
