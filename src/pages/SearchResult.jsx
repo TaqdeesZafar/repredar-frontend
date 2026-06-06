@@ -43,6 +43,16 @@ const ALL_PLATFORMS = [
   { id: "google",    label: "Google Business", bg: "#fff",                                         tc: "#444" },
 ];
 
+// Per-platform example URLs for the "Paste URL" placeholder
+const URL_PLACEHOLDERS = {
+  twitter:   "https://twitter.com/username",
+  instagram: "https://instagram.com/username",
+  tiktok:    "https://tiktok.com/@username",
+  facebook:  "https://facebook.com/pagename",
+  linkedin:  "https://linkedin.com/in/username",
+  google:    "https://maps.google.com/?cid=...",
+};
+
 // ─── Icons ────────────────────────────────────────────────────────────────────
 function PlatformIcon({ id, size = 14 }) {
   const s = { width: size, height: size, flexShrink: 0 };
@@ -463,7 +473,7 @@ function ResultCard({ platformId, label, profile, selected, onToggle, onOverride
         <div style={{ padding: "0 14px 14px", borderTop: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
           <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", margin: "10px 0 8px" }}>Paste the correct profile URL:</p>
           <input ref={inputRef} type="text" value={overrideVal} onChange={e => setOverride(e.target.value)}
-            placeholder="https://twitter.com/username"
+            placeholder={URL_PLACEHOLDERS[platformId] || "https://example.com/username"}
             style={{ width: "100%", padding: "9px 12px", background: "var(--bg-elevated)", border: "1px solid var(--accent-border)", borderRadius: 10, color: "var(--text-1)", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
             onKeyDown={e => {
               if (e.key === "Enter" && overrideVal.trim()) { onOverride(overrideVal.trim()); setEditing(false); }
