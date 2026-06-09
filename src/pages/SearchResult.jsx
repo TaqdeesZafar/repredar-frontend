@@ -502,12 +502,20 @@ export default function SearchResult() {
   const location = useLocation();
   const state    = location.state || {};
 
-  const qParam         = new URLSearchParams(location.search).get("query") || "";
+  const sp             = new URLSearchParams(location.search);
+  const qParam         = sp.get("query") || "";
+  // Allow external entry points (e.g. the reputationreturn.com embed) to pass
+  // mode + platforms + location via URL params, not just React Router state.
+  const modeParam      = sp.get("mode");                       // "company" | "person"
+  const platformsParam = sp.get("platforms");                  // comma list, e.g. "twitter,instagram,google"
+  const locationParam  = sp.get("location") || "";
   const username       = state.username || qParam || "";
-  const mode           = state.mode || "company";
-  const platforms      = state.platforms || ALL_PLATFORMS.map(p => p.id).filter(id => id !== "google");
+  const mode           = state.mode || modeParam || "company";
+  const platforms      = state.platforms
+    || (platformsParam ? platformsParam.split(",").map(p => p.trim()).filter(Boolean) : null)
+    || ALL_PLATFORMS.map(p => p.id).filter(id => id !== "google");
   const handles        = state.handles || Object.fromEntries(platforms.map(p => [p, username]));
-  const googleLocation = state.googleLocation || "";
+  const googleLocation = state.googleLocation || locationParam || "";
 
   const [profiles, setProfiles] = useState(
     () => Object.fromEntries(platforms.map(p => [p, undefined]))

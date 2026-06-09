@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rep Radar | Free AI Online Reputation Checker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        i.fas, i.fa, i.fab { font-family: 'Font Awesome 6 Free' !important; font-weight: 900; }
+        i.fab { font-family: 'Font Awesome 6 Brands' !important; font-weight: 400; }
+
+        .rr-container * {
+            box-sizing: border-box; margin: 0; padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .rr-container {
+            --primary: #2563EB;
+            --primary-dark: #1d4ed8;
+            --accent: #7C3AED;
+            --ink: #0F172A;
+            --ink-2: #475569;
+            --ink-3: #94A3B8;
+            --line: rgba(15,23,42,0.09);
+            --surface: #FFFFFF;
+            --bg: #F8F9FC;
+            --elevated: #F1F4F9;
+            --green: #059669;
+            --accent-dim: rgba(37,99,235,0.08);
+            --accent-border: rgba(37,99,235,0.22);
+            --radius: 14px;
+            --shadow-sm: 0 1px 3px rgba(15,23,42,0.08);
+            --shadow-md: 0 4px 16px rgba(15,23,42,0.10);
+            --shadow-btn: 0 4px 14px rgba(37,99,235,0.30);
+
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.6;
+            padding: 24px 12px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .rr-wrapper {
+            max-width: 1080px; width: 100%;
+            background: var(--surface); border-radius: 22px;
+            box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--line);
+        }
+
+        /* Hero */
+        .rr-hero {
+            text-align: center; padding: 44px 18px 8px; position: relative;
+            background: radial-gradient(circle at 50% 0%, rgba(37,99,235,0.06), transparent 60%), var(--surface);
+        }
+        .rr-hero::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--primary); }
+        .rr-badge {
+            display: inline-flex; align-items: center; gap: 7px; padding: 5px 14px; border-radius: 999px; margin-bottom: 18px;
+            background: var(--accent-dim); border: 1px solid var(--accent-border);
+            color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+        }
+        .rr-badge .rr-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+        .rr-hero h1 { font-size: clamp(26px, 6vw, 44px); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 14px; color: var(--ink); }
+        .rr-hero h1 .rr-grad { background: linear-gradient(135deg, #2563EB, #7C3AED); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .rr-hero p { font-size: 15px; color: var(--ink-2); max-width: 600px; margin: 0 auto 26px; line-height: 1.6; }
+        .rr-hero p strong { color: var(--ink); font-weight: 700; }
+
+        /* Search card */
+        .rr-search {
+            background: var(--surface); padding: 22px; border-radius: var(--radius); box-shadow: var(--shadow-md);
+            max-width: 560px; width: 100%; margin: 0 auto 8px; border: 1px solid var(--line);
+            display: flex; flex-direction: column; gap: 14px;
+        }
+
+        /* Name input */
+        .rr-input-wrap { position: relative; }
+        #rr-input {
+            width: 100%; padding: 14px 14px 14px 44px; font-size: 15px;
+            border: 1.5px solid var(--line); border-radius: 10px; outline: none;
+            transition: border-color .15s, box-shadow .15s; background: var(--bg); color: var(--ink);
+        }
+        #rr-input::placeholder { color: var(--ink-3); }
+        #rr-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .rr-search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-size: 14px; }
+
+        /* Mode toggle (Business / Person) */
+        .rr-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .rr-mode-btn {
+            padding: 10px 8px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-2);
+            transition: all .15s; font-family: inherit;
+        }
+        .rr-mode-btn.active { background: var(--accent-dim); border-color: var(--primary); color: var(--primary); }
+
+        /* Platform chips */
+        .rr-plat-label { font-size: 10px; font-weight: 700; color: var(--ink-3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; text-align: left; }
+        .rr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .rr-chip {
+            display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px; border-radius: 999px;
+            font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--line);
+            background: var(--surface); color: var(--ink-2); transition: all .15s; font-family: inherit;
+        }
+        .rr-chip.active { background: var(--accent-dim); border-color: var(--primary); color: var(--primary); }
+        .rr-chip .rr-check { display: none; font-size: 9px; }
+        .rr-chip.active .rr-check { display: inline; }
+        .rr-chip.hidden { display: none; }
+
+        /* Google location field */
+        .rr-loc {
+            display: none; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 9px;
+            background: rgba(5,150,105,0.06); border: 1.5px solid rgba(5,150,105,0.2);
+        }
+        .rr-loc.show { display: flex; }
+        .rr-loc i { color: var(--green); font-size: 13px; }
+        .rr-loc input { flex: 1; background: transparent; border: none; outline: none; font-size: 13px; color: var(--ink-2); font-family: inherit; }
+
+        /* Submit */
+        #rr-btn {
+            width: 100%; padding: 14px; font-size: 15px; font-weight: 700; border: none; border-radius: 10px;
+            background: var(--primary); color: #fff; cursor: pointer; transition: opacity .15s, transform .1s;
+            display: flex; align-items: center; justify-content: center; gap: 9px; box-shadow: var(--shadow-btn); font-family: inherit;
+        }
+        #rr-btn:hover { opacity: .92; transform: translateY(-1px); }
+        #rr-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+        .rr-err {
+            font-size: 13px; color: #DC2626; text-align: center; display: none;
+            background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 9px; padding: 9px;
+        }
+        .rr-err.show { display: block; }
+        .rr-note { font-size: 12px; color: var(--ink-3); text-align: center; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+        .rr-note span { display: inline-flex; align-items: center; gap: 5px; }
+        .rr-note i { color: var(--green); }
+
+        /* Stats */
+        .rr-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 38px 18px; background: var(--bg); border-top: 1px solid var(--line); }
+        .rr-stat { text-align: center; }
+        .rr-stat-num { font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: -0.03em; }
+        .rr-stat-label { font-size: 12px; color: var(--ink-3); margin-top: 4px; font-weight: 500; }
+
+        /* Benefits */
+        .rr-benefits { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 44px 18px; max-width: 1080px; margin: 0 auto; }
+        .rr-bcard { text-align: left; padding: 22px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); transition: box-shadow .15s, transform .15s; }
+        .rr-bcard:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+        .rr-bicon { width: 44px; height: 44px; border-radius: 11px; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--primary); font-size: 18px; }
+        .rr-bcard h3 { font-size: 15px; font-weight: 700; margin-bottom: 7px; color: var(--ink); }
+        .rr-bcard p { color: var(--ink-2); font-size: 13.5px; line-height: 1.6; }
+
+        /* How it works */
+        .rr-how { padding: 12px 18px 44px; max-width: 760px; margin: 0 auto; }
+        .rr-how-title { text-align: center; font-size: 21px; font-weight: 800; color: var(--ink); margin-bottom: 24px; letter-spacing: -0.02em; }
+        .rr-steps { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .rr-step { display: flex; gap: 13px; align-items: flex-start; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 15px 16px; }
+        .rr-step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .rr-step h4 { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+        .rr-step p { font-size: 13px; color: var(--ink-2); }
+
+        /* Final CTA */
+        .rr-cta { background: var(--primary); padding: 44px 18px; text-align: center; color: #fff; }
+        .rr-cta h2 { font-size: 24px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.02em; }
+        .rr-cta p { font-size: 14px; color: rgba(255,255,255,0.85); margin-bottom: 22px; }
+        .rr-cta button { background: #fff; color: var(--primary); border: none; padding: 14px 32px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.18); transition: transform .15s; font-family: inherit; }
+        .rr-cta button:hover { transform: translateY(-2px); }
+
+        /* FAQ */
+        .rr-faq { padding: 44px 18px; background: var(--bg); border-top: 1px solid var(--line); }
+        .rr-faq-wrap { max-width: 760px; margin: 0 auto; }
+        .rr-faq-title { text-align: center; font-size: 21px; font-weight: 800; color: var(--ink); margin-bottom: 24px; letter-spacing: -0.02em; }
+        .rr-faq-item { margin-bottom: 10px; border-radius: 12px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
+        .rr-faq-q { padding: 15px 16px; font-size: 14.5px; font-weight: 700; color: var(--ink); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+        .rr-faq-q i { transition: transform .25s; color: var(--primary); font-size: 13px; }
+        .rr-faq-a { padding: 0 16px; max-height: 0; overflow: hidden; transition: max-height .3s, padding .3s; color: var(--ink-2); font-size: 13.5px; line-height: 1.6; }
+        .rr-faq-item.active .rr-faq-q i { transform: rotate(180deg); }
+        .rr-faq-item.active .rr-faq-a { padding: 0 16px 15px; max-height: 400px; }
+
+        /* Mobile-first → expand on larger screens */
+        @media (min-width: 700px) {
+            .rr-container { padding: 32px 16px; }
+            .rr-hero { padding: 52px 28px 8px; }
+            .rr-search { padding: 26px; }
+            .rr-stats { grid-template-columns: repeat(4, 1fr); padding: 44px 24px; }
+            .rr-benefits { grid-template-columns: repeat(2, 1fr); padding: 56px 28px; }
+            .rr-hero p { font-size: 16px; }
+        }
+        @media (min-width: 992px) {
+            .rr-benefits { grid-template-columns: repeat(4, 1fr); }
+        }
+        /* Very small phones */
+        @media (max-width: 380px) {
+            .rr-mode { grid-template-columns: 1fr; }
+            .rr-note { gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+<div class="rr-container">
+    <div class="rr-wrapper">
+
+        <!-- Hero + Search -->
+        <div class="rr-hero">
+            <span class="rr-badge"><span class="rr-dot"></span> AI-Powered Reputation Intelligence</span>
+            <h1>See what the internet says about <span class="rr-grad">anyone&nbsp;/&nbsp;any&nbsp;business.</span></h1>
+            <p>Scan X, Instagram, TikTok, Facebook, LinkedIn and Google in under 60 seconds. Get an AI reputation score, competitor analysis, and a full PDF report — completely <strong>FREE</strong>.</p>
+
+            <form class="rr-search" id="rr-form" onsubmit="return rrSubmit(event)">
+                <!-- Name -->
+                <div class="rr-input-wrap">
+                    <i class="fas fa-search rr-search-icon"></i>
+                    <input type="text" id="rr-input" name="query" autocomplete="off"
+                           placeholder="Enter a name, business, or brand…" required />
+                </div>
+
+                <!-- Mode toggle -->
+                <div class="rr-mode">
+                    <button type="button" class="rr-mode-btn active" data-mode="company" onclick="rrSetMode('company')">🏢 Business / Brand</button>
+                    <button type="button" class="rr-mode-btn" data-mode="person" onclick="rrSetMode('person')">👤 Person / Influencer</button>
+                </div>
+
+                <!-- Platforms -->
+                <div>
+                    <div class="rr-plat-label">Platforms to scan</div>
+                    <div class="rr-chips" id="rr-chips">
+                        <button type="button" class="rr-chip active" data-p="twitter"   onclick="rrToggle(this)"><i class="fab fa-x-twitter"></i> X <i class="fas fa-check rr-check"></i></button>
+                        <button type="button" class="rr-chip active" data-p="instagram" onclick="rrToggle(this)"><i class="fab fa-instagram"></i> Instagram <i class="fas fa-check rr-check"></i></button>
+                        <button type="button" class="rr-chip active" data-p="tiktok"    onclick="rrToggle(this)"><i class="fab fa-tiktok"></i> TikTok <i class="fas fa-check rr-check"></i></button>
+                        <button type="button" class="rr-chip active" data-p="facebook"  onclick="rrToggle(this)"><i class="fab fa-facebook-f"></i> Facebook <i class="fas fa-check rr-check"></i></button>
+                        <button type="button" class="rr-chip active" data-p="linkedin"  onclick="rrToggle(this)"><i class="fab fa-linkedin-in"></i> LinkedIn <i class="fas fa-check rr-check"></i></button>
+                        <button type="button" class="rr-chip active" data-p="google"    onclick="rrToggle(this)"><i class="fab fa-google"></i> Google <i class="fas fa-check rr-check"></i></button>
+                    </div>
+                </div>
+
+                <!-- Google location (only when Google + Business) -->
+                <div class="rr-loc" id="rr-loc">
+                    <i class="fas fa-location-dot"></i>
+                    <input type="text" id="rr-loc-input" placeholder="City for Google Business (e.g. New York)" />
+                </div>
+
+                <div class="rr-err" id="rr-err">This query cannot be processed.</div>
+
+                <button type="submit" id="rr-btn">Check Reputation <i class="fas fa-arrow-right"></i></button>
+
+                <div class="rr-note">
+                    <span><i class="fas fa-check"></i> No signup required</span>
+                    <span><i class="fas fa-check"></i> Results in 60s</span>
+                    <span><i class="fas fa-lock"></i> Private</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Stats -->
+        <div class="rr-stats">
+            <div class="rr-stat"><div class="rr-stat-num">6</div><div class="rr-stat-label">Platforms Scanned</div></div>
+            <div class="rr-stat"><div class="rr-stat-num">&lt;60s</div><div class="rr-stat-label">Generation Time</div></div>
+            <div class="rr-stat"><div class="rr-stat-num">AI</div><div class="rr-stat-label">Powered Analysis</div></div>
+            <div class="rr-stat"><div class="rr-stat-num">100%</div><div class="rr-stat-label">Free</div></div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="rr-benefits">
+            <div class="rr-bcard"><div class="rr-bicon"><i class="fas fa-chart-simple"></i></div><h3>Reputation Score</h3><p>An AI score from 1–10 based on real social signals, reviews and web presence across every platform.</p></div>
+            <div class="rr-bcard"><div class="rr-bicon"><i class="fas fa-brain"></i></div><h3>Sentiment Analysis</h3><p>See exactly how the internet talks about you — positive, neutral and negative, broken down by platform.</p></div>
+            <div class="rr-bcard"><div class="rr-bicon"><i class="fas fa-trophy"></i></div><h3>Competitor Benchmarks</h3><p>See how your reputation stacks up against your top competitors, side by side.</p></div>
+            <div class="rr-bcard"><div class="rr-bicon"><i class="fas fa-file-pdf"></i></div><h3>Full PDF Report</h3><p>A boardroom-ready PDF with a 30/60/90-day action plan — yours to download and share.</p></div>
+        </div>
+
+        <!-- How it works -->
+        <div class="rr-how">
+            <div class="rr-how-title">From name to report in 60 seconds</div>
+            <div class="rr-steps">
+                <div class="rr-step"><div class="rr-step-num">1</div><div><h4>Enter a name</h4><p>Type any business, brand or person and choose the platforms to scan.</p></div></div>
+                <div class="rr-step"><div class="rr-step-num">2</div><div><h4>Confirm the profiles</h4><p>Our AI finds the best match on each platform — swap any that are wrong in one tap.</p></div></div>
+                <div class="rr-step"><div class="rr-step-num">3</div><div><h4>Get your report</h4><p>We analyse sentiment, score your reputation, and build a full PDF you can download instantly.</p></div></div>
+            </div>
+        </div>
+
+        <!-- Final CTA -->
+        <div class="rr-cta">
+            <h2>Ready to see your reputation?</h2>
+            <p>It takes 30 seconds. No account needed.</p>
+            <button onclick="document.getElementById('rr-input').scrollIntoView({behavior:'smooth',block:'center'}); document.getElementById('rr-input').focus();">Check Your Reputation — Free</button>
+        </div>
+
+        <!-- FAQ -->
+        <div class="rr-faq">
+            <div class="rr-faq-wrap">
+                <div class="rr-faq-title">Frequently asked questions</div>
+                <div class="rr-faq-item"><div class="rr-faq-q">Is it really free? <i class="fas fa-chevron-down"></i></div><div class="rr-faq-a">Yes — completely free, no credit card and no expiring trial. Enter a name, pick your platforms, and get a full PDF reputation report.</div></div>
+                <div class="rr-faq-item"><div class="rr-faq-q">How accurate is the reputation score? <i class="fas fa-chevron-down"></i></div><div class="rr-faq-a">The score is generated by AI analysing real social posts, comments, reviews, news coverage and web search results — blending social sentiment with web &amp; search presence.</div></div>
+                <div class="rr-faq-item"><div class="rr-faq-q">Do I need to create an account? <i class="fas fa-chevron-down"></i></div><div class="rr-faq-a">No. You can generate and download a full report without signing up. We only ask for an email so we can send you a copy of the PDF.</div></div>
+                <div class="rr-faq-item"><div class="rr-faq-q">Which platforms do you scan? <i class="fas fa-chevron-down"></i></div><div class="rr-faq-a">X (Twitter), Instagram, TikTok, Facebook, LinkedIn and Google Business — plus a web &amp; search intelligence layer that pulls in news, reviews and press mentions.</div></div>
+                <div class="rr-faq-item"><div class="rr-faq-q">Is my search private? <i class="fas fa-chevron-down"></i></div><div class="rr-faq-a">Yes. We only analyse publicly available information — the same posts, reviews and results anyone could find. We never post, never access private accounts, and never share your data.</div></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    var RR_MODE = "company";
+
+    // Blocklist (mirrors rep-radar.com)
+    var RR_BLOCKED = ["john ellis","john s ellis","john spencer ellis","dr john spencer ellis","dr john ellis","johnellis","johnspencerellis","drjohnspencerellis","jspencerellis","johnsellis","reputation return","reputationreturn","reputation-return"];
+    function rrIsBlocked(q) {
+        var n = q.toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim();
+        return RR_BLOCKED.some(function(t){ var tn = t.toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim(); return n === tn || n.indexOf(tn) !== -1; });
+    }
+
+    function rrSetMode(mode) {
+        RR_MODE = mode;
+        document.querySelectorAll('.rr-mode-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.mode === mode); });
+        var googleChip = document.querySelector('.rr-chip[data-p="google"]');
+        if (mode === "person") {
+            // Person/influencer has no Google Business — hide + deselect it
+            googleChip.classList.remove('active');
+            googleChip.classList.add('hidden');
+        } else {
+            googleChip.classList.remove('hidden');
+            googleChip.classList.add('active');
+        }
+        rrUpdateLoc();
+    }
+
+    function rrToggle(btn) {
+        btn.classList.toggle('active');
+        rrUpdateLoc();
+    }
+
+    function rrUpdateLoc() {
+        var googleChip = document.querySelector('.rr-chip[data-p="google"]');
+        var loc = document.getElementById('rr-loc');
+        var show = RR_MODE === "company" && googleChip.classList.contains('active') && !googleChip.classList.contains('hidden');
+        loc.classList.toggle('show', show);
+    }
+
+    function rrSelectedPlatforms() {
+        var out = [];
+        document.querySelectorAll('.rr-chip.active').forEach(function(c){ if (!c.classList.contains('hidden')) out.push(c.dataset.p); });
+        return out;
+    }
+
+    function rrSubmit(e) {
+        e.preventDefault();
+        var input = document.getElementById('rr-input');
+        var err = document.getElementById('rr-err');
+        var btn = document.getElementById('rr-btn');
+        var q = input.value.trim();
+        if (!q) return false;
+
+        if (rrIsBlocked(q)) { err.classList.add('show'); return false; }
+        err.classList.remove('show');
+
+        var platforms = rrSelectedPlatforms();
+        if (platforms.length === 0) { err.textContent = "Please select at least one platform."; err.classList.add('show'); return false; }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning…';
+
+        // Build URL carrying name + mode + platforms (+ Google location) into the
+        // rep-radar.com search / profile-selection flow.
+        var params = new URLSearchParams();
+        params.set('query', q);
+        params.set('mode', RR_MODE);
+        params.set('platforms', platforms.join(','));
+        var locVal = document.getElementById('rr-loc-input').value.trim();
+        if (locVal) params.set('location', locVal);
+
+        window.location.href = 'https://www.rep-radar.com/search?' + params.toString();
+        return false;
+    }
+
+    // FAQ accordion
+    document.querySelectorAll('.rr-faq-q').forEach(function(q){
+        q.addEventListener('click', function(){ q.parentElement.classList.toggle('active'); });
+    });
+</script>
+</body>
+</html>
