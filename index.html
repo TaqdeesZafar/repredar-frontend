@@ -131,8 +131,16 @@
     }
     </script>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="margin:0;background:#F8F9FC;">
+    <div id="root">
+      <!-- App-shell loader: shown until React mounts so there is never a blank
+           white screen (especially when arriving from the reputationreturn.com embed) -->
+      <div id="rr-boot" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#F8F9FC;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+        <div style="width:48px;height:48px;border:4px solid rgba(37,99,235,0.15);border-top-color:#2563EB;border-radius:50%;animation:rrboot .8s linear infinite;"></div>
+        <div style="font-size:15px;font-weight:700;color:#0F172A;">Loading Rep Radar…</div>
+      </div>
+      <style>@keyframes rrboot{to{transform:rotate(360deg)}}</style>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
