@@ -894,7 +894,7 @@ const Hero = () => {
                 color: "var(--text-1)",
               }}
             >
-              See what the internet<br/>
+              See what the internet says about<br/>
               <span style={{
                 backgroundImage: "linear-gradient(135deg, #2563EB, #7C3AED)",
                 WebkitBackgroundClip: "text",
@@ -903,13 +903,13 @@ const Hero = () => {
                 display: "inline-block",
                 transition: "none",
               }}>
-                says about anyone.
+                anyone / any business.
               </span>
             </div>
 
             {/* Subheadline */}
-            <p className="hero-sub" style={{ fontSize: 17, color: "var(--text-2)", lineHeight: 1.65, marginBottom: 28, maxWidth: 460, marginTop: 0 }}>
-              Scan X, Instagram, TikTok, Facebook, LinkedIn and Google in under 60 seconds. Get an AI reputation score, competitor analysis, and a full PDF — completely free.
+            <p className="hero-sub" style={{ fontSize: 17, color: "var(--text-2)", lineHeight: 1.65, marginBottom: 28, maxWidth: 480, marginTop: 0 }}>
+              You can scan X, Instagram, TikTok, Facebook, LinkedIn and Google in under 60 seconds. Get an AI reputation score, competitor analysis, and a full PDF report with specific data points — completely <strong style={{ color: "var(--text-1)", fontWeight: 700 }}>FREE</strong>.
             </p>
 
             {/* Search card */}
