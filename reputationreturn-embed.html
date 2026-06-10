@@ -75,6 +75,56 @@
         .rr-hero p { font-size: 15px; color: var(--ink-2); max-width: 600px; margin: 0 auto 26px; line-height: 1.6; }
         .rr-hero p strong { color: var(--ink); font-weight: 700; }
 
+        /* Video — premium click-to-play (no autoplay), top-center */
+        .rr-video {
+            position: relative; max-width: 720px; width: 100%; margin: 0 auto 30px;
+            aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; cursor: pointer;
+            background: #0F1F3D; box-shadow: 0 18px 50px rgba(15,23,42,0.22);
+            border: 1px solid var(--line);
+        }
+        .rr-video img.rr-poster {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; transition: transform .5s ease, filter .3s ease;
+        }
+        .rr-video:hover img.rr-poster { transform: scale(1.04); filter: brightness(0.92); }
+        /* gradient scrim for legibility + premium feel */
+        .rr-video .rr-scrim {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(15,31,61,0.10) 0%, rgba(15,31,61,0) 35%, rgba(15,31,61,0.35) 100%);
+            pointer-events: none;
+        }
+        .rr-play-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            width: 74px; height: 74px; border-radius: 50%;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.30); transition: transform .25s ease, background .25s ease;
+        }
+        .rr-video:hover .rr-play-btn { transform: translate(-50%,-50%) scale(1.08); background: #fff; }
+        .rr-play-btn::after {
+            content: ""; margin-left: 5px;
+            border-style: solid; border-width: 13px 0 13px 22px;
+            border-color: transparent transparent transparent var(--primary);
+        }
+        /* pulsing ring */
+        .rr-play-ring {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            width: 74px; height: 74px; border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(255,255,255,0.55); animation: rrPulse 2.2s infinite;
+            pointer-events: none;
+        }
+        @keyframes rrPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.45); }
+            70% { box-shadow: 0 0 0 22px rgba(255,255,255,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+        }
+        .rr-video .rr-vlabel {
+            position: absolute; left: 16px; bottom: 14px; z-index: 2;
+            color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 0.2px;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.5); pointer-events: none;
+        }
+        .rr-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
         /* Search card */
         .rr-search {
             background: var(--surface); padding: 22px; border-radius: var(--radius); box-shadow: var(--shadow-md);
@@ -200,6 +250,12 @@
             .rr-mode { grid-template-columns: 1fr; }
             .rr-note { gap: 8px; }
         }
+        @media (max-width: 560px) {
+            .rr-video { border-radius: 14px; margin-bottom: 24px; }
+            .rr-play-btn, .rr-play-ring { width: 60px; height: 60px; }
+            .rr-play-btn::after { border-width: 11px 0 11px 18px; }
+            .rr-video .rr-vlabel { font-size: 11px; left: 12px; bottom: 11px; }
+        }
     </style>
 </head>
 <body>
@@ -219,6 +275,18 @@
             <span class="rr-badge"><span class="rr-dot"></span> AI-Powered Reputation Intelligence</span>
             <h1>See what the internet says about <span class="rr-grad">anyone&nbsp;/&nbsp;any&nbsp;business.</span></h1>
             <p>Scan X, Instagram, TikTok, Facebook, LinkedIn and Google in under 60 seconds. Get an AI reputation score, competitor analysis, and a full PDF report — completely <strong>FREE</strong>.</p>
+
+            <!-- Video (click to play, no autoplay) -->
+            <div class="rr-video" id="rr-video" onclick="rrPlayVideo()" role="button" aria-label="Play Rep Radar video">
+                <img class="rr-poster" id="rr-poster"
+                     src="https://i.ytimg.com/vi/3qEQRyLqW0g/maxresdefault.jpg"
+                     onerror="this.src='https://i.ytimg.com/vi/3qEQRyLqW0g/hqdefault.jpg'"
+                     alt="Rep Radar — see how it works" />
+                <div class="rr-scrim"></div>
+                <span class="rr-play-ring"></span>
+                <span class="rr-play-btn"></span>
+                <span class="rr-vlabel">▶ Watch: How Rep Radar works</span>
+            </div>
 
             <form class="rr-search" id="rr-form" onsubmit="return rrSubmit(event)">
                 <!-- Name -->
@@ -315,6 +383,16 @@
 
 <script>
     var RR_MODE = "company";
+
+    // Click-to-play video: loads the YouTube iframe only on click (no autoplay
+    // on page load). autoplay=1 here just means it starts once the user clicks.
+    function rrPlayVideo() {
+        var box = document.getElementById('rr-video');
+        if (box.dataset.played) return;
+        box.dataset.played = "1";
+        box.innerHTML = '<iframe src="https://www.youtube.com/embed/3qEQRyLqW0g?autoplay=1&rel=0&modestbranding=1" title="Rep Radar" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+        box.style.cursor = "default";
+    }
 
     // Blocklist (mirrors rep-radar.com)
     var RR_BLOCKED = ["john ellis","john s ellis","john spencer ellis","dr john spencer ellis","dr john ellis","johnellis","johnspencerellis","drjohnspencerellis","jspencerellis","johnsellis","reputation return","reputationreturn","reputation-return"];
