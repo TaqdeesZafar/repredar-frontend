@@ -15,6 +15,8 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword  = lazy(() => import("./pages/ResetPassword"));
 const Profile        = lazy(() => import("./pages/Profile"));
 const ReportDownload = lazy(() => import("./pages/ReportDownload"));
+const PrivacyPolicy  = lazy(() => import("./pages/Legal").then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService = lazy(() => import("./pages/Legal").then(m => ({ default: m.TermsOfService })));
 
 // Lightweight fallback while a route chunk loads.
 function RouteLoader() {
@@ -65,6 +67,8 @@ function App() {
             />
             <Route path="/subscriptions" element={<Navigate to="/" replace />} />
             <Route path="/report/:token" element={<ReportDownload />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
           </Routes>
         </Suspense>
       </Layout>

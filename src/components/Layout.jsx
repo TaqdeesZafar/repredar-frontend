@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import Logo from "./common/Logo"
+import Footer from "./Footer"
 import { isTokenExpired } from "../utils/token"
 
 export default function Layout({ children }) {
@@ -370,6 +371,7 @@ export default function Layout({ children }) {
         </div>
 
         <main style={{ flex: 1, width: "100%", maxWidth: "100%" }}>{children}</main>
+        <Footer />
       </div>
     </>
   )
