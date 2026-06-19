@@ -82,11 +82,12 @@
             background: #0F1F3D; box-shadow: 0 18px 50px rgba(15,23,42,0.22);
             border: 1px solid var(--line);
         }
-        .rr-video img.rr-poster {
+        .rr-video .rr-poster {
             position: absolute; inset: 0; width: 100%; height: 100%;
             object-fit: cover; transition: transform .5s ease, filter .3s ease;
+            background: #0F1F3D;
         }
-        .rr-video:hover img.rr-poster { transform: scale(1.04); filter: brightness(0.92); }
+        .rr-video:not([data-played]):hover .rr-poster { transform: scale(1.04); filter: brightness(0.92); }
         /* gradient scrim for legibility + premium feel */
         .rr-video .rr-scrim {
             position: absolute; inset: 0;
@@ -276,16 +277,15 @@
             <h1>See what the internet says about <span class="rr-grad">anyone&nbsp;/&nbsp;any&nbsp;business.</span></h1>
             <p>Scan X, Instagram, TikTok, Facebook, LinkedIn and Google in under 60 seconds. Get an AI reputation score, competitor analysis, and a full PDF report — completely <strong>FREE</strong>.</p>
 
-            <!-- Video (click to play, no autoplay) -->
+            <!-- Video (self-hosted MP4, click to play, no autoplay) -->
             <div class="rr-video" id="rr-video" onclick="rrPlayVideo()" role="button" aria-label="Play Rep Radar video">
-                <img class="rr-poster" id="rr-poster"
-                     src="https://i.ytimg.com/vi/5E82HO02Hq4/maxresdefault.jpg"
-                     onerror="this.src='https://i.ytimg.com/vi/5E82HO02Hq4/hqdefault.jpg'"
-                     alt="Rep Radar — see how it works" />
-                <div class="rr-scrim"></div>
-                <span class="rr-play-ring"></span>
-                <span class="rr-play-btn"></span>
-                <span class="rr-vlabel">▶ Watch: How Rep Radar works</span>
+                <video id="rr-vid" class="rr-poster" playsinline preload="metadata"
+                       src="https://assets.cdn.filesafe.space/8ruyaF7jPFn80DapOE7Z/media/6a2b0acae5084c4b718fce40.mp4#t=0.1">
+                </video>
+                <div class="rr-scrim" id="rr-scrim"></div>
+                <span class="rr-play-ring" id="rr-ring"></span>
+                <span class="rr-play-btn" id="rr-pbtn"></span>
+                <span class="rr-vlabel" id="rr-vlabel">▶ Watch: How Rep Radar works</span>
             </div>
 
             <form class="rr-search" id="rr-form" onsubmit="return rrSubmit(event)">
@@ -384,14 +384,21 @@
 <script>
     var RR_MODE = "company";
 
-    // Click-to-play video: loads the YouTube iframe only on click (no autoplay
-    // on page load). autoplay=1 here just means it starts once the user clicks.
+    // Click-to-play self-hosted video. Never autoplays on load; starts with
+    // sound only when the user clicks the play button, then shows native controls.
     function rrPlayVideo() {
         var box = document.getElementById('rr-video');
+        var vid = document.getElementById('rr-vid');
         if (box.dataset.played) return;
         box.dataset.played = "1";
-        box.innerHTML = '<iframe src="https://www.youtube.com/embed/5E82HO02Hq4?autoplay=1&rel=0&modestbranding=1" title="Rep Radar" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
-        box.style.cursor = "default";
+        // Hide the custom overlay, reveal native controls
+        ['rr-scrim','rr-ring','rr-pbtn','rr-vlabel'].forEach(function(id){
+            var el = document.getElementById(id); if (el) el.style.display = 'none';
+        });
+        vid.setAttribute('controls', 'controls');
+        box.style.cursor = 'default';
+        var p = vid.play();
+        if (p && p.catch) { p.catch(function(){ /* user can press the native play button */ }); }
     }
 
     // Blocklist (mirrors rep-radar.com)
