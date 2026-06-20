@@ -17,6 +17,8 @@ const Profile        = lazy(() => import("./pages/Profile"));
 const ReportDownload = lazy(() => import("./pages/ReportDownload"));
 const PrivacyPolicy  = lazy(() => import("./pages/Legal").then(m => ({ default: m.PrivacyPolicy })));
 const TermsOfService = lazy(() => import("./pages/Legal").then(m => ({ default: m.TermsOfService })));
+const Blog           = lazy(() => import("./pages/Blog"));
+const BlogPost       = lazy(() => import("./pages/BlogPost"));
 
 // Lightweight fallback while a route chunk loads.
 function RouteLoader() {
@@ -69,6 +71,8 @@ function App() {
             <Route path="/report/:token" element={<ReportDownload />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
           </Routes>
         </Suspense>
       </Layout>

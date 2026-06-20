@@ -67,6 +67,7 @@ export default function Footer() {
             <div style={colTitle}>Product</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
               <NavLink to="/">Check Reputation</NavLink>
+              <NavLink to="/blog">Blog</NavLink>
               <NavLink to="/signup">Create Account</NavLink>
               <NavLink to="/login">Login</NavLink>
             </div>
